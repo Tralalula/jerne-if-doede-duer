@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using DataAccess.Models;
+using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Service.Auth;
 
@@ -18,4 +20,13 @@ public class AuthController(IAuthService service) : ControllerBase
         await validator.ValidateAndThrowAsync(request);
         return Ok(await service.LoginAsync(request));
     }
+    
+    [HttpPost("register")]
+    public async Task<RegisterResponse> Register([FromServices] IValidator<RegisterRequest> validator,
+                                                 [FromBody] RegisterRequest request) 
+    {
+        await validator.ValidateAndThrowAsync(request);
+        return await service.RegisterAsync(request);
+    }
+    
 }

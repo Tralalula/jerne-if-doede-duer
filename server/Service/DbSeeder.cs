@@ -29,7 +29,7 @@ public class DbSeeder
         await _context.Database.EnsureCreatedAsync();
         
         await CreateRoles(Role.All);
-        await CreateUser(email: "admind@example.com", password: "Kakao1234!", role: Role.Admin);
+        await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin);
         await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player);
     }
     

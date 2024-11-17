@@ -1,12 +1,13 @@
 using API.ExceptionHandler;
 using DataAccess;
 using DataAccess.Models;
-using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Converters;
 using Service;
+using Service.Auth;
 using Service.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddOptions<AppOptions>()
                 .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+                
 #region Data Access
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
@@ -34,18 +36,28 @@ builder.Services.AddIdentityApiEndpoints<User>()
 builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();
 #endregion
     
+#region Services
+builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+#endregion
+    
 builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
-                
-                
+
 builder.Services.AddOpenApiDocument(configure =>
 {
     configure.Title = "Jerne IF API";
     configure.Version = "v1";
     configure.Description = "API til Jerne IF døde duer";
+});
+
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+    //options.AppendTrailingSlash = true;
 });
 
 builder.Services.AddProblemDetails(options =>
@@ -80,6 +92,7 @@ app.UseStatusCodePages();
 app.UseExceptionHandler();
 
 app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+app.MapControllers();
 
 app.UseHttpsRedirection();
 

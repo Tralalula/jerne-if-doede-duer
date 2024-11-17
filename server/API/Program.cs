@@ -1,4 +1,10 @@
 using API.ExceptionHandler;
+using DataAccess;
+using DataAccess.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Converters;
 using Service;
 
@@ -10,12 +16,16 @@ builder.Services.AddOptions<AppOptions>()
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-//builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
-//{
-//    var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
-//    options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
-//});
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+{
+    var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
+    options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
+});
 
+builder.Services.AddIdentityApiEndpoints<IdentityUser<Guid>>()
+                .AddRoles<IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<AppDbContext>();
+    
 builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
@@ -40,6 +50,14 @@ builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.EnsureDeleted();
+    context.Database.EnsureCreated();
+   // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
+}
+
 // Middleware
 app.UseStaticFiles();
 
@@ -55,12 +73,7 @@ app.UseExceptionHandler();
 
 app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
-app.MapControllers();
-
-// using (var scope = app.Services.CreateScope())
-// {
-//    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
-// }
+app.UseHttpsRedirection();
 
 app.Run();
 

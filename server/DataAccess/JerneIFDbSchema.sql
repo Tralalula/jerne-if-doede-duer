@@ -1,3 +1,113 @@
-drop schema public cascade;
-create schema public;
+﻿-- Drop
+DROP TABLE IF EXISTS balance_history CASCADE;
+DROP TABLE IF EXISTS user_history CASCADE;
+DROP TABLE IF EXISTS winner_sequences CASCADE;
+DROP TABLE IF EXISTS pot CASCADE;
+DROP TABLE IF EXISTS autoplay_boards CASCADE;
+DROP TABLE IF EXISTS boards CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS purchases CASCADE;
+DROP TABLE IF EXISTS games CASCADE;
 
+-- Create
+CREATE TABLE games (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    field_count INT NOT NULL DEFAULT 16
+);
+
+CREATE TABLE purchases (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    fields INTEGER[] NOT NULL,
+    price INTEGER NOT NULL
+);
+
+CREATE TABLE transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    user_id UUID NOT NULL,
+    credits INTEGER NOT NULL,
+    mobilepay_transaction_number VARCHAR(50),
+    CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+);
+
+CREATE TABLE boards (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    user_id UUID NOT NULL,
+    game_id UUID NOT NULL,
+    configuration INTEGER[] NOT NULL,
+    purchase_id UUID NOT NULL,
+    CONSTRAINT boards_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    CONSTRAINT boards_game_id_fkey FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE,
+    CONSTRAINT boards_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE
+);
+
+CREATE TABLE autoplay_boards (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    user_id UUID NOT NULL,
+    configuration INTEGER[] NOT NULL,
+    purchase_id UUID NOT NULL,
+    CONSTRAINT autoplay_boards_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    CONSTRAINT autoplay_boards_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE
+);
+
+CREATE TABLE pot (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    rollover_amount INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE winner_sequences (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    game_id UUID NOT NULL,
+    sequence INTEGER[] NOT NULL,
+    CONSTRAINT winner_sequences_game_id_fkey FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_history (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    affected_user_id UUID NOT NULL,
+    change_made_by_user_id UUID NOT NULL,
+    email VARCHAR(256) NOT NULL,
+    password_hash TEXT NOT NULL,
+    phone_number TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    CONSTRAINT user_history_affected_user_id_fkey FOREIGN KEY (affected_user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    CONSTRAINT user_history_change_made_by_user_id_fkey FOREIGN KEY (change_made_by_user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL
+);
+
+CREATE TABLE balance_history (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    user_id UUID NOT NULL,
+    amount INTEGER NOT NULL,
+    additional_id UUID,
+    action VARCHAR(50) NOT NULL,
+    CONSTRAINT balance_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    CHECK (action IN ('user_bought', 'user_used', 'admin_assigned', 'admin_revoked', 'won_prize'))
+);
+
+-- Indexes
+CREATE INDEX ix_transactions_user_id ON transactions (user_id);
+CREATE INDEX ix_transactions_timestamp ON transactions (timestamp);
+CREATE INDEX ix_boards_user_id ON boards (user_id);
+CREATE INDEX ix_boards_game_id ON boards (game_id);
+CREATE INDEX ix_boards_purchase_id ON boards (purchase_id);
+CREATE INDEX ix_autoplay_boards_user_id ON autoplay_boards (user_id);
+CREATE INDEX ix_autoplay_boards_purchase_id ON autoplay_boards (purchase_id);
+CREATE INDEX ix_games_start_time ON games (start_time);
+CREATE INDEX ix_games_end_time ON games (end_time);
+CREATE INDEX ix_winner_sequences_game_id ON winner_sequences (game_id);
+CREATE INDEX ix_user_history_affected_user_id ON user_history (affected_user_id);
+CREATE INDEX ix_user_history_change_made_by_user_id ON user_history (change_made_by_user_id);
+CREATE INDEX ix_user_history_timestamp ON user_history (timestamp);
+CREATE INDEX ix_balance_history_user_id ON balance_history (user_id);
+CREATE INDEX ix_balance_history_action ON balance_history (action);
+CREATE INDEX ix_balance_history_timestamp ON balance_history (timestamp);

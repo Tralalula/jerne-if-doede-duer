@@ -22,6 +22,8 @@ public class AuthController(IAuthService service) : ControllerBase
     }
     
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<RegisterResponse> Register([FromServices] IValidator<RegisterRequest> validator,
                                                  [FromBody] RegisterRequest request) 
     {
@@ -29,4 +31,10 @@ public class AuthController(IAuthService service) : ControllerBase
         return await service.RegisterAsync(request);
     }
     
+    [HttpPost("logout")]
+    public async Task<IResult> Logout()
+    {
+        await service.LogoutAsync();
+        return Results.Ok();
+    }
 }

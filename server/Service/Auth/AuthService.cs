@@ -10,6 +10,7 @@ public interface IAuthService
 {
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<RegisterResponse> RegisterAsync(RegisterRequest request);
+    Task LogoutAsync();
 }
 
 public class AuthService(SignInManager<User> signInManager, UserManager<User> userManager) : IAuthService
@@ -41,5 +42,10 @@ public class AuthService(SignInManager<User> signInManager, UserManager<User> us
         await userManager.AddToRoleAsync(user, Role.Player);
         
         return new RegisterResponse(Email: user.Email);
+    }
+
+    public async Task LogoutAsync()
+    {
+        await signInManager.SignOutAsync();
     }
 }

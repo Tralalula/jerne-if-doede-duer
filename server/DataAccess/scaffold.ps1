@@ -12,7 +12,7 @@ foreach ($table in $tables) {
 
 Invoke-Expression $scaffoldCommand
 
-(Get-Content "$context.cs") -replace ": DbContext", ": IdentityDbContext<User, IdentityRole<Guid>, Guid>" | Set-Content "$context.cs"
+(Get-Content "$context.cs") -replace ": DbContext", ": IdentityDbContext<User, Role, Guid>" | Set-Content "$context.cs"
 
 $usings = @"
 using Microsoft.AspNetCore.Identity;
@@ -41,7 +41,7 @@ Set-Content $identityUserFilePath -Value $userContent
 $modelsDirectory = "Models"
 
 $csFiles = Get-ChildItem $modelsDirectory -Filter "*.cs" | Where-Object {
-  $_.Name -notmatch "^(AspNetUser|User)\.cs$"
+  $_.Name -notmatch "^(AspNetUser|User|Role)\.cs$"
 }
 
 foreach ($file in $csFiles) {

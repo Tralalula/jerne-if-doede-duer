@@ -15,15 +15,19 @@ builder.Services.AddOptions<AppOptions>()
                 .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
-
+#region Data Access
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
     var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
     options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
 });
 
-builder.Services.AddIdentityApiEndpoints<IdentityUser<Guid>>()
-                .AddRoles<IdentityRole<Guid>>()
+builder.Services.AddScoped<DbSeeder>();
+#endregion
+
+
+builder.Services.AddIdentityApiEndpoints<User>()
+                .AddRoles<Role>()
                 .AddEntityFrameworkStores<AppDbContext>();
     
 builder.Services.AddControllers()
@@ -52,9 +56,9 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
+    scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
+    //context.Database.EnsureDeleted();
+    //context.Database.EnsureCreated();
    // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
 }
 
@@ -63,7 +67,7 @@ app.UseStaticFiles();
 
 app.UseOpenApi();
 app.UseSwaggerUi(settings =>
-{ 
+{
     settings.DocumentTitle = "Jerne IF API";
     settings.DocExpansion = "list";
     settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";

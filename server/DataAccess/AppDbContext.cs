@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess;
 
-public partial class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)

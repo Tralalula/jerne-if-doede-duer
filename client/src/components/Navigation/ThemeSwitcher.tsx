@@ -1,11 +1,11 @@
 import { useAtom } from "jotai";
-import { ThemeAtom } from "../../atoms/ThemeAtom";
+import { themeAtom } from "../import";
 import themes from "daisyui/src/theming/themes";
 import { Theme } from "daisyui";
 import { FaPalette } from "react-icons/fa";
 
 export default function ThemeSwitcher() {
-    const [theme, setTheme] = useAtom(ThemeAtom);
+    const [theme, setTheme] = useAtom(themeAtom);
 
     return (
         <div className="dropdown dropdown-end">

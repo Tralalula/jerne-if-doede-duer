@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import Profile from "./Profile";
-import ShopCart from "./ShopCart";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 export default function Navigation() {

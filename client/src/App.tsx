@@ -1,13 +1,14 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
-import {ThemeAtom} from "./atoms/ThemeAtom";
-import { Routes, Route } from 'react-router-dom';
-import Navigation from "./components/Navigation/Navigation";
-import HomePage from "./pages/Home";
+import { Routes, Route } from "react-router-dom";
+import { HomePage, LoginPage } from "./pages/index";
+import { Navigation, DaisyToaster } from "./components/index";
+import { themeAtom } from "./atoms/index";
+import { AppRoutes } from "./helpers/index";
 
 const App = () => {
 
-  const [theme] = useAtom(ThemeAtom);
+  const [theme] = useAtom(themeAtom);
 
   useEffect(() => {
       localStorage.setItem('theme', theme);
@@ -16,9 +17,11 @@ const App = () => {
 
   return (
     <>
-    <Navigation/>
+      <Navigation/>
+      <DaisyToaster />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+          <Route path={AppRoutes.Home} element={<HomePage />} />
+          <Route path={AppRoutes.Login} element={<LoginPage />} />
       </Routes>
     </>
   );

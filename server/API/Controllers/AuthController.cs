@@ -37,4 +37,10 @@ public class AuthController(IAuthService service) : ControllerBase
         await service.LogoutAsync();
         return Results.Ok();
     }
+    
+    [HttpGet("me")]
+    public async Task<UserInfoResponse> UserInfo()
+    {
+        return await service.UserInfoAsync(); 
+    }
 }

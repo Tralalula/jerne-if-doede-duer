@@ -1,6 +1,4 @@
-import React from 'react';
-
-const HomePage: React.FC = () => {
+export default function HomePage() {
   return (
     <div className="hero bg-base-200 min-h-screen">
     <div className="hero-content text-center">
@@ -16,5 +14,3 @@ const HomePage: React.FC = () => {
     </div>
   )
 };
-
-export default HomePage;

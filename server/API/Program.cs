@@ -1,4 +1,5 @@
 using API.ExceptionHandler;
+using API.Extensions;
 using DataAccess;
 using DataAccess.Models;
 using FluentValidation;
@@ -52,6 +53,7 @@ builder.Services.AddOpenApiDocument(configure =>
     configure.Title = "Jerne IF API";
     configure.Version = "v1";
     configure.Description = "API til Jerne IF døde duer";
+    configure.DocumentProcessors.Add(new MakeAllPropertiesRequiredProcessor());
 });
 
 builder.Services.AddRouting(options =>

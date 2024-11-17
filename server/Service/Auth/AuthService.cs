@@ -1,6 +1,7 @@
 ﻿using DataAccess.Models;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Service.Exceptions;
 
@@ -11,6 +12,7 @@ public interface IAuthService
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<RegisterResponse> RegisterAsync(RegisterRequest request);
     Task LogoutAsync();
+    Task<UserInfoResponse> UserInfoAsync();
 }
 
 public class AuthService(SignInManager<User> signInManager, UserManager<User> userManager) : IAuthService
@@ -47,5 +49,14 @@ public class AuthService(SignInManager<User> signInManager, UserManager<User> us
     public async Task LogoutAsync()
     {
         await signInManager.SignOutAsync();
+    }
+
+    public async Task<UserInfoResponse> UserInfoAsync()
+    {
+        var user = await userManager.FindByEmailAsync("admin@example.com") ?? throw new UnauthorizedException();
+        var roles = await userManager.GetRolesAsync(user);
+        bool isAdmin = roles.Contains(Role.Admin);
+        
+        return new UserInfoResponse("admin@example.com", isAdmin);
     }
 }

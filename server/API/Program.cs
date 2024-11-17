@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Converters;
 using Service;
+using Service.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +26,13 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 builder.Services.AddScoped<DbSeeder>();
 #endregion
 
-
+#region Authentication
 builder.Services.AddIdentityApiEndpoints<User>()
                 .AddRoles<Role>()
                 .AddEntityFrameworkStores<AppDbContext>();
+                
+builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();
+#endregion
     
 builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>

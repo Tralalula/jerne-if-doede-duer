@@ -9,6 +9,11 @@
     <ItemGroup>
         <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
         <ProjectReference Include="..\SharedDependencies\SharedDependencies.csproj" />
+        <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Security\" />
     </ItemGroup>
     
 </Project>

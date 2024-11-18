@@ -48,12 +48,12 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenClaimService.ValidationParameters(appOptions));
-builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
 #endregion
     
 #region Services
 builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
 #endregion
     
 builder.Services.AddControllers()

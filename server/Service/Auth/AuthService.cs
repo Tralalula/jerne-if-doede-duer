@@ -1,4 +1,5 @@
-﻿using DataAccess.Models;
+﻿using System.Security.Claims;
+using DataAccess.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +13,7 @@ public interface IAuthService
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<RegisterResponse> RegisterAsync(RegisterRequest request);
     Task LogoutAsync();
-    Task<UserInfoResponse> UserInfoAsync();
+    Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal);
 }
 
 public class AuthService(SignInManager<User> signInManager, UserManager<User> userManager, ITokenClaimService tokenClaimService) : IAuthService
@@ -52,12 +53,12 @@ public class AuthService(SignInManager<User> signInManager, UserManager<User> us
         await signInManager.SignOutAsync();
     }
 
-    public async Task<UserInfoResponse> UserInfoAsync()
+    public async Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal)
     {
-        var user = await userManager.FindByEmailAsync("admin@example.com") ?? throw new UnauthorizedException();
+        var user = await userManager.FindByIdAsync(principal.GetUserId()) ?? throw new UnauthorizedException();
         var roles = await userManager.GetRolesAsync(user);
         bool isAdmin = roles.Contains(Role.Admin);
         
-        return new UserInfoResponse("admin@example.com", isAdmin);
+        return new UserInfoResponse(user.Email!, isAdmin);
     }
 }

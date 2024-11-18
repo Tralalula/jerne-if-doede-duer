@@ -4,10 +4,13 @@ using DataAccess;
 using DataAccess.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Converters;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 using Service;
 using Service.Auth;
 using Service.Security;
@@ -30,7 +33,7 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 builder.Services.AddScoped<DbSeeder>();
 #endregion
 
-#region Authentication
+#region Authentication & Authorization
 // Identity
 builder.Services.AddIdentityApiEndpoints<User>()
                 .AddRoles<Role>()
@@ -48,6 +51,11 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenClaimService.ValidationParameters(appOptions));
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+});
 #endregion
     
 #region Services
@@ -67,6 +75,17 @@ builder.Services.AddOpenApiDocument(configure =>
     configure.Title = "Jerne IF API";
     configure.Version = "v1";
     configure.Description = "API til Jerne IF døde duer";
+    
+    configure.AddSecurity("JWT", [], new OpenApiSecurityScheme
+    {
+        Type = OpenApiSecuritySchemeType.ApiKey,
+        Scheme = "Bearer ",
+        Name = "Authorization",
+        In = OpenApiSecurityApiKeyLocation.Header,
+        Description = "Type into the textbox: Bearer {your JWT token}."
+    });
+    
+    configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
     configure.DocumentProcessors.Add(new MakeAllPropertiesRequiredProcessor());
 });
 
@@ -104,13 +123,17 @@ app.UseSwaggerUi(settings =>
     settings.DocExpansion = "list";
     settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";
 });
+
 app.UseStatusCodePages();
 app.UseExceptionHandler();
 
 app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-app.MapControllers();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
 

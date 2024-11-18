@@ -1,5 +1,6 @@
 ﻿using DataAccess.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Service.Auth;
@@ -11,6 +12,7 @@ namespace API.Controllers;
 public class AuthController(IAuthService service) : ControllerBase
 {
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -22,6 +24,7 @@ public class AuthController(IAuthService service) : ControllerBase
     }
     
     [HttpPost("register")]
+    [Authorize(Roles = Role.Admin)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<RegisterResponse> Register([FromServices] IValidator<RegisterRequest> validator,
@@ -41,6 +44,6 @@ public class AuthController(IAuthService service) : ControllerBase
     [HttpGet("me")]
     public async Task<UserInfoResponse> UserInfo()
     {
-        return await service.UserInfoAsync(); 
+        return await service.UserInfoAsync(HttpContext.User); 
     }
 }

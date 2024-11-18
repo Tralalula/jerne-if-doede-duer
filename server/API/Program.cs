@@ -3,6 +3,7 @@ using API.Extensions;
 using DataAccess;
 using DataAccess.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -30,16 +31,30 @@ builder.Services.AddScoped<DbSeeder>();
 #endregion
 
 #region Authentication
+// Identity
 builder.Services.AddIdentityApiEndpoints<User>()
                 .AddRoles<Role>()
                 .AddEntityFrameworkStores<AppDbContext>();
-                
+
+// Password hashing
 builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();
+
+// JWT
+var appOptions = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>()!;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenClaimService.ValidationParameters(appOptions));
+builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
 #endregion
     
 #region Services
 builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
 #endregion
     
 builder.Services.AddControllers()

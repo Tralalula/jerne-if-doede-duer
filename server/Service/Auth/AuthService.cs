@@ -1,9 +1,9 @@
 ﻿using DataAccess.Models;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Service.Exceptions;
+using Service.Security;
 
 namespace Service.Auth;
 
@@ -15,15 +15,16 @@ public interface IAuthService
     Task<UserInfoResponse> UserInfoAsync();
 }
 
-public class AuthService(SignInManager<User> signInManager, UserManager<User> userManager) : IAuthService
+public class AuthService(SignInManager<User> signInManager, UserManager<User> userManager, ITokenClaimService tokenClaimService) : IAuthService
 {
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        SignInResult result = await signInManager.PasswordSignInAsync(request.Email, request.Password, isPersistent: false, lockoutOnFailure: true);
+        var user = await userManager.FindByEmailAsync(request.Email);
+        if (user == null || !await userManager.CheckPasswordAsync(user, request.Password)) throw new UnauthorizedException("Invalid login credentials");
         
-        if (!result.Succeeded) throw new UnauthorizedException("Invalid login credentials.");
+        string token = await tokenClaimService.GetTokenAsync(request.Email);
         
-        return new LoginResponse();
+        return new LoginResponse(Jwt: token);
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)

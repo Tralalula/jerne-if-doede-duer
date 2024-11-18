@@ -9,7 +9,9 @@
  * ---------------------------------------------------------------
  */
 
-export type LoginResponse = object;
+export interface LoginResponse {
+  jwt: string;
+}
 
 export interface ProblemDetails {
   type: string | null;

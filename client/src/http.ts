@@ -10,7 +10,7 @@ export const api = new Api({
     }
 });
 
-const AUTHORIZE_ORIGIN = "/";
+const AUTHORIZE_ORIGIN = baseUrl;
 
 api.instance.interceptors.request.use((config) => {
     const jwt = tokenStorage.getItem(TOKEN_KEY, null);

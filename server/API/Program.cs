@@ -1,12 +1,19 @@
 using API.ExceptionHandler;
+using API.Extensions;
 using DataAccess;
 using DataAccess.Models;
+using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Converters;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 using Service;
+using Service.Auth;
+using Service.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,29 +22,77 @@ builder.Services.AddOptions<AppOptions>()
                 .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
-
+                
+#region Data Access
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
     var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
     options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
 });
 
-builder.Services.AddIdentityApiEndpoints<IdentityUser<Guid>>()
-                .AddRoles<IdentityRole<Guid>>()
+builder.Services.AddScoped<DbSeeder>();
+#endregion
+
+#region Authentication & Authorization
+// Identity
+builder.Services.AddIdentityApiEndpoints<User>()
+                .AddRoles<Role>()
                 .AddEntityFrameworkStores<AppDbContext>();
+
+// Password hashing
+builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();
+
+// JWT
+var appOptions = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>()!;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenClaimService.ValidationParameters(appOptions));
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+});
+#endregion
+    
+#region Services
+builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
+#endregion
     
 builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 });
-                
-                
+
 builder.Services.AddOpenApiDocument(configure =>
 {
     configure.Title = "Jerne IF API";
     configure.Version = "v1";
     configure.Description = "API til Jerne IF døde duer";
+    
+    configure.AddSecurity("JWT", [], new OpenApiSecurityScheme
+    {
+        Type = OpenApiSecuritySchemeType.ApiKey,
+        Scheme = "Bearer ",
+        Name = "Authorization",
+        In = OpenApiSecurityApiKeyLocation.Header,
+        Description = "Type into the textbox: Bearer {your JWT token}."
+    });
+    
+    configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
+    configure.DocumentProcessors.Add(new MakeAllPropertiesRequiredProcessor());
+});
+
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+    //options.AppendTrailingSlash = true;
 });
 
 builder.Services.AddProblemDetails(options =>
@@ -52,9 +107,9 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
+    scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
+    //context.Database.EnsureDeleted();
+    //context.Database.EnsureCreated();
    // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
 }
 
@@ -63,17 +118,22 @@ app.UseStaticFiles();
 
 app.UseOpenApi();
 app.UseSwaggerUi(settings =>
-{ 
+{
     settings.DocumentTitle = "Jerne IF API";
     settings.DocExpansion = "list";
     settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";
 });
+
 app.UseStatusCodePages();
 app.UseExceptionHandler();
 
 app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
 

@@ -9,5 +9,18 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
+  
+  seq:
+    image: datalust/seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - '5341:80'
+    restart: unless-stopped
+    volumes:
+      - seq_data:/data
+
 volumes:
   postgres_data:
+  seq_data:

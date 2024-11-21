@@ -16,7 +16,9 @@ using Service;
 using Service.Auth;
 using Service.Security;
 
-Log.Logger = new LoggerConfiguration().Enrich.FromLogContext().WriteTo.Console().CreateBootstrapLogger();
+Log.Logger = new LoggerConfiguration().Enrich.FromLogContext()
+                                      .WriteTo.Console()
+                                      .CreateBootstrapLogger();
 
 Log.Information("Starting up!");
 
@@ -30,11 +32,16 @@ try {
                     .ValidateOnStart();
                     
     #region Logging
+    var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
+    
+    var seqUrl = Environment.GetEnvironmentVariable("SeqUrl") ?? appOps?.SeqUrl ?? "http://localhost:5341";
+    
     builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
-                    .WriteTo.Console());
+                    .WriteTo.Console()
+                    .WriteTo.Seq(seqUrl));
     #endregion
 
     #region Data Access

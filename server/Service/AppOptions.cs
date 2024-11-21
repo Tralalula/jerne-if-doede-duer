@@ -12,4 +12,8 @@ public sealed class AppOptions
     public required string JwtSecret { get; set; }
     
     public required string Address { get; set; }
+    
+    [Required]
+    [Url]
+    public required string SeqUrl { get; set; }
 }

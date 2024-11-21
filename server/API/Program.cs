@@ -113,6 +113,7 @@ try {
         
         configure.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("JWT"));
         configure.DocumentProcessors.Add(new MakeAllPropertiesRequiredProcessor());
+        configure.SchemaSettings.SchemaProcessors.Add(new ExampleSchemaProcessor());
     });
 
     builder.Services.AddRouting(options =>

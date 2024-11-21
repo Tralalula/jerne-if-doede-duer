@@ -15,7 +15,7 @@ public interface IAuthService
 {
     Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request);
     Task<RegisterResponse> RegisterAsync(RegisterRequest request); 
-    Task LogoutAsync();
+    Task LogoutAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies);
     Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal);
     Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies);
 }
@@ -64,9 +64,20 @@ public class AuthService(SignInManager<User> signInManager,
         return new RegisterResponse(Email: user.Email);
     }
 
-    public async Task LogoutAsync()
+    public async Task LogoutAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)
     {
-        await signInManager.SignOutAsync();
+        var refreshToken = requestCookies["refreshToken"];
+        
+        if (string.IsNullOrEmpty(refreshToken)) return;
+        
+        var token = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+        if (token != null)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync();
+        }
+        
+        responseCookies.Delete("refreshToken");
     }
 
     public async Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal)

@@ -1,4 +1,5 @@
 ﻿-- Drop
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
 DROP TABLE IF EXISTS balance_history CASCADE;
 DROP TABLE IF EXISTS user_history CASCADE;
 DROP TABLE IF EXISTS winner_sequences CASCADE;
@@ -94,6 +95,19 @@ CREATE TABLE balance_history (
     CHECK (action IN ('user_bought', 'user_used', 'admin_assigned', 'admin_revoked', 'won_prize'))
 );
 
+CREATE TABLE refresh_tokens (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL,
+    token TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    revoked_by_ip TEXT,
+    created_by_ip TEXT,
+    replaced_by_token TEXT,
+    FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX ix_transactions_user_id ON transactions (user_id);
 CREATE INDEX ix_transactions_timestamp ON transactions (timestamp);
@@ -111,3 +125,5 @@ CREATE INDEX ix_user_history_timestamp ON user_history (timestamp);
 CREATE INDEX ix_balance_history_user_id ON balance_history (user_id);
 CREATE INDEX ix_balance_history_action ON balance_history (action);
 CREATE INDEX ix_balance_history_timestamp ON balance_history (timestamp);
+CREATE INDEX ix_refresh_tokens_user_id ON refresh_tokens (user_id);
+CREATE INDEX ix_refresh_tokens_expires_at ON refresh_tokens (expires_at);

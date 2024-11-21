@@ -1,7 +1,6 @@
 ﻿using DataAccess.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Service.Auth;
 
@@ -33,7 +32,7 @@ public class AuthController(IAuthService service) : ControllerBase
     [HttpPost("logout")]
     public async Task<IResult> Logout()
     {
-        await service.LogoutAsync();
+        await service.LogoutAsync(Request.Cookies, Response.Cookies);
         return Results.Ok();
     }
     

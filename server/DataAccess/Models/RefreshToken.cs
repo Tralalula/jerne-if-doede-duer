@@ -18,6 +18,9 @@ public partial class RefreshToken
     [Column("user_id")]
     public Guid UserId { get; set; }
 
+    [Column("replaced_by_token_id")]
+    public Guid? ReplacedByTokenId { get; set; }
+
     [Column("token")]
     public string Token { get; set; } = null!;
 
@@ -36,8 +39,12 @@ public partial class RefreshToken
     [Column("created_by_ip")]
     public string? CreatedByIp { get; set; }
 
-    [Column("replaced_by_token")]
-    public string? ReplacedByToken { get; set; }
+    [InverseProperty("ReplacedByToken")]
+    public virtual ICollection<RefreshToken> InverseReplacedByToken { get; set; } = new List<RefreshToken>();
+
+    [ForeignKey("ReplacedByTokenId")]
+    [InverseProperty("InverseReplacedByToken")]
+    public virtual RefreshToken? ReplacedByToken { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("RefreshTokens")]

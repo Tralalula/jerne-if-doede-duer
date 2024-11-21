@@ -98,14 +98,15 @@ CREATE TABLE balance_history (
 CREATE TABLE refresh_tokens (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID NOT NULL,
+    replaced_by_token_id UUID,
     token TEXT NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
     revoked_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     revoked_by_ip TEXT,
     created_by_ip TEXT,
-    replaced_by_token TEXT,
-    FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    FOREIGN KEY (replaced_by_token_id) REFERENCES refresh_tokens (id)
 );
 
 -- Indexes

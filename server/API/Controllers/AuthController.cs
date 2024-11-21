@@ -11,11 +11,9 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class AuthController(IAuthService service) : ControllerBase
 {
-    [HttpPost("login")]
+
     [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromServices] IValidator<LoginRequest> validator,
                                                          [FromBody] LoginRequest request)
     {
@@ -23,10 +21,8 @@ public class AuthController(IAuthService service) : ControllerBase
         return Ok(await service.LoginAsync(request));
     }
     
-    [HttpPost("register")]
     [Authorize(Roles = Role.Admin)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpPost("register")]
     public async Task<RegisterResponse> Register([FromServices] IValidator<RegisterRequest> validator,
                                                  [FromBody] RegisterRequest request) 
     {
@@ -45,5 +41,12 @@ public class AuthController(IAuthService service) : ControllerBase
     public async Task<UserInfoResponse> UserInfo()
     {
         return await service.UserInfoAsync(HttpContext.User); 
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<RefreshResponse>> Refresh([FromBody] RefreshRequest request)
+    {
+        return Ok(await service.RefreshAsync(request));
     }
 }

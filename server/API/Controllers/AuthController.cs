@@ -18,7 +18,7 @@ public class AuthController(IAuthService service) : ControllerBase
                                                          [FromBody] LoginRequest request)
     {
         await validator.ValidateAndThrowAsync(request);
-        return Ok(await service.LoginAsync(request));
+        return Ok(await service.LoginAsync(Response.Cookies, request));
     }
     
     [Authorize(Roles = Role.Admin)]
@@ -45,8 +45,8 @@ public class AuthController(IAuthService service) : ControllerBase
     
     [AllowAnonymous]
     [HttpPost("refresh")]
-    public async Task<ActionResult<RefreshResponse>> Refresh([FromBody] RefreshRequest request)
+    public async Task<ActionResult<RefreshResponse>> Refresh()
     {
-        return Ok(await service.RefreshAsync(request));
+        return Ok(await service.RefreshAsync(Request.Cookies, Response.Cookies));
     }
 }

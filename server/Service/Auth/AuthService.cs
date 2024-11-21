@@ -3,6 +3,7 @@ using DataAccess;
 using DataAccess.Models;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
@@ -12,11 +13,11 @@ namespace Service.Auth;
 
 public interface IAuthService
 {
-    Task<LoginResponse> LoginAsync(LoginRequest request);
+    Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request);
     Task<RegisterResponse> RegisterAsync(RegisterRequest request); 
     Task LogoutAsync();
     Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal);
-    Task<RefreshResponse> RefreshAsync(RefreshRequest request);
+    Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies);
 }
 
 public class AuthService(SignInManager<User> signInManager,
@@ -24,7 +25,7 @@ public class AuthService(SignInManager<User> signInManager,
                          ITokenClaimService tokenClaimService,
                          AppDbContext dbContext) : IAuthService
 {
-    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    public async Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
         if (user == null || !await userManager.CheckPasswordAsync(user, request.Password)) throw new UnauthorizedException("Invalid login credentials");
@@ -32,7 +33,15 @@ public class AuthService(SignInManager<User> signInManager,
         string accessToken = await tokenClaimService.GetAccessTokenAsync(user);
         string refreshToken = await tokenClaimService.GetRefreshTokenAsync(user);
         
-        return new LoginResponse(AccessToken: accessToken, RefreshToken: refreshToken);
+        cookies.Append("refreshToken", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
+        
+        return new LoginResponse(AccessToken: accessToken);
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
@@ -69,9 +78,12 @@ public class AuthService(SignInManager<User> signInManager,
         return new UserInfoResponse(user.Email!, isAdmin);
     }
 
-    public async Task<RefreshResponse> RefreshAsync(RefreshRequest request)
+    public async Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)
     {
-        var oldToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+        var refreshToken = requestCookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken)) throw new UnauthorizedException("Refresh token is missing");
+        
+        var oldToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         
         if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= DateTime.UtcNow)
         {
@@ -84,6 +96,14 @@ public class AuthService(SignInManager<User> signInManager,
         var newAccessToken = await tokenClaimService.GetAccessTokenAsync(user);
         var newRefreshToken = await tokenClaimService.RotateRefreshTokenAsync(user);
         
-        return new RefreshResponse(AccessToken: newAccessToken, RefreshToken: newRefreshToken);
+        responseCookies.Append("refreshToken", newRefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        });
+        
+        return new RefreshResponse(AccessToken: newAccessToken);
     }
 }

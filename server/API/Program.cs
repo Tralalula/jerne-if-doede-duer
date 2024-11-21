@@ -59,6 +59,11 @@ try {
     builder.Services.AddIdentityApiEndpoints<User>()
                     .AddRoles<Role>()
                     .AddEntityFrameworkStores<AppDbContext>();
+                    
+    builder.Services.Configure<IdentityOptions>(options =>
+    {
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+æøåÆØÅ";
+    });
 
     // Password hashing
     builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();

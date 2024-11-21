@@ -5,9 +5,9 @@ import { HomePage, LoginPage } from "./pages/index";
 import { Navigation, DaisyToaster } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes } from "./helpers/index";
+import { Theme } from '@radix-ui/themes';
 
 const App = () => {
-
   const [theme] = useAtom(themeAtom);
 
   useEffect(() => {
@@ -17,12 +17,14 @@ const App = () => {
 
   return (
     <>
-      <Navigation/>
+    <Theme appearance={theme} accentColor="blue">
+      <Navigation />
       <DaisyToaster />
-      <Routes>
-          <Route path={AppRoutes.Home} element={<HomePage />} />
-          <Route path={AppRoutes.Login} element={<LoginPage />} />
-      </Routes>
+        <Routes>
+            <Route path={AppRoutes.Home} element={<HomePage />} />
+            <Route path={AppRoutes.Login} element={<LoginPage />} />
+        </Routes>
+      </Theme>
     </>
   );
 };

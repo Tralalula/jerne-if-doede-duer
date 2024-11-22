@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { HomePage, LoginPage } from "./pages/index";
+import { ForgotPassword, HomePage, LoginPage } from "./pages/index";
 import { Navigation, DaisyToaster } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes } from "./helpers/index";
@@ -23,6 +23,7 @@ const App = () => {
         <Routes>
             <Route path={AppRoutes.Home} element={<HomePage />} />
             <Route path={AppRoutes.Login} element={<LoginPage />} />
+            <Route path={AppRoutes.Forgot} element={<ForgotPassword />} />
         </Routes>
       </Theme>
     </>

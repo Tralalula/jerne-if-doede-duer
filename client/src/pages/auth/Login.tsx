@@ -4,10 +4,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { Box, Button, Card, Container, Flex, Heading, Link, Section, Skeleton, Text, TextField } from '@radix-ui/themes';
+import { Box, Button, Card, Container, Flex, Heading, IconButton, Link, Section, Skeleton, Text, TextField } from '@radix-ui/themes';
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faWarning } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
 const schema: yup.ObjectSchema<LoginRequest> = yup
     .object({
@@ -17,9 +18,13 @@ const schema: yup.ObjectSchema<LoginRequest> = yup
     .required();
 
 export default function LoginPage() {
+    const navigate = useNavigate();
+
     const [isLoading, setIsLoading] = useState(true);
     const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  
+    const [showPassword, setShowPassword] = useState(false);
+
+
     // evt custom logik?
     useEffect(() => {
       loadingTimeoutRef.current = setTimeout(() => {
@@ -51,7 +56,7 @@ export default function LoginPage() {
 
     return (
         <Flex align="center" justify="center" height="100vh" width="100vw">
-            <Container size="1">
+            <Container size="1" maxWidth='350px'>
                 <Section>
                   <Card asChild variant="ghost" size="4" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <form method="post" onSubmit={handleSubmit(onSubmit)}>
@@ -75,7 +80,7 @@ export default function LoginPage() {
                           <Skeleton loading={isLoading}>
                             <TextField.Root
                               id="email"
-                              type="email"
+                              type="text"
                               variant="soft"
                               color='gray'
                               placeholder="Din email adresse"
@@ -96,7 +101,7 @@ export default function LoginPage() {
 
                       <Box mb="5" position="relative">
                         <Box position="absolute" top="0" right="0" style={{ marginTop: -2 }}>
-                          <Link href="#" size="2">
+                          <Link className='cursor-pointer hover:underline' onClick={() => navigate("/forgot")} size="2">
                             <Skeleton loading={isLoading}>Glemt adgangskode?</Skeleton>
                           </Link>
                         </Box>
@@ -109,12 +114,20 @@ export default function LoginPage() {
                             <TextField.Root
                               id="password"
                               variant="soft"
-                              type="password"
+                              type={showPassword ? "text" : "password"}
                               color='gray'
                               placeholder="Din adgangskode"
                               className={`border dark:border-gray5 ${errors.password ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
-                              {...register("password")}
-                            />
+                              {...register("password")}>
+
+                                <TextField.Slot side='right'>
+                                    <IconButton size="1" variant="ghost" onClick={(event) => {
+                                        event.preventDefault();
+                                        setShowPassword(!showPassword);}}>
+                                        <FontAwesomeIcon width={16} icon={showPassword ? faEyeSlash : faEye}/>
+                                    </IconButton>
+                                </TextField.Slot>
+                            </TextField.Root>
                           </Skeleton>
                           {errors.password && (
                             <Flex mt='1' align='center'>
@@ -127,9 +140,9 @@ export default function LoginPage() {
                         </Flex>
                       </Box>
 
-                      <Flex mt="6" justify="end" gap="3">
+                      <Flex width='100%' justify="center" gap="3">
                         <Skeleton loading={isLoading}>
-                          <Button variant="solid" type="submit">
+                          <Button className='w-full cursor-pointer' variant="solid" type="submit">
                             Log ind
                           </Button>
                         </Skeleton>

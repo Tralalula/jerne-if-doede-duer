@@ -4,7 +4,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { Box, Button, Card, Container, Flex, Heading, IconButton, Link, Section, Skeleton, Text, TextField } from '@radix-ui/themes';
+import { Box, Button, Card, Container, Flex, Heading, IconButton, Link, Section, Separator, Skeleton, Text, TextField, Tooltip } from '@radix-ui/themes';
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash, faWarning } from '@fortawesome/free-solid-svg-icons';
@@ -56,9 +56,9 @@ export default function LoginPage() {
 
     return (
         <Flex align="center" justify="center" height="100vh" width="100vw">
-            <Container size="1" maxWidth='350px'>
+            <Container size="1" maxWidth='350px' minWidth='100px'>
                 <Section>
-                  <Card asChild variant="ghost" size="4" style={{ boxShadow: 'var(--shadow-5)'}}>
+                  <Card className='p-5' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <form method="post" onSubmit={handleSubmit(onSubmit)}>
                     <Flex height="40px" mb="5" direction='column'>
                         <Heading as="h3" weight='bold' size="5" mt="-1">
@@ -80,7 +80,7 @@ export default function LoginPage() {
                           <Skeleton loading={isLoading}>
                             <TextField.Root
                               id="email"
-                              type="text"
+                              type="email"
                               variant="soft"
                               color='gray'
                               placeholder="Din email adresse"
@@ -120,6 +120,7 @@ export default function LoginPage() {
                               className={`border dark:border-gray5 ${errors.password ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
                               {...register("password")}>
 
+                            <Tooltip content={`${showPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
                                 <TextField.Slot side='right'>
                                     <IconButton size="1" variant="ghost" onClick={(event) => {
                                         event.preventDefault();
@@ -127,6 +128,7 @@ export default function LoginPage() {
                                         <FontAwesomeIcon width={16} icon={showPassword ? faEyeSlash : faEye}/>
                                     </IconButton>
                                 </TextField.Slot>
+                            </Tooltip>
                             </TextField.Root>
                           </Skeleton>
                           {errors.password && (

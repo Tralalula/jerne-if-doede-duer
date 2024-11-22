@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTransition, animated, useSpring } from '@react-spring/web';
-import { Box, Button, Card, Flex, Heading, IconButton, Skeleton, Text, TextField } from '@radix-ui/themes';
+import { Box, Button, Card, Flex, Heading, IconButton, Progress, Section, Separator, Skeleton, Text, TextField, Tooltip } from '@radix-ui/themes';
 
 import './ForgotPassword.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,7 +15,7 @@ export default function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [cardHeight, setCardHeight] = useState(214);
+  const [cardHeight, setCardHeight] = useState(200);
 
   const [values, setValues] = useState(Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -58,15 +58,24 @@ export default function ForgotPassword() {
   };
 
   useEffect(() => {
-    if (contentRef.current) {
-      setCardHeight(contentRef.current.clientHeight);
-    }
-  }, [step]);
+    console.log(cardHeight)
+  }, [cardHeight]);
 
-  const [styles, api] = useSpring(() => ({
-    height: 'auto',
-    config: { duration: 200 },
-  }));
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      if (contentRef.current) {
+        setCardHeight(contentRef.current.clientHeight);
+      }
+    });
+  
+    if (contentRef.current) {
+      observer.observe(contentRef.current);
+    }
+  
+    return () => {
+      observer.disconnect();
+    };
+  }, [step]);
 
   const transitions = useTransition(step, {
     initial: { opacity: 1, transform: 'translateX(0%)' },
@@ -82,13 +91,6 @@ export default function ForgotPassword() {
     config: { duration: 200 },
   });
 
-  useEffect(() => {
-    if (contentRef.current) {
-      const height = contentRef.current.scrollHeight;
-      api.start({ height: `${height}px` });
-    }
-  }, [step, api]);
-
   const handleNextStep = () => {
     setDirection('next');
     setStep((prev) => prev + 1);
@@ -101,55 +103,55 @@ export default function ForgotPassword() {
 
   return (
     <Flex align="center" justify="center" height="100vh" width="100vw">
-      <Flex justify='start' height='30%'>
+      <Flex justify='center'>
         <AnimatedCard
           asChild
           variant="ghost"
-          size="4"
-          className="transition-all duration-200"
+          className={`${cardHeight !== 0 ? 'transition-all duration-200' : ''}`}
           style={{
-            ...styles,
             boxShadow: 'var(--shadow-5)',
-            display: 'flex',
-            justifyContent: 'start',
-            width: '400px',
-            height: `${cardHeight + 60}px`
+            height: `${cardHeight + 30}px`,
+            minWidth: '350px',
+            maxWidth: '400px'
           }}>
           <div>
-          <Flex gap="3" position="absolute" top="0" right="0" m="3">
+          <Flex gap="3" position="absolute" className='z-10' top="0" right="0" m="3">
             {step > 1 &&
             <>
               <Skeleton loading={isLoading}>
+                <Tooltip content="Tilbage">
+                  <IconButton
+                    tabIndex={step}
+                    variant="ghost"
+                    color="gray"
+                    highContrast
+                    onClick={() => handlePreviousStep()}>
+                    <FontAwesomeIcon icon={faArrowLeft}/>
+                  </IconButton>
+                  </Tooltip>
+              </Skeleton>
+            </>
+            }
+            <Skeleton loading={isLoading}>
+              <Tooltip content="Til forsiden">
                 <IconButton
                   tabIndex={step}
                   variant="ghost"
                   color="gray"
                   highContrast
-                  onClick={() => handlePreviousStep()}
-                  >
-                  <FontAwesomeIcon icon={faArrowLeft}/>
+                  onClick={() => navigate("/login")}>
+                  <FontAwesomeIcon icon={faXmark}/>
                 </IconButton>
-              </Skeleton>
-            </>
-            }
-            <Skeleton loading={isLoading}>
-              <IconButton
-                tabIndex={step}
-                variant="ghost"
-                color="gray"
-                highContrast
-                onClick={() => navigate("/login")}>
-                <FontAwesomeIcon icon={faXmark}/>
-              </IconButton>
+              </Tooltip>
             </Skeleton>
 					</Flex>
             {transitions((style, currentStep) => (
               <animated.div
                 ref={contentRef}
+                className="w-full pr-8 pl-2 pt-2"
                 style={{
                   ...style,
-                  position: 'absolute',
-                  width: '336px',
+                  position: 'absolute'
                 }}>
                 {currentStep === 1 && (
                   <Box>
@@ -191,7 +193,7 @@ export default function ForgotPassword() {
 
                 {currentStep === 2 && (
                   <Box>
-                    <Heading mb='1'>Vi har sendt dig en kode!</Heading>
+                    <Heading mb='1'>Kode afsendt!</Heading>
                     <Text color="gray" size="2">
                       Skriv den 6 cifret kode som du har modtaget på den angivet email adresse!
                     </Text>
@@ -231,7 +233,7 @@ export default function ForgotPassword() {
 
                 {currentStep === 3 && (
                   <Box>
-                    <Heading mb='1'>Lav en ny adgangskode</Heading>
+                    <Heading mb='1'>Du er der næsten!</Heading>
                     <Text color="gray" size="2">
                       Opret en ny adgangskode, sørg for at du kan huske den.
                     </Text>
@@ -243,11 +245,13 @@ export default function ForgotPassword() {
                         variant="soft"
                         color="gray"
                         className="mt-2">
-                        <TextField.Slot side='right'>
-                          <IconButton size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
-                            <FontAwesomeIcon width={16} icon={showNewPassword ? faEyeSlash : faEye}/>
-                          </IconButton>
-                        </TextField.Slot>
+                        <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
+                          <TextField.Slot side='right'>
+                            <IconButton size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
+                              <FontAwesomeIcon width={16} icon={showNewPassword ? faEyeSlash : faEye}/>
+                            </IconButton>
+                          </TextField.Slot>
+                        </Tooltip>
                       </TextField.Root>
                       <TextField.Root
                         id="confirm-password"
@@ -256,11 +260,13 @@ export default function ForgotPassword() {
                         variant="soft"
                         color="gray"
                         className="mt-2">
-                        <TextField.Slot side='right'>
-                          <IconButton size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                            <FontAwesomeIcon width={16} icon={showConfirmPassword ? faEyeSlash : faEye}/>
-                          </IconButton>
-                        </TextField.Slot>
+                        <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
+                          <TextField.Slot side='right'>
+                            <IconButton size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                              <FontAwesomeIcon width={16} icon={showConfirmPassword ? faEyeSlash : faEye}/>
+                            </IconButton>
+                          </TextField.Slot>
+                        </Tooltip>
                       </TextField.Root>
                     </Flex>
                     <Flex justify="end" mt="4">

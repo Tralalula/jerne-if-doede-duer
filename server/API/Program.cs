@@ -16,20 +16,34 @@ using Service;
 using Service.Auth;
 using Service.Security;
 
+#region Boostrap Logger
 Log.Logger = new LoggerConfiguration().Enrich.FromLogContext()
                                       .WriteTo.Console()
                                       .CreateBootstrapLogger();
 
 Log.Information("Starting up!");
+#endregion
 
+// Try/Catch pga., Serilog Log.CloseAndFlush()
 try {
+    #region Builder setup
     var builder = WebApplication.CreateBuilder(args);
-
-    // Configuration
+    
+    // Bruges p.t., kun for at kunne have et 'Test' miljø for at kunne have DbSeeder under udvikling
+    // men slå den fra under test; se 'DB setup/seeding' ved middleware.
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? builder.Environment.EnvironmentName;
+    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                         .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
+                         
+    Log.Information($"Environment name: {environmentName}");
+    #endregion
+    
+    #region AppOptions
     builder.Services.AddOptions<AppOptions>()
                     .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
+    #endregion
                     
     #region Logging
     var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
@@ -44,7 +58,7 @@ try {
                     .WriteTo.Seq(seqUrl));
     #endregion
 
-    #region Data Access
+    #region Database  
     builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     {
         var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
@@ -54,7 +68,7 @@ try {
     builder.Services.AddScoped<DbSeeder>();
     #endregion
 
-    #region Authentication & Authorization
+    #region Identity & Auth
     // Identity
     builder.Services.AddIdentityApiEndpoints<User>()
                     .AddRoles<Role>()
@@ -84,18 +98,20 @@ try {
     });
     #endregion
         
-    #region Services
+    #region Services Registration
     builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
     #endregion
-        
+    
+    #region API Config
     builder.Services.AddControllers()
                     .AddNewtonsoftJson(options =>
                     {
                         options.SerializerSettings.Converters.Add(new StringEnumConverter());
                     });
 
+    // Swagger/OpenAPI
     builder.Services.AddOpenApiDocument(configure =>
     {
         configure.Title = "Jerne IF API";
@@ -116,12 +132,14 @@ try {
         configure.SchemaSettings.SchemaProcessors.Add(new ExampleSchemaProcessor());
     });
 
+    // Routing config
     builder.Services.AddRouting(options =>
     {
         options.LowercaseUrls = true;
         //options.AppendTrailingSlash = true;
     });
 
+    // Problem Details & Error handling
     builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = ctx =>
     {
@@ -129,18 +147,28 @@ try {
     });
 
     builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+    #endregion
 
     var app = builder.Build();
 
+    // DB setup/seeding
     using (var scope = app.Services.CreateScope())
     {
-        scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
+        if (environmentName.Equals("Test"))
+        {
+            scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        }
+        else
+        {
+            // Må IKKE bruges under testing - da det overhovedet ikke kan køre så
+            scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
+        }
         //context.Database.EnsureDeleted();
         //context.Database.EnsureCreated();
-       // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
-    }
+        // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
+    } 
 
-    // Middleware
+    // Logging middleware
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "Handled {RequestMethod} {RequestPath} in {Elapsed:0.0000} ms";
@@ -153,6 +181,7 @@ try {
 
     app.UseStaticFiles();
 
+    // Development-specific middleware
     if (app.Environment.IsDevelopment())
     {
         app.UseOpenApi();
@@ -172,17 +201,17 @@ try {
             }
         });
     }
+    
+    // Security & Error handling middleware
     app.UseStatusCodePages();
     app.UseExceptionHandler();
-
     app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-
     app.UseHttpsRedirection();
-
     app.UseAuthentication();
     app.UseAuthorization();
+    
+    
     app.MapControllers();
-
     app.Run();
     
     Log.Information("Stopped cleanly");

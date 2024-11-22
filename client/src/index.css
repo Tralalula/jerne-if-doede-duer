@@ -1,5 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 @import '@radix-ui/themes/styles.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        font-family: "Inter", sans-serif;
+      }
+  }
+
+.radix-themes {
+	--heading-font-family: "Inter", sans-serif;
+	--heading-font-size-adjust: 1.05;
+	--heading-font-style: normal;
+	--heading-leading-trim-start: 0.42em;
+	--heading-leading-trim-end: 0.38em;
+	--heading-letter-spacing: -0.01em;
+}

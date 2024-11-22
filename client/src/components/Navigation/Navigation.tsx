@@ -1,4 +1,4 @@
-import { faGamepad, faCircleUser, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faGamepad, faCircleUser, faGear, faSignOut } from '@fortawesome/free-solid-svg-icons';
 import DesktopNavigation from "./DesktopNavigation";
 import MobileNavigation from "./MobileNavigation";
 import { Tab } from './types';
@@ -6,7 +6,7 @@ import { Tab } from './types';
 const tabs: Tab[] = [
   { name: "Spil", path: "/spil", icon: faGamepad },
   { name: "Konto", path: "/konto", icon: faCircleUser },
-  { name: "Panel", path: "/panel", icon: faGear },
+  { name: "Panel", path: "/panel", icon: faGear }
 ];
 
 export default function Navigation() {

@@ -4,6 +4,10 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { Box, Button, Card, Container, Flex, Heading, Link, Section, Skeleton, Text, TextField } from '@radix-ui/themes';
+import { useEffect, useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWarning } from '@fortawesome/free-solid-svg-icons';
 
 const schema: yup.ObjectSchema<LoginRequest> = yup
     .object({
@@ -13,6 +17,22 @@ const schema: yup.ObjectSchema<LoginRequest> = yup
     .required();
 
 export default function LoginPage() {
+    const [isLoading, setIsLoading] = useState(true);
+    const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  
+    // evt custom logik?
+    useEffect(() => {
+      loadingTimeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+      }, 250);
+  
+      return () => {
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+        }
+      };
+    }, []);
+
     const { login } = useAuth();
     
     const { 
@@ -30,64 +50,95 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="hero min-h-screen bg-base-200">
-            <div className="hero-content flex-col lg:flex-row-reverse">
-
-                <div className="card w-full max-w-sm shadow-2xl bg-base-100">
-                    <form
-                        className="card-body"
-                        method="post"
-                        onSubmit={handleSubmit(onSubmit)}
-                    >
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Email</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Indtast email"
-                                className={`input input-bordered ${errors.email ? "input-error" : ""}`}
-                                {...register("email")}
+        <Flex align="center" justify="center" height="100vh" width="100vw">
+            <Container size="1">
+                <Section>
+                  <Card asChild variant="ghost" size="4" style={{ boxShadow: 'var(--shadow-5)'}}>
+                    <form method="post" onSubmit={handleSubmit(onSubmit)}>
+                    <Flex height="40px" mb="5" direction='column'>
+                        <Heading as="h3" weight='bold' size="5" mt="-1">
+                            <Skeleton loading={isLoading}>
+                                Jerne IF Døde Duer
+                            </Skeleton>
+                        </Heading>
+                        <Text color='gray' size='2'>
+                            <Skeleton loading={isLoading}>
+                                Log på din konto
+                            </Skeleton>
+                        </Text>
+                    </Flex>
+                      <Box mb="5">
+                        <Flex direction="column">
+                          <Text as="label" size="2" weight="medium" mb="2" htmlFor="email">
+                            <Skeleton loading={isLoading}>Email</Skeleton>
+                          </Text>
+                          <Skeleton loading={isLoading}>
+                            <TextField.Root
+                              id="email"
+                              type="email"
+                              variant="soft"
+                              color='gray'
+                              placeholder="Din email adresse"
+                              className={`border dark:border-gray5 ${errors.email ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
+                              {...register("email")}
                             />
-                            {errors.email && (
-                                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.email.message}
-                  </span>
-                                </label>
+                          </Skeleton>
+                          {errors.email && (
+                            <Flex mt='1' align='center'>
+                                <Text color='red' size='1' className='flex gap-1 items-center' >
+                                    <FontAwesomeIcon icon={faWarning}/>
+                                    {errors.email.message}
+                                </Text>
+                            </Flex>
                             )}
-                        </div>
+                        </Flex>
+                      </Box>
 
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Adgangskode</span>
-                            </label>
-                            <input
-                                type="password"
-                                placeholder="Indtast adgangskode"
-                                className={`input input-bordered ${errors.password ? "input-error" : ""}`}
-                                {...register("password")}
+                      <Box mb="5" position="relative">
+                        <Box position="absolute" top="0" right="0" style={{ marginTop: -2 }}>
+                          <Link href="#" size="2">
+                            <Skeleton loading={isLoading}>Glemt adgangskode?</Skeleton>
+                          </Link>
+                        </Box>
+
+                        <Flex direction="column">
+                          <Text as="label" size="2" weight="medium" mb="2" htmlFor="password">
+                            <Skeleton loading={isLoading}>Adgangskode</Skeleton>
+                          </Text>
+                          <Skeleton loading={isLoading}>
+                            <TextField.Root
+                              id="password"
+                              variant="soft"
+                              type="password"
+                              color='gray'
+                              placeholder="Din adgangskode"
+                              className={`border dark:border-gray5 ${errors.password ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
+                              {...register("password")}
                             />
-                            {errors.password && (
-                                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {errors.password.message}
-                  </span>
-                                </label>
+                          </Skeleton>
+                          {errors.password && (
+                            <Flex mt='1' align='center'>
+                                <Text color='red' size='1' className='flex gap-1 items-center' >
+                                    <FontAwesomeIcon icon={faWarning}/>
+                                    {errors.password.message}
+                                </Text>
+                            </Flex>
                             )}
-                            <label className="label">
-                                <a href="#" className="label-text-alt link link-hover">
-                                    Glemt adgangskode?
-                                </a>
-                            </label>
-                        </div>
+                        </Flex>
+                      </Box>
 
-                        <div className="form-control mt-6">
-                            <button className="btn btn-primary">Log ind</button>
-                        </div>
+                      <Flex mt="6" justify="end" gap="3">
+                        <Skeleton loading={isLoading}>
+                          <Button variant="solid" type="submit">
+                            Log ind
+                          </Button>
+                        </Skeleton>
+                      </Flex>
                     </form>
-                </div>
-            </div>
-        </div>
+                  </Card>
+                </Section>
+
+        </Container>
+      </Flex>
     );
 }

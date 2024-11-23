@@ -9,12 +9,16 @@ on:
     paths:
       - 'server/**'
       - '.github/workflows/server-tests.yml'
+      - 'Directory.Build.props'
+      - 'docker-compose.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: ["master"]
     paths:
       - 'server/**'
       - '.github/workflows/server-tests.yml'
+      - 'Directory.Build.props'
+      - 'docker-compose.yml'
   
 jobs:
   server_test_job:

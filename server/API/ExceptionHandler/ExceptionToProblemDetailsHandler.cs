@@ -19,31 +19,31 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
             ConflictException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
-
-       var problemDetails = new ProblemDetailsContext
-       {
-           HttpContext = httpContext,
-           ProblemDetails =
-           {
-               Title = GetTitleForException(exception),
-               Detail = GetDetailForException(exception),
-               Type = exception.GetType().Name,
-               Instance = httpContext.Request.Path,
-               Extensions = { ["traceId"] = httpContext.TraceIdentifier }
-           },
-           Exception = exception
-       };
-       
-       if (exception is ValidationException validationException)
-       {
-            problemDetails.ProblemDetails.Extensions["errors"] = validationException.Errors.Select(e => new
-            {
+        
+        var problemDetails = new ProblemDetailsContext
+        { 
+            HttpContext = httpContext, 
+            ProblemDetails =
+            { 
+                Title = GetTitleForException(exception),
+                Detail = GetDetailForException(exception),
+                Type = exception.GetType().Name,
+                Instance = httpContext.Request.Path,
+                Extensions = { ["traceId"] = httpContext.TraceIdentifier }
+            },
+            Exception = exception
+        };
+        
+        if (exception is ValidationException validationException) 
+        { 
+            problemDetails.ProblemDetails.Extensions["errors"] = validationException.Errors.Select(e => new 
+            { 
                 Field = e.PropertyName,
                 Error = e.ErrorMessage
             });
-       }
+        }
 
-       return await problemDetailsService.TryWriteAsync(problemDetails);
+        return await problemDetailsService.TryWriteAsync(problemDetails);
     }
     
     private static string GetTitleForException(Exception exception)

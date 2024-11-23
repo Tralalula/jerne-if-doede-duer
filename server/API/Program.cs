@@ -31,11 +31,6 @@ try {
     
     // Bruges p.t., kun for at kunne have et 'Test' miljø for at kunne have DbSeeder under udvikling
     // men slå den fra under test; se 'DB setup/seeding' ved middleware.
-    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? builder.Environment.EnvironmentName;
-    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                         .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
-                         
-    Log.Information($"Environment name: {environmentName}");
     #endregion
     
     #region AppOptions
@@ -43,13 +38,17 @@ try {
                     .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
+    var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
+
+    var environmentName = appOps?.AspNetCoreEnvironment ?? builder.Environment.EnvironmentName;
+    
+    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                         .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true); 
+        
+    var seqUrl = Environment.GetEnvironmentVariable("SeqUrl") ?? appOps?.SeqUrl ?? "http://localhost:5341";
     #endregion
                     
     #region Logging
-    var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
-    
-    var seqUrl = Environment.GetEnvironmentVariable("SeqUrl") ?? appOps?.SeqUrl ?? "http://localhost:5341";
-    
     builder.Services.AddSerilog((services, lc) => lc
                     .ReadFrom.Configuration(builder.Configuration)
                     .ReadFrom.Services(services)
@@ -220,6 +219,7 @@ try {
 catch (Exception ex)
 {
     Log.Fatal(ex, "An unhandled exception occurred during bootstrapping");
+    // throw; fjern kommentar hvis der sker IServiceProvider exceptions under test 
     return 1; // Error
 }
 finally

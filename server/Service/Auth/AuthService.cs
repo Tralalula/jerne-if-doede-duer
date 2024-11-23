@@ -20,8 +20,7 @@ public interface IAuthService
     Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies);
 }
 
-public class AuthService(SignInManager<User> signInManager,
-                         UserManager<User> userManager,
+public class AuthService(UserManager<User> userManager,
                          ITokenClaimService tokenClaimService,
                          AppDbContext dbContext) : IAuthService
 {

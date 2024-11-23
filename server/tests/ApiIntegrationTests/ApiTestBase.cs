@@ -22,18 +22,23 @@ public class ApiTestBase : WebApplicationFactory<Program>
     {
         PgCtxSetup = new PgCtxSetup<AppDbContext>();
         Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", PgCtxSetup._postgres.GetConnectionString());
-        
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.AspNetCoreEnvironment)}", "Test");
+ 
         ServiceProvider = base.Services.CreateScope().ServiceProvider;
         
         TestHttpClient = CreateClient();
-        TestHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtSecret);
+        SetAccessToken(JwtSecret);
         
         SeedAsync().GetAwaiter().GetResult();
     }
     
+    public void SetAccessToken(string token)
+    {
+        TestHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+    
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
 
         builder.ConfigureServices(services =>
         {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTransition, animated, useSpring } from '@react-spring/web';
-import { Box, Button, Card, Flex, Heading, IconButton, Progress, Section, Separator, Skeleton, Text, TextField, Tooltip } from '@radix-ui/themes';
+import { useTransition, animated } from '@react-spring/web';
+import { Box, Button, Card, Flex, Heading, IconButton, Skeleton, Text, TextField, Tooltip } from '@radix-ui/themes';
 
 import './ForgotPassword.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -194,9 +194,9 @@ export default function ForgotPassword() {
                 {currentStep === 2 && (
                   <Box>
                     <Heading mb='1'>Kode afsendt!</Heading>
-                    <Text color="gray" size="2">
-                      Skriv den 6 cifret kode som du har modtaget på den angivet email adresse!
-                    </Text>
+                      <Text color="gray" size="2">
+                        Skriv den 6 cifret kode som du har modtaget på den angivet email adresse!
+                      </Text>
                     <Flex mt="5" direction="row" gap="2" justify="center">
                       {values.map((value, index) => (
                         <TextField.Root
@@ -234,9 +234,9 @@ export default function ForgotPassword() {
                 {currentStep === 3 && (
                   <Box>
                     <Heading mb='1'>Du er der næsten!</Heading>
-                    <Text color="gray" size="2">
-                      Opret en ny adgangskode, sørg for at du kan huske den.
-                    </Text>
+                      <Text color="gray" size="2">
+                        Opret en ny adgangskode, sørg for at du kan huske den.
+                      </Text>
                     <Flex mt="5" direction="column">
                       <TextField.Root
                         id="new-password"

@@ -23,6 +23,7 @@
     "axios": "^1.7.7",
     "jotai": "^2.10.0",
     "jotai-devtools": "^0.10.1",
+    "motion": "^11.11.17",
     "postcss": "^8.4.47",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

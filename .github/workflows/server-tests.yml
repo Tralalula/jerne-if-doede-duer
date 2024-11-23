@@ -33,7 +33,17 @@ jobs:
         run: dotnet build --no-restore
         
       - name: Test
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger "html;LogFileName=test-results.html"
+        run: dotnet test --no-build --verbosity normal
+          --logger "html"
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "**/TestResults/*.trx"
       
       - name: Upload test results
         uses: actions/upload-artifact@v4

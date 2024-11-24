@@ -1,4 +1,4 @@
-name: Deploy server to Fly
+name: Deploy server
 on:
   push: 
     paths:

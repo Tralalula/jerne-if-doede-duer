@@ -1,4 +1,4 @@
-name: Server Tests
+name: Tests 
 permissions:
   checks: write        # For at kunne publish test resultater 
   pull-requests: write # Hvis test resultater i PR 

@@ -1,5 +1,6 @@
 using API.ExceptionHandler;
 using API.Extensions;
+using API.Helpers;
 using DataAccess;
 using DataAccess.Models;
 using FluentValidation;
@@ -26,18 +27,14 @@ Log.Information("Starting up!");
 
 // Try/Catch pga., Serilog Log.CloseAndFlush()
 try {
-    #region Builder setup
     var builder = WebApplication.CreateBuilder(args);
-    
-    // Bruges p.t., kun for at kunne have et 'Test' miljø for at kunne have DbSeeder under udvikling
-    // men slå den fra under test; se 'DB setup/seeding' ved middleware.
-    #endregion
     
     #region AppOptions
     builder.Services.AddOptions<AppOptions>()
                     .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
+        
     var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
 
     var environmentName = appOps?.AspNetCoreEnvironment ?? builder.Environment.EnvironmentName;
@@ -61,7 +58,13 @@ try {
     builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     {
         var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
-        options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL"); // fly.io miljøvariabel  
+    
+        var connectionString = !string.IsNullOrEmpty(databaseUrl)
+            ? DbHelper.ConvertDatabaseUrlToConnectionString(databaseUrl)
+            : appOptions.LocalDbConn;
+    
+        options.UseNpgsql(connectionString);
     });
 
     builder.Services.AddScoped<DbSeeder>();
@@ -93,7 +96,18 @@ try {
 
     builder.Services.AddAuthorization(options =>
     {
-        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAssertion(context =>
+            {
+                if (context.Resource is HttpContext httpContext && 
+                    (httpContext.Request.Path.StartsWithSegments("/swagger") || // så swagger kan tilgås i deployment
+                     httpContext.Request.Path.StartsWithSegments("/swagger-ui") ||
+                     httpContext.Request.Path.Equals("/"))) // Absurd vigtig; hvis dette endpoint ikke kan tilgås anonymt 
+                {                                           // kan fly.io ikke få kontakt til app og serveren vil ikke køre
+                    return true;  
+                }
+                return context.User.Identity?.IsAuthenticated ?? false;
+            })
+            .Build();
     });
     #endregion
         
@@ -139,8 +153,7 @@ try {
     });
 
     // Problem Details & Error handling
-    builder.Services.AddProblemDetails(options =>
-    options.CustomizeProblemDetails = ctx =>
+    builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = ctx =>
     {
         ctx.ProblemDetails.Extensions.Add("instance", $"{ctx.HttpContext.Request.Method} {ctx.HttpContext.Request.Path}");
     });
@@ -149,24 +162,7 @@ try {
     #endregion
 
     var app = builder.Build();
-
-    // DB setup/seeding
-    using (var scope = app.Services.CreateScope())
-    {
-        if (environmentName.Equals("Test"))
-        {
-            scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        }
-        else
-        {
-            // Må IKKE bruges under testing - da det overhovedet ikke kan køre så
-            scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
-        }
-        //context.Database.EnsureDeleted();
-        //context.Database.EnsureCreated();
-        // File.WriteAllText("../DataAccess/JerneIFDbSchema.sql", context.Database.GenerateCreateScript());
-    } 
-
+    
     // Logging middleware
     app.UseSerilogRequestLogging(options =>
     {
@@ -177,20 +173,19 @@ try {
             diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
         };
     });
-
+    
     app.UseStaticFiles();
-
-    // Development-specific middleware
-    if (app.Environment.IsDevelopment())
+    
+    // Swagger middleware 
+    app.UseOpenApi();
+    app.UseSwaggerUi(settings =>
     {
-        app.UseOpenApi();
-        app.UseSwaggerUi(settings =>
-        {
-            settings.DocumentTitle = "Jerne IF API";
-            settings.DocExpansion = "list";
-            settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";
-        });
+        settings.DocumentTitle = "Jerne IF API";
+        settings.DocExpansion = "list";
+        settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";
+    });
         
+    if (app.Environment.IsDevelopment()) {
         app.Lifetime.ApplicationStarted.Register(() =>
         {
             var addresses = app.Urls;
@@ -205,21 +200,39 @@ try {
     app.UseStatusCodePages();
     app.UseExceptionHandler();
     app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    
     app.UseHttpsRedirection();
+    
     app.UseAuthentication();
     app.UseAuthorization();
     
-    
     app.MapControllers();
+    
+    // DB setup/seeding
+    using (var scope = app.Services.CreateScope())
+    {
+        if (app.Environment.IsProduction() || environmentName.Equals("Test"))
+        {
+             scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
+        }
+        else
+        {
+            // Må IKKE bruges under testing - da det overhovedet ikke kan køre så
+            scope.ServiceProvider.GetRequiredService<DbSeeder>().SeedAsync().Wait();
+        }
+
+        // File.WriteAllText("../dump.sql", context.Database.GenerateCreateScript());
+    } 
+    
     app.Run();
     
     Log.Information("Stopped cleanly");
-    return 0; // Termination 
+    return 0; // Termination
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "An unhandled exception occurred during bootstrapping");
-    // throw; fjern kommentar hvis der sker IServiceProvider exceptions under test 
+    // throw; // fjern kommentar hvis der sker IServiceProvider exceptions under test 
     return 1; // Error
 }
 finally

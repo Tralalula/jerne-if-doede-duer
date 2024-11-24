@@ -187,8 +187,7 @@ export default function ForgotPassword() {
                           <Button
                             className="w-full cursor-pointer"
                             variant="solid"
-                            type="submit"
-                            onClick={() => handleNextStep()}>
+                            type="submit">
                             Send kode
                           </Button>
                         </Skeleton>
@@ -229,8 +228,7 @@ export default function ForgotPassword() {
                           className="w-full cursor-pointer transition-colors duration-200"
                           variant="solid"
                           type="submit"
-                          disabled={!values.every((value) => value.trim() !== "")}
-                          onClick={() => handleNextStep()}>
+                          disabled={!values.every((value) => value.trim() !== "")}>
                             Bekræft
                         </Button>
                     </Flex>
@@ -253,7 +251,7 @@ export default function ForgotPassword() {
                         className="mt-2">
                         <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
                           <TextField.Slot side='right'>
-                            <IconButton size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
+                            <IconButton type="button" size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
                               <FontAwesomeIcon width={16} icon={showNewPassword ? faEyeSlash : faEye}/>
                             </IconButton>
                           </TextField.Slot>
@@ -268,7 +266,7 @@ export default function ForgotPassword() {
                         className="mt-2">
                         <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
                           <TextField.Slot side='right'>
-                            <IconButton size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            <IconButton type="button" size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                               <FontAwesomeIcon width={16} icon={showConfirmPassword ? faEyeSlash : faEye}/>
                             </IconButton>
                           </TextField.Slot>
@@ -279,8 +277,7 @@ export default function ForgotPassword() {
                       <Button
                           className="w-full cursor-pointer"
                           variant="solid"
-                          type="submit"
-                          onClick={() => handleNextStep()}>
+                          type="submit">
                             Bekræft
                         </Button>
                     </Flex>

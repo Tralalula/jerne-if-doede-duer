@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import LoadingButton from '../Button/LoadingButton.tsx';
 
 import { useToast } from '../import';
-
+import './LoginContainer.css'
 
 const schema: yup.ObjectSchema<LoginRequest> = yup
     .object({
@@ -72,7 +72,7 @@ export default function LoginContainer() {
         <Flex align="center" justify="center">
             <Container size="1">
                 <Section>
-                  <Card className='p-5' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
+                  <Card className='p-5 bg-whiteA5 backdrop-blur-md' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <form method="post" onSubmit={handleSubmit(onSubmit)}>
                       <Box mb="5">
                         <Flex direction="column">
@@ -90,14 +90,12 @@ export default function LoginContainer() {
                               {...register("email")}
                             />
                           </Skeleton>
-                          {errors.email && (
-                            <Flex mt='1' align='center'>
-                                <Text color='red' size='1' className='flex gap-1 items-center' >
-                                    <FontAwesomeIcon icon={faWarning}/>
-                                    {errors.email.message}
+                          <Flex mt="1" align="center" className={`error-wrapper ${errors.email ? 'error-visible' : ''}`}>
+                                <Text color="red" size="1" className="flex gap-1 items-center">
+                                    <FontAwesomeIcon icon={faWarning} />
+                                    {errors.email?.message}
                                 </Text>
                             </Flex>
-                            )}
                         </Flex>
                       </Box>
 
@@ -132,23 +130,19 @@ export default function LoginContainer() {
                             </Tooltip>
                             </TextField.Root>
                           </Skeleton>
-                          {errors.password && (
-                            <Flex mt='1' align='center'>
-                                <Text color='red' size='1' className='flex gap-1 items-center' >
-                                    <FontAwesomeIcon icon={faWarning}/>
-                                    {errors.password.message}
+                            <Flex mt="1" align="center" className={`error-wrapper ${errors.password ? 'error-visible' : ''}`}>
+                                <Text color="red" size="1" className="flex gap-1 items-center">
+                                    <FontAwesomeIcon icon={faWarning} />
+                                    {errors.password?.message}
                                 </Text>
                             </Flex>
-                            )}
                         </Flex>
                       </Box>
 
                       <Flex width='100%' justify="center" gap="3">
-                        <Skeleton loading={isLoading}>
-                            <LoadingButton type='submit' isLoading={isLoggingIn}>
+                            <LoadingButton skeleton={isLoading} type='submit' isLoading={isLoggingIn}>
                                 Log på
                             </LoadingButton>
-                        </Skeleton>
                       </Flex>
                     </form>
                   </Card>

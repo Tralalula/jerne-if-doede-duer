@@ -18,7 +18,7 @@ const App = () => {
 
   return (
     <>
-    <Theme appearance={theme} accentColor="blue" panelBackground="translucent">
+    <Theme appearance={theme} accentColor="red" panelBackground="translucent">
       <ToastProvider>
         <Navigation />
         <DaisyToaster />

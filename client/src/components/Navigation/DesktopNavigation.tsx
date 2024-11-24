@@ -47,27 +47,4 @@ export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
       <ThemeSwitcher/>
     </div>
   )
-
-  /*
-    return (
-      <nav className="hidden md:flex justify-center border-b dark:border-b-zinc-700 desktop-header space-x-4">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.name}
-            to={tab.path}
-            className={({ isActive }) =>
-              `rounded-full align-middle items-center text-sm font-medium transition button ${
-                isActive
-                  ? 'bg-blue-500 text-white dark:text-black'
-                  : 'text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-blue-500'
-              }`
-            }
-          >
-            {tab.name}
-          </NavLink>
-        ))}
-        <ThemeSwitcher/>
-      </nav>
-  );*/
-
 }

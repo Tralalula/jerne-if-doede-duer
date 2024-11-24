@@ -6,6 +6,7 @@ import { Navigation, DaisyToaster } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes } from "./helpers/index";
 import { Theme } from '@radix-ui/themes';
+import { ToastProvider } from "./hooks";
 
 const App = () => {
   const [theme] = useAtom(themeAtom);
@@ -18,13 +19,15 @@ const App = () => {
   return (
     <>
     <Theme appearance={theme} accentColor="blue" panelBackground="translucent">
-      <Navigation />
-      <DaisyToaster />
-        <Routes>
-            <Route path={AppRoutes.Home} element={<HomePage />} />
-            <Route path={AppRoutes.Login} element={<LoginPage />} />
-            <Route path={AppRoutes.Forgot} element={<ForgotPassword />} />
-        </Routes>
+      <ToastProvider>
+        <Navigation />
+        <DaisyToaster />
+          <Routes>
+              <Route path={AppRoutes.Home} element={<HomePage />} />
+              <Route path={AppRoutes.Login} element={<LoginPage />} />
+              <Route path={AppRoutes.Forgot} element={<ForgotPassword />} />
+          </Routes>
+        </ToastProvider>
       </Theme>
     </>
   );

@@ -3,7 +3,6 @@ import { LoginRequest } from '../../Api.ts';
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SubmitHandler, useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 import { Box, Card, Container, Flex, IconButton, Link, Section,  Skeleton, Text, TextField, Tooltip } from '@radix-ui/themes';
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -11,6 +10,9 @@ import { faEye, faEyeSlash, faWarning } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom';
 
 import LoadingButton from '../Button/LoadingButton.tsx';
+
+import { useToast } from '../import';
+
 
 const schema: yup.ObjectSchema<LoginRequest> = yup
     .object({
@@ -28,6 +30,7 @@ export default function LoginContainer() {
 
     const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+    const { showToast } = useToast();
 
     // evt custom logik?
     useEffect(() => {
@@ -52,15 +55,16 @@ export default function LoginContainer() {
     
     const onSubmit: SubmitHandler<LoginRequest> = async (data) => {
         setIsLoggingIn(true);
+    
+        showToast("Logger på",  "Vent venligst...", "info");
+    
         try {
-            await toast.promise(login(data), {
-                success: "Logget ind med succes",
-                error: "Ugyldige loginoplysninger",
-                loading: "Logger ind...",
-            });
+            await login(data);
+            showToast("Fedt! Du kom ind", "Logget ind med succes", "success");
+        } catch (error) {
+            showToast("Ups! En fejl skete", "Ugyldige loginoplysninger", "error");
         } finally {
-            setIsLoggingIn(false); 
-            console.log("false")
+            setIsLoggingIn(false);
         }
     };
 
@@ -119,7 +123,7 @@ export default function LoginContainer() {
                               {...register("password")}>
                             <Tooltip content={`${showPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
                                 <TextField.Slot side='right'>
-                                    <IconButton size="1" variant="ghost" onClick={(event) => {
+                                    <IconButton type="button" size="1" variant="ghost" onClick={(event) => {
                                         event.preventDefault();
                                         setShowPassword(!showPassword);}}>
                                         <FontAwesomeIcon width={16} icon={showPassword ? faEyeSlash : faEye}/>

@@ -1,12 +1,10 @@
-import { LoginContainer } from '../import';
-import { LoginRequest } from '../../Api.ts';
-import * as yup from "yup";
+import { Flex } from "@radix-ui/themes";
+import { LoginContainer } from "../import";
 
 export default function LoginPage() {
     return (
-      <div className="container relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:px-0">
+      <Flex className="container h-screen max-w-none px-0 -mt-10" align='center' justify='center'>
         <div className="lg:p-8">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
             <div className="flex flex-col space-y-2 text-center">
               <h1 className="text-2xl font-semibold tracking-tight">
                 Jerne IF Døde Duer
@@ -17,8 +15,8 @@ export default function LoginPage() {
               <LoginContainer/>
 
             </div>
-          </div>
         </div>
-      </div>
+              
+      </Flex>
     );
 }

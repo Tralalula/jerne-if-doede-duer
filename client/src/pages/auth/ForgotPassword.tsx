@@ -101,6 +101,8 @@ export default function ForgotPassword() {
     setStep((prev) => prev - 1);
   };
 
+
+
   return (
     <Flex align="center" justify="center" height="100vh" width="100vw">
       <Flex justify='center'>
@@ -145,6 +147,10 @@ export default function ForgotPassword() {
               </Tooltip>
             </Skeleton>
 					</Flex>
+          <form onSubmit={(e) => {
+              e.preventDefault();
+              handleNextStep();
+            }}>
             {transitions((style, currentStep) => (
               <animated.div
                 ref={contentRef}
@@ -282,6 +288,7 @@ export default function ForgotPassword() {
                 )}
               </animated.div>
             ))}
+            </form>
           </div>
         </AnimatedCard>
       </Flex>

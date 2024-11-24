@@ -5,7 +5,7 @@ on:
       - 'server/**'
       - '.github/workflows/fly-server-deployment.yml'
       - 'Directory.Build.props'
-      - 'fly.toml'
+      - 'fly.server.toml'
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -23,4 +23,4 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy
-        run: flyctl deploy --remote-only
+        run: flyctl deploy -c fly.server.toml --remote-only

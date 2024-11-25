@@ -72,7 +72,7 @@ export default function LoginContainer() {
         <Flex align="center" justify="center">
             <Container size="1">
                 <Section>
-                  <Card className='p-5 bg-whiteA5 backdrop-blur-md' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
+                  <Card className='p-5 bg-whiteA5 dark:bg-gray1/75 backdrop-blur-md' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <form method="post" onSubmit={handleSubmit(onSubmit)}>
                       <Box mb="5">
                         <Flex direction="column">

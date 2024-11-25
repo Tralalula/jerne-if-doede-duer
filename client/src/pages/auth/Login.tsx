@@ -3,8 +3,8 @@ import { LoginContainer } from "../import";
 
 export default function LoginPage() {
     return (
-      <Flex className="container h-screen max-w-none px-0 -mt-10" align='center' justify='center'>
-      <div className="absolute inset-0 -z-10 bg-gray11">
+      <Flex className="container h-screen max-w-none px-0" align='center' justify='center'>
+      <div className="absolute inset-0 -z-10 bg-gray11 dark:bg-transparent">
       <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 2560 1920"

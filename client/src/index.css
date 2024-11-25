@@ -19,3 +19,10 @@
 	--heading-leading-trim-end: 0.38em;
 	--heading-letter-spacing: -0.01em;
 }
+
+.logo {
+	background-image: url('./logo.png');
+	width: 100%;
+	height: 100%;
+	background-repeat: no-repeat;
+}

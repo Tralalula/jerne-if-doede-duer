@@ -2,13 +2,14 @@ import { Flex } from "@radix-ui/themes";
 
 export default function Background() {
     return (
-        <Flex align='start' justify='center' className="absolute inset-0 -z-10 bg-gray11 dark:bg-transparent">
+        <Flex align='start' justify='center' className="absolute overflow-hidden inset-0 -z-10 bg-gray11 dark:bg-transparent">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width='2560'
+                preserveAspectRatio="xMidYMid slice"
                 height='1920'
                 viewBox="0 0 2560 1920"
-                className="absolute block align-middle inset-0 w-screen h-screen opacity-50"
+                className="relative w-full inset-0 opacity-50"
                 style={{
                     "--color-background-image-base": "var(--red-2)",
                     "--color-background-image-accent-1": "var(--crimson-a7)",
@@ -17,9 +18,8 @@ export default function Background() {
                     "--color-background-image-accent-4": "var(--red-7)",
                     "--color-background-image-accent-5": "var(--color-background)",
                     "--color-background-image-accent-6": "var(--red-a4)",
-                    "--color-background-image-accent-7": "var(--red-5)",
-                    height: 'auto'
-                }}
+                    "--color-background-image-accent-7": "var(--red-5)"
+                    }}
                 >
                 <g>
                 <path

@@ -31,18 +31,23 @@ try {
     
     #region AppOptions
     builder.Services.AddOptions<AppOptions>()
-                    .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
+                    .BindConfiguration(nameof(AppOptions))
                     .ValidateDataAnnotations()
                     .ValidateOnStart();
         
-    var appOps = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
-
-    var environmentName = appOps?.AspNetCoreEnvironment ?? builder.Environment.EnvironmentName;
+    var appOptions = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>();
+    if (appOptions == null) throw new InvalidOperationException("AppOptions missing or invalid");
     
+
     builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                         .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true); 
-        
-    var seqUrl = Environment.GetEnvironmentVariable("SeqUrl") ?? appOps?.SeqUrl ?? "http://localhost:5341";
+                         .AddJsonFile($"appsettings.{appOptions.AspNetCoreEnvironment}.json", optional: true, reloadOnChange: true);
+                         
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowClient", policy => policy.WithOrigins(appOptions.ClientUrl)
+                                                         .AllowAnyMethod()
+                                                         .AllowAnyHeader());
+    }); 
     #endregion
                     
     #region Logging
@@ -51,18 +56,18 @@ try {
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
-                    .WriteTo.Seq(seqUrl));
+                    .WriteTo.Seq(appOptions.SeqUrl));
     #endregion
 
     #region Database  
     builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     {
-        var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
-        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL"); // fly.io miljøvariabel  
+        var appOps = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL"); // fly.io miljøvariabel
     
         var connectionString = !string.IsNullOrEmpty(databaseUrl)
             ? DbHelper.ConvertDatabaseUrlToConnectionString(databaseUrl)
-            : appOptions.LocalDbConn;
+            : appOps.LocalDbConn;
     
         options.UseNpgsql(connectionString);
     });
@@ -85,7 +90,6 @@ try {
     builder.Services.AddSingleton<IPasswordHasher<User>, Argon2idPasswordHasher<User>>();
 
     // JWT
-    var appOptions = builder.Configuration.GetSection(nameof(AppOptions)).Get<AppOptions>()!;
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -199,7 +203,7 @@ try {
     // Security & Error handling middleware
     app.UseStatusCodePages();
     app.UseExceptionHandler();
-    app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    app.UseCors("AllowClient");
     
     app.UseHttpsRedirection();
     
@@ -211,7 +215,7 @@ try {
     // DB setup/seeding
     using (var scope = app.Services.CreateScope())
     {
-        if (app.Environment.IsProduction() || environmentName.Equals("Test"))
+        if (app.Environment.IsProduction() || appOptions.AspNetCoreEnvironment.Equals("Test"))
         {
              scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
         }

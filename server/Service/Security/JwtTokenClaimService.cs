@@ -31,7 +31,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
         var roles = await userManager.GetRolesAsync(user);
         log.LogInformation("Generating access token for user: {UserId} with roles: {Roles}", user.Id, string.Join(", ", roles));
          
-        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.Value.JwtSecret; // JWT_SECRET fly.io variabel
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.Value.JwtSecret; // JWT_SECRET fly.io miljøvariabel
         byte[] key = Convert.FromBase64String(jwtSecret);
         
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -128,7 +128,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
 
     public static TokenValidationParameters ValidationParameters(AppOptions options)
     {
-        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.JwtSecret; // JWT_SECRET fly.io variabel
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.JwtSecret; // JWT_SECRET fly.io miljøvariabel
         var key = Convert.FromBase64String(jwtSecret);
         return new TokenValidationParameters
         {

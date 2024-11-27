@@ -17,9 +17,17 @@ services:
       - ACCEPT_EULA=Y
     ports:
       - '5341:80'
-    restart: unless-stopped
     volumes:
       - seq_data:/data
+    restart: unless-stopped
+      
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '1025:1025' # SMTP port
+      - '8025:8025' # HTTP port (web ui)
+    restart: always
+    
 
 volumes:
   postgres_data:

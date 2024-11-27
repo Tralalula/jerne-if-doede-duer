@@ -3,6 +3,7 @@ using API.Extensions;
 using API.Helpers;
 using DataAccess;
 using DataAccess.Models;
+using FluentEmail.MailKitSmtp;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -44,7 +45,7 @@ try {
                          
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowClient", policy => policy.WithOrigins(appOptions.ClientUrl)
+        options.AddPolicy("AllowClient", policy => policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || origin == appOptions.ClientUrl)
                                                          .AllowAnyMethod()
                                                          .AllowAnyHeader());
     }); 
@@ -119,6 +120,14 @@ try {
     builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
+    
+    
+    builder.Services.AddFluentEmail(appOptions.EmailFrom, appOptions.EmailFrom)
+                    .AddMailKitSender(new SmtpClientOptions
+                    {
+                        Server = appOptions.EmailHost,
+                        Port = appOptions.EmailPort
+                    });
     #endregion
     
     #region API Config
@@ -201,9 +210,9 @@ try {
     }
     
     // Security & Error handling middleware
+    app.UseCors("AllowClient");
     app.UseStatusCodePages();
     app.UseExceptionHandler();
-    app.UseCors("AllowClient");
     
     app.UseHttpsRedirection();
     

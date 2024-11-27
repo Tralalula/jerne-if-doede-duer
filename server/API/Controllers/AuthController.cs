@@ -10,7 +10,6 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class AuthController(IAuthService service) : ControllerBase
 {
-
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromServices] IValidator<LoginRequest> validator,
@@ -47,5 +46,13 @@ public class AuthController(IAuthService service) : ControllerBase
     public async Task<ActionResult<RefreshResponse>> Refresh()
     {
         return Ok(await service.RefreshAsync(Request.Cookies, Response.Cookies));
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromQuery] string token, [FromQuery] string email)
+    {
+        var success = await service.VerifyEmailAsync(token, email);
+        return success ? Ok("Email confirmed successfully!") : BadRequest("Email confirmation failed.");
     }
 }

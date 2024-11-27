@@ -1,5 +1,6 @@
 export const AppRoutes = {
     Home: "/",
     Login: "/login",
-    Forgot: "/forgot"
+    Forgot: "/forgot",
+    Game: "/game"
 } as const;

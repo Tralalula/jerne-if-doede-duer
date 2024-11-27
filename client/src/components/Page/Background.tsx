@@ -1,7 +1,7 @@
 export default function Background() {
     return (
         <div className="absolute inset-0 -z-10 bg-gray11 dark:bg-transparent">
-                <svg
+            <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 2560 1920"
                 className="absolute inset-0 w-full h-full opacity-50"
@@ -31,109 +31,109 @@ export default function Background() {
                 ></path>
                 </g>
                 <defs>
-            <radialGradient
-            id="paint0_radial_37_453-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(-804.109 -2036.8) rotate(64.9401) scale(6436.87 6304.81)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.0833333" stopColor="var(--color-background-image-accent-1)" />
-            <stop offset="0.364583" stopColor="var(--color-background-image-accent-2)" />
-            <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
-            <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
-            <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint1_radial_37_453-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(201.6 -1080.02) rotate(64.9401) scale(6436.87 6304.81)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.0833333" stopColor="var(--color-background-image-accent-4)" />
-            <stop offset="0.333803" stopColor="var(--color-background-image-accent-5)" />
-            <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
-            <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
-            <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint2_radial_37_453-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(912.834 -811.021) rotate(64.9401) scale(6436.87 6304.81)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.140625" stopColor="var(--color-background-image-accent-6)" stopOpacity="0" />
-            <stop offset="0.333803" stopColor="var(--color-background-image-accent-7)" />
-            <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
-            <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
-            <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint3_radial_114_43-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(2922 2538.48) rotate(-117.986) scale(1898.15 3571.73)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.822917" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint4_radial_114_43-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(3069.05 2293.39) rotate(-117.986) scale(1898.15 3571.73)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.822917" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint5_radial_114_43-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(2994.87 275.232) rotate(118.839) scale(1779.46 2065.6)"
-            >
-            <stop offset="0.328125" stopColor="var(--color-background-image-accent-1)" stopOpacity="1" />
-            <stop offset="1" stopColor="white" stopOpacity="0" />
-            </radialGradient>
-        
-            <radialGradient
-            id="paint6_radial_114_43-4"
-            cx="0"
-            cy="0"
-            r="1"
-            gradientUnits="userSpaceOnUse"
-            gradientTransform="translate(3934.59 656.035) rotate(148.98) scale(1938.73 3648.08)"
-            >
-            <stop stopColor="var(--color-background-image-base)" />
-            <stop offset="0.789375" stopColor="var(--color-background-image-base)" />
-            <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
-            </radialGradient>
-        </defs>
-      </svg>
+                    <radialGradient
+                    id="paint0_radial_37_453-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(-804.109 -2036.8) rotate(64.9401) scale(6436.87 6304.81)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.0833333" stopColor="var(--color-background-image-accent-1)" />
+                    <stop offset="0.364583" stopColor="var(--color-background-image-accent-2)" />
+                    <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
+                    <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint1_radial_37_453-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(201.6 -1080.02) rotate(64.9401) scale(6436.87 6304.81)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.0833333" stopColor="var(--color-background-image-accent-4)" />
+                    <stop offset="0.333803" stopColor="var(--color-background-image-accent-5)" />
+                    <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
+                    <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint2_radial_37_453-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(912.834 -811.021) rotate(64.9401) scale(6436.87 6304.81)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.140625" stopColor="var(--color-background-image-accent-6)" stopOpacity="0" />
+                    <stop offset="0.333803" stopColor="var(--color-background-image-accent-7)" />
+                    <stop offset="0.658041" stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.798521" stopColor="var(--color-background-image-accent-3)" />
+                    <stop offset="0.942708" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint3_radial_114_43-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(2922 2538.48) rotate(-117.986) scale(1898.15 3571.73)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.822917" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint4_radial_114_43-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(3069.05 2293.39) rotate(-117.986) scale(1898.15 3571.73)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.822917" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint5_radial_114_43-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(2994.87 275.232) rotate(118.839) scale(1779.46 2065.6)"
+                    >
+                    <stop offset="0.328125" stopColor="var(--color-background-image-accent-1)" stopOpacity="1" />
+                    <stop offset="1" stopColor="white" stopOpacity="0" />
+                    </radialGradient>
+                
+                    <radialGradient
+                    id="paint6_radial_114_43-4"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(3934.59 656.035) rotate(148.98) scale(1938.73 3648.08)"
+                    >
+                    <stop stopColor="var(--color-background-image-base)" />
+                    <stop offset="0.789375" stopColor="var(--color-background-image-base)" />
+                    <stop offset="1" stopColor="var(--color-background-image-base)" stopOpacity="0" />
+                    </radialGradient>
+                </defs>
+            </svg>
         </div>
     );
 }

@@ -4,13 +4,13 @@ import MobileNavigation from "./MobileNavigation";
 import { Tab } from './types';
 
 const tabs: Tab[] = [
-  { name: "Spil", path: "/spil", icon: faGamepad },
+  { name: "Spil", path: "/game", icon: faGamepad },
   { name: "Konto", path: "/konto", icon: faCircleUser },
-  { name: "Panel", path: "/panel", icon: faGear }
+  { name: "Kontakt", path: "/contact", icon: faGear },
+  { name: "Panel", path: "/panel", icon: faGear },
 ];
 
 export default function Navigation() {
-
     return (
     <div>
         <DesktopNavigation tabs={tabs}/>

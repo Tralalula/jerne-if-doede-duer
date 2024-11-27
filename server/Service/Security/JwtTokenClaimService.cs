@@ -31,7 +31,8 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
         var roles = await userManager.GetRolesAsync(user);
         log.LogInformation("Generating access token for user: {UserId} with roles: {Roles}", user.Id, string.Join(", ", roles));
          
-        byte[] key = Convert.FromBase64String(options.Value.JwtSecret);
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.Value.JwtSecret; // JWT_SECRET fly.io variabel
+        byte[] key = Convert.FromBase64String(jwtSecret);
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {

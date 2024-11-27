@@ -1,6 +1,9 @@
 name: Deploy server
 on:
-  push: 
+  workflow_run:
+    workflows: ['Tests']
+    types:
+      - completed 
     paths:
       - 'server/**'
       - '.github/workflows/fly-server-deployment.yml'

@@ -1,21 +1,26 @@
+import { Flex } from "@radix-ui/themes";
+
 export default function Background() {
     return (
-        <div className="absolute inset-0 -z-10 bg-gray11 dark:bg-transparent">
+        <Flex align='start' justify='center' className="absolute inset-0 -z-10 bg-gray11 dark:bg-transparent">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
+                width='2560'
+                height='1920'
                 viewBox="0 0 2560 1920"
-                className="absolute inset-0 w-full h-full opacity-50"
+                className="absolute block align-middle inset-0 w-screen h-screen opacity-50"
                 style={{
-                '--color-background-image-base': 'var(--color-background)',
-                '--color-background-image-accent-1': 'var(--indigo-a7)',
-                '--color-background-image-accent-2': 'var(--violet-6)',
-                '--color-background-image-accent-3': 'var(--purple-9)',
-                '--color-background-image-accent-4': 'var(--blue-5)',
-                '--color-background-image-accent-5': 'var(--slate-1)',
-                '--color-background-image-accent-6': 'var(--crimson-a5)',
-                '--color-background-image-accent-7': 'var(--indigo-5)',
+                    "--color-background-image-base": "var(--red-2)",
+                    "--color-background-image-accent-1": "var(--crimson-a7)",
+                    "--color-background-image-accent-2": "var(--red-1)",
+                    "--color-background-image-accent-3": "var(--red-3)",
+                    "--color-background-image-accent-4": "var(--red-7)",
+                    "--color-background-image-accent-5": "var(--color-background)",
+                    "--color-background-image-accent-6": "var(--red-a4)",
+                    "--color-background-image-accent-7": "var(--red-5)",
+                    height: 'auto'
                 }}
-            >
+                >
                 <g>
                 <path
                     d="M3020.93 134.455C3124.79 173.824 3164.97 266.778 3110.66 342.074C2627.55 1011.9 1866.31 2517.63 1361.75 2752.01C-681.389 3429.21 -4156.79 2571.47 -2138.3 1425.38C-119.809 279.282 -1553.39 -218.348 -406.211 -990.94C930.008 -1890.85 2560.5 -40.0647 3020.93 134.455Z"
@@ -119,7 +124,6 @@ export default function Background() {
                     <stop offset="0.328125" stopColor="var(--color-background-image-accent-1)" stopOpacity="1" />
                     <stop offset="1" stopColor="white" stopOpacity="0" />
                     </radialGradient>
-                
                     <radialGradient
                     id="paint6_radial_114_43-4"
                     cx="0"
@@ -134,6 +138,6 @@ export default function Background() {
                     </radialGradient>
                 </defs>
             </svg>
-        </div>
+        </Flex>
     );
 }

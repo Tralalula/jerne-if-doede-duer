@@ -3,6 +3,10 @@ import { Tab } from "./types";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import ThemeSwitcher from "./ThemeSwitcher";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { Flex, IconButton, Tooltip } from "@radix-ui/themes";
+import AnimatedIconButton from "../Button/AnimatedIconButton";
 
 interface DesktopNavigationProps {
   tabs: Tab[];
@@ -54,9 +58,12 @@ export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
             </button>
           ))}
         </div>
-        <div className="flex items-center ml-auto">
+        <Flex className="ml-auto" align='center' gap='2'>
           <ThemeSwitcher />
-        </div>
+          <AnimatedIconButton tooltipContent='Log ud' onClick={() => console.log("logger ud")}>
+              <FontAwesomeIcon className="text-gray5 dark:text-gray11" icon={faArrowRightFromBracket}/>
+            </AnimatedIconButton>
+          </Flex>
       </div>
     </div>
   );

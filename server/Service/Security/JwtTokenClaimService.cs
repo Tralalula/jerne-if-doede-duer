@@ -127,7 +127,8 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
 
     public static TokenValidationParameters ValidationParameters(AppOptions options)
     {
-        var key = Convert.FromBase64String(options.JwtSecret);
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.JwtSecret; // JWT_SECRET fly.io variabel
+        var key = Convert.FromBase64String(jwtSecret);
         return new TokenValidationParameters
         {
             IssuerSigningKey = new SymmetricSecurityKey(key),

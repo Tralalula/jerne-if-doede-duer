@@ -99,7 +99,7 @@ export default function LoginContainer() {
                         </Flex>
                       </Box>
 
-                      <Box mb="5" position="relative">
+                      <Box mb="2" position="relative">
                         <Box position="absolute" top="0" right="0" style={{ marginTop: -2 }}>
                           <Link className='cursor-pointer hover:underline' onClick={() => navigate("/forgot")} size="2">
                             <Skeleton loading={isLoading}>Glemt adgangskode?</Skeleton>
@@ -139,10 +139,10 @@ export default function LoginContainer() {
                         </Flex>
                       </Box>
 
-                      <Flex width='100%' justify="center" gap="3">
-                            <LoadingButton skeleton={isLoading} type='submit' isLoading={isLoggingIn}>
-                                Log på
-                            </LoadingButton>
+                      <Flex width='100%' justify="center">
+                          <LoadingButton skeleton={isLoading} type='submit' isLoading={isLoggingIn}>
+                              Log på
+                          </LoadingButton>
                       </Flex>
                     </form>
                   </Card>

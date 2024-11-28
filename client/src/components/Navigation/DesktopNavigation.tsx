@@ -22,7 +22,7 @@ export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
   };
 
   return (
-    <div style={{height: '60px'}} className="hidden flex-no-wrap fixed top-0 w-full backdrop-blur-md z-0 bg-whiteA5 dark:bg-gray1/90 md:flex py-2 border-b dark:border-b-gray5 desktop-header">
+    <div style={{height: '60px'}} className="hidden flex-no-wrap fixed top-0 w-full backdrop-blur-md z-30 bg-whiteA5 dark:bg-gray1/90 md:flex py-2 border-b dark:border-b-gray5 desktop-header">
       <div className="flex items-center justify-between w-full px-4">
         <div className="flex items-center h-10 w-10">
           <div

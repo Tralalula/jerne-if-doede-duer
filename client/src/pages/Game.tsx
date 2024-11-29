@@ -1,4 +1,4 @@
-import { Box, Button, Card, Container, Flex, Grid, Heading, Text } from "@radix-ui/themes";
+import { Box, Button, Card, Container, Flex, Grid, Heading, Separator, Text } from "@radix-ui/themes";
 import { GameButton, Countdown, Page } from "../components";
 import { useEffect, useState } from "react";
 
@@ -37,7 +37,7 @@ export default function Game() {
                 </Flex>
                 <Flex justify="center" align="center" direction="column" className="w-full h-full py-4 -mt-2">
                     <Heading className="pb-2">Vælg dine tal</Heading>
-                    <Flex justify='center' align="center" direction="column" className="py-2 rounded-lg backdrop-blur-md bg-whiteA5 dark:bg-gray1/75" style={{ boxShadow: "var(--shadow-5)" }}>
+                    <Flex gap='3' justify='center' align="center" direction="column" className="p-2 rounded-lg backdrop-blur-md bg-whiteA5 dark:bg-gray1/75" style={{ boxShadow: "var(--shadow-5)" }}>
                         <Text>Du har valgt følgende:</Text>
                         <Grid className="p-2" align="center" justify="center" columns={{ initial: "4", md: "4" }} gap="3">
                             {Array.from({ length: 16 }, (_, i) => (
@@ -46,7 +46,8 @@ export default function Game() {
                                 </GameButton>
                             ))}
                         </Grid>
-                        <Button className="w-full mt-3">Næste</Button>
+                        <Separator className="w-full"/>
+                        <Button className="w-full">Næste</Button>
                     </Flex>
                 </Flex>
             </Flex>

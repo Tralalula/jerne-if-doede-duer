@@ -13,15 +13,15 @@ type PageProps = {
   className?: string;
 };
 
-export default function Page({ children, background = true, align = "center", justify = "center", className = ""}: PageProps) {
+export default function Page({ children, background = true, align = "start", justify = "start", className = ""}: PageProps) {
   return (
     <Flex className={clsx(
       className,
       "h-[calc(100vh-var(--navbar-height)*2.95)] md:h-[100vh]"
-    )} align={align} justify={justify}
+    )} 
+      align={align} justify={justify}
       style={{ paddingTop: "var(--navbar-height)" }}
-       width="100vw"
-       height='100vh'>
+      width="100vw">
       {background && <Background />}
       {children}
     </Flex>

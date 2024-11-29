@@ -14,3 +14,4 @@ export {default as LoginContainer } from './Auth/LoginContainer'
 // Buttons
 export {default as LoadingButton } from './Button/LoadingButton'
 export {default as AnimatedIconButton } from './Button/AnimatedIconButton'
+export {default as GameButton}  from './Button/GameButton'

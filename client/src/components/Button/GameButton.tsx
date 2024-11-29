@@ -26,8 +26,8 @@ export default function GameButton({ onClick, children, className }: GameButtonP
       <Button
         variant="surface"
         className={clsx(
-          "cursor-pointer transition-colors duration-200 relative overflow-hidden",
-          isSelected ? "dark:brightness-125" : "text-black dark:text-white",
+          "cursor-pointer transition-all duration-200 relative overflow-hidden",
+          isSelected ? "dark:brightness-125" : "text-black dark:text-white shadow-none",
           className
         )}
         onClick={handleClick}>
@@ -41,7 +41,7 @@ export default function GameButton({ onClick, children, className }: GameButtonP
           <div
             className={clsx(
               "absolute rounded-full z-0 border-2 w-10 h-10 md:w-14 md:h-14 pointer-events-none",
-              "border-red10/80 shadow-[0_0_20px_rgba(200,0,0,0.75)] dark:shadow-[0_0_20px_rgba(200,30,30,0.25)] dark:border-red5"
+              "border-red10/50 shadow-[0_0_20px_rgba(200,0,0,0.5)] dark:shadow-[0_0_20px_rgba(200,30,30,0.25)] dark:border-red5/60"
             )}
           />
         </motion.div>

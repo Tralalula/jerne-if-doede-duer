@@ -15,3 +15,5 @@ export {default as LoginContainer } from './Auth/LoginContainer'
 export {default as LoadingButton } from './Button/LoadingButton'
 export {default as AnimatedIconButton } from './Button/AnimatedIconButton'
 export {default as GameButton}  from './Button/GameButton'
+
+export * as ResizablePanel from './Page/ResizablePanel'

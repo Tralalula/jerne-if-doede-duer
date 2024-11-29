@@ -25,7 +25,7 @@ export default function Game() {
     return (
         <Page>
             <Flex justify='center' align='center' direction='column' className="w-full h-full">
-            <Flex justify='center' align='center' direction='column' className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl w-full p-4">
+            <Flex justify='center' align='center' direction='column' className="max-w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl w-full md:p-4">
                 <Flex direction='column' className="text-center">
                 <Heading className="text-2xl sm:text-2xl md:text-3xl">
                     Velkommen til denne uges spil!
@@ -44,14 +44,14 @@ export default function Game() {
                             <Countdown type="m" padding={40} className="bg-red8/40 rounded-lg" value={time.minutes}/>
                             <Countdown type="s" padding={40} className="bg-red8/40 rounded-lg" value={time.seconds}/>
                         </Grid>
-                        <Button className="transition-colors duration-200 cursor-pointer">
+                        <Button className="hidden lg:block transition-colors duration-200 cursor-pointer">
                             Vær med!
                         </Button>
                     </Flex>
                 </Flex>
             </Flex>
-            <Flex align='center' justify='center' className="w-full h-full backdrop-blur-md bg-whiteA5 dark:bg-gray1/75">
-                lorem
+            <Flex align='center' justify='center' className="w-full border-t h-full backdrop-blur-md bg-whiteA5 dark:bg-gray1/75">
+                asdsad
             </Flex>
             </Flex>
         </Page>

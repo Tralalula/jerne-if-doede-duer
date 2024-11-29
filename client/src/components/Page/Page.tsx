@@ -1,6 +1,7 @@
 import { Flex } from "@radix-ui/themes";
 import { ReactNode } from "react";
 import Background from "./Background";
+import clsx from "clsx";
 
 import './Page.css'
 
@@ -14,12 +15,13 @@ type PageProps = {
 
 export default function Page({ children, background = true, align = "center", justify = "center", className = ""}: PageProps) {
   return (
-    <Flex className={className} align={align} justify={justify}
-      style={{
-        paddingTop: "var(--navbar-height)",
-        height: `calc(100vh - var(--navbar-height))`,
-      }}
-       width="100vw">
+    <Flex className={clsx(
+      className,
+      "h-[calc(100vh-var(--navbar-height)*2.95)] md:h-[100vh]"
+    )} align={align} justify={justify}
+      style={{ paddingTop: "var(--navbar-height)" }}
+       width="100vw"
+       height='100vh'>
       {background && <Background />}
       {children}
     </Flex>

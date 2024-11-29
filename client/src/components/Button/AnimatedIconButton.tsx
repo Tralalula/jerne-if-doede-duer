@@ -9,11 +9,7 @@ interface AnimatedIconButtonProps {
   children: React.ReactNode;
 }
 
-export default function AnimatedIconButton({
-  tooltipContent,
-  onClick,
-  children,
-}: AnimatedIconButtonProps) {
+export default function AnimatedIconButton({ tooltipContent, onClick, children }: AnimatedIconButtonProps) {
   return (
     <Tooltip content={tooltipContent}>
       <motion.div

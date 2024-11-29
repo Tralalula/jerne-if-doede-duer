@@ -1,7 +1,27 @@
 import { Box, Button, Card, Container, Flex, Grid, Heading, Text } from "@radix-ui/themes";
-import { Page } from "../components";
+import { Countdown, Page } from "../components";
+import { useEffect, useState } from "react";
 
 export default function Game() {
+    const [time, setTime] = useState({
+        hours: new Date().getHours(),
+        minutes: new Date().getMinutes(),
+        seconds: new Date().getSeconds(),
+      });
+    
+      useEffect(() => {
+        const interval = setInterval(() => {
+          const now = new Date();
+          setTime({
+            hours: now.getHours(),
+            minutes: now.getMinutes(),
+            seconds: now.getSeconds(),
+          });
+        }, 1000);
+    
+        return () => clearInterval(interval);
+      }, []);
+
     return (
         <Page>
             <Flex justify='center' align='center' direction='column' className="w-full h-full">
@@ -10,7 +30,7 @@ export default function Game() {
                 <Heading className="text-2xl sm:text-2xl md:text-3xl">
                     Velkommen til denne uges spil!
                 </Heading>
-                <Text className="text-md">
+                <Text color="gray" className="text-md">
                     Spillet er igang for uge: 46
                 </Text>
                 </Flex>
@@ -20,24 +40,9 @@ export default function Game() {
                             Vær med & vind
                         </Heading>
                         <Grid columns={{ initial: "3", md: "3" }} gap="5" width="auto">
-                            <Flex justify='center' align='center' className="bg-red8/40 rounded-lg text-5xl relative p-3" >
-                                <Flex align='baseline' className="relative">
-                                    <Text weight='bold'>00</Text>
-                                    <Text weight='bold' className="ml-1" size='3'>h</Text>
-                                </Flex>
-                            </Flex>
-                            <Flex justify='center' align='center' className="bg-red8/40 rounded-lg text-5xl relative p-3" >
-                                <Flex align='baseline' className="relative">
-                                    <Text weight='bold'>00</Text>
-                                    <Text weight='bold' className="ml-1" size='3'>m</Text>
-                                </Flex>
-                            </Flex>
-                            <Flex justify='center' align='center' className="bg-red8/40 rounded-lg text-5xl relative p-3" >
-                                <Flex align='baseline' className="relative">
-                                    <Text weight='bold'>00</Text>
-                                    <Text weight='bold' className="ml-1" size='3'>s</Text>
-                                </Flex>
-                            </Flex>
+                            <Countdown type="h" padding={40} className="bg-red8/40 rounded-lg" value={time.hours}/>
+                            <Countdown type="m" padding={40} className="bg-red8/40 rounded-lg" value={time.minutes}/>
+                            <Countdown type="s" padding={40} className="bg-red8/40 rounded-lg" value={time.seconds}/>
                         </Grid>
                         <Button className="transition-colors duration-200 cursor-pointer">
                             Vær med!

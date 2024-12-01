@@ -24,6 +24,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
                                   AppDbContext dbContext,
                                   ILogger<JwtTokenClaimService> log) : ITokenClaimService
 {
+    private const int RefreshTokenBytes = 32;
     private const string SignatureAlgorithm = SecurityAlgorithms.HmacSha512;
 
     public async Task<string> GetAccessTokenAsync(User user)
@@ -31,7 +32,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
         var roles = await userManager.GetRolesAsync(user);
         log.LogInformation("Generating access token for user: {UserId} with roles: {Roles}", user.Id, string.Join(", ", roles));
          
-        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.Value.JwtSecret; // JWT_SECRET fly.io miljøvariabel
+        var jwtSecret = Environment.GetEnvironmentVariable(options.Value.EnvVar.JwtSecret) ?? options.Value.Token.JwtSecret; 
         byte[] key = Convert.FromBase64String(jwtSecret);
         
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -41,9 +42,9 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
                 SignatureAlgorithm
             ),
             Subject = new ClaimsIdentity(user.ToClaims(roles)),
-            Expires = DateTime.UtcNow.AddMinutes(15),
-            Issuer = options.Value.Address,
-            Audience = options.Value.Address
+            Expires = DateTime.UtcNow.AddMinutes(options.Value.Token.AccessTokenLifetimeMinutes),
+            Issuer = options.Value.Urls.Address,
+            Audience = options.Value.Urls.Address
         };
         
         string token = new JsonWebTokenHandler().CreateToken(tokenDescriptor);
@@ -58,10 +59,10 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
 
         var refreshToken = new RefreshToken
         {
-            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
+            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytes)),
             UserId = user.Id,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7) 
+            ExpiresAt = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays) 
         };
 
         await dbContext.RefreshTokens.AddAsync(refreshToken);
@@ -91,7 +92,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
         
         var refreshToken = new RefreshToken
         {
-            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
+            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytes)),
             UserId = user.Id,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = oldToken.ExpiresAt
@@ -128,7 +129,7 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
 
     public static TokenValidationParameters ValidationParameters(AppOptions options)
     {
-        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? options.JwtSecret; // JWT_SECRET fly.io miljøvariabel
+        var jwtSecret = Environment.GetEnvironmentVariable(options.EnvVar.JwtSecret) ?? options.Token.JwtSecret; 
         var key = Convert.FromBase64String(jwtSecret);
         return new TokenValidationParameters
         {
@@ -136,8 +137,8 @@ public class JwtTokenClaimService(IOptions<AppOptions> options,
             ValidAlgorithms = [SignatureAlgorithm],
             
             // Important for validating tokens from a different system
-            ValidIssuer = options.Address,
-            ValidAudience = options.Address,
+            ValidIssuer = options.Urls.Address,
+            ValidAudience = options.Urls.Address,
             
             // Set to 0 when validating on the same system that created the token
             ClockSkew = TimeSpan.FromSeconds(0),

@@ -45,7 +45,7 @@ try {
                          
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowClient", policy => policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || origin == appOptions.ClientUrl)
+        options.AddPolicy("AllowClient", policy => policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || origin == appOptions.Urls.ClientUrl)
                                                          .AllowAnyMethod()
                                                          .AllowAnyHeader());
     }); 
@@ -57,18 +57,18 @@ try {
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
                     .WriteTo.Console()
-                    .WriteTo.Seq(appOptions.SeqUrl));
+                    .WriteTo.Seq(appOptions.Urls.SeqUrl));
     #endregion
 
     #region Database  
     builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     {
         var appOps = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
-        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL"); // fly.io miljøvariabel
+        var databaseUrl = Environment.GetEnvironmentVariable(appOps.EnvVar.DatabaseUrl); 
     
         var connectionString = !string.IsNullOrEmpty(databaseUrl)
             ? DbHelper.ConvertDatabaseUrlToConnectionString(databaseUrl)
-            : appOps.LocalDbConn;
+            : appOps.Database.LocalDbConn;
     
         options.UseNpgsql(connectionString);
     });
@@ -122,11 +122,11 @@ try {
     builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
     
     
-    builder.Services.AddFluentEmail(appOptions.EmailFrom, appOptions.EmailFrom)
+    builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)
                     .AddMailKitSender(new SmtpClientOptions
                     {
-                        Server = appOptions.EmailHost,
-                        Port = appOptions.EmailPort
+                        Server = appOptions.Email.Host,
+                        Port = appOptions.Email.Port
                     });
                     
     builder.Services.AddHttpContextAccessor();

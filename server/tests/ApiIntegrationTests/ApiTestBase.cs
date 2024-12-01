@@ -21,7 +21,7 @@ public class ApiTestBase : WebApplicationFactory<Program>
     protected ApiTestBase()
     {
         PgCtxSetup = new PgCtxSetup<AppDbContext>();
-        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", PgCtxSetup._postgres.GetConnectionString());
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.Database.LocalDbConn)}", PgCtxSetup._postgres.GetConnectionString());
         Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.AspNetCoreEnvironment)}", "Test");
  
         ServiceProvider = base.Services.CreateScope().ServiceProvider;

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Service.Exceptions;
 using Service.Security;
 
@@ -28,13 +29,16 @@ public interface IAuthService
     Task<bool> CompletePasswordResetAsync(CompletePasswordResetRequest request);
 }
 
-public class AuthService(ILogger<AuthService> logger,
+public class AuthService(IOptions<AppOptions> options,
+                         ILogger<AuthService> logger,
                          UserManager<User> userManager,
                          ITokenClaimService tokenClaimService,
                          AppDbContext dbContext,
                          IFluentEmail fluentMail,
                          IHttpContextAccessor httpContextAccessor) : IAuthService
 {
+    private const string RefreshTokenCookieName = "refreshToken";
+
     public async Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
@@ -43,12 +47,12 @@ public class AuthService(ILogger<AuthService> logger,
         string accessToken = await tokenClaimService.GetAccessTokenAsync(user);
         string refreshToken = await tokenClaimService.GetRefreshTokenAsync(user);
         
-        cookies.Append("refreshToken", refreshToken, new CookieOptions
+        cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays)
         });
         
         return new LoginResponse(AccessToken: accessToken);
@@ -74,6 +78,7 @@ public class AuthService(ILogger<AuthService> logger,
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = Uri.EscapeDataString(token); 
         
+        // skal ændres i Produktion, men mangler løsning for mail i produktion først.
         var verificationLink = $"http://localhost:5009/api/auth/verify-email?token={encodedToken}&email={Uri.EscapeDataString(user.Email)}";
         
         await fluentMail.To(user.Email)
@@ -86,7 +91,7 @@ public class AuthService(ILogger<AuthService> logger,
 
     public async Task LogoutAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)
     {
-        var refreshToken = requestCookies["refreshToken"];
+        var refreshToken = requestCookies[RefreshTokenCookieName];
         
         if (string.IsNullOrEmpty(refreshToken)) return;
         
@@ -97,7 +102,7 @@ public class AuthService(ILogger<AuthService> logger,
             await dbContext.SaveChangesAsync();
         }
         
-        responseCookies.Delete("refreshToken");
+        responseCookies.Delete(RefreshTokenCookieName);
     }
 
     public async Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal)
@@ -111,7 +116,7 @@ public class AuthService(ILogger<AuthService> logger,
 
     public async Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)
     {
-        var refreshToken = requestCookies["refreshToken"];
+        var refreshToken = requestCookies[RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken)) throw new UnauthorizedException("Refresh token is missing");
         
         var oldToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
@@ -127,12 +132,12 @@ public class AuthService(ILogger<AuthService> logger,
         var newAccessToken = await tokenClaimService.GetAccessTokenAsync(user);
         var newRefreshToken = await tokenClaimService.RotateRefreshTokenAsync(user);
         
-        responseCookies.Append("refreshToken", newRefreshToken, new CookieOptions
+        responseCookies.Append(RefreshTokenCookieName, newRefreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays)
         });
         
         return new RefreshResponse(AccessToken: newAccessToken);
@@ -158,18 +163,21 @@ public class AuthService(ILogger<AuthService> logger,
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
         logger.LogInformation($"IP address {ipAddress} initiated password reset for email {email}");
         
+        var cutoffTime = DateTime.UtcNow.AddMinutes(-options.Value.PasswordReset.RetryAfterMinutes);
+        
         var recentAttemptsFromIp = await dbContext.PasswordResetCodes.CountAsync(x => x.IpAddress == ipAddress && 
-                                                                                 x.CreatedAt > DateTime.UtcNow.AddHours(-1));
+                                                                                 x.CreatedAt > cutoffTime);
                                                                                  
-        if (recentAttemptsFromIp >= 5) throw new TooManyRequestsException("Too many reset attempts from this IP", retryAfterSeconds: 3600);
+        if (recentAttemptsFromIp >= options.Value.PasswordReset.MaxResetAttemptsIp) throw new TooManyRequestsException("Too many reset attempts from this IP", retryAfterSeconds: options.Value.PasswordReset.RetryAfterMinutes * 60);
         
         var recentAttemptsForEmail = await dbContext.PasswordResetCodes.CountAsync(x => x.Email == email &&
-                                                                                   x.CreatedAt > DateTime.UtcNow.AddHours(-1));
+                                                                                   x.CreatedAt > cutoffTime);
         
-        if (recentAttemptsForEmail >= 3) throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds: 3600);
+        if (recentAttemptsForEmail >= options.Value.PasswordReset.MaxResetAttemptsEmail) throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds:  options.Value.PasswordReset.RetryAfterMinutes * 60);
         
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var sixDigitCode = Random.Shared.Next(100000, 999999).ToString();
+
         
         var now = DateTime.UtcNow;
         var resetCode = new PasswordResetCode
@@ -178,7 +186,7 @@ public class AuthService(ILogger<AuthService> logger,
             Code = sixDigitCode,
             Token = token,
             CreatedAt = now,
-            ExpiresAt = now.AddMinutes(15),
+            ExpiresAt = now.AddMinutes(options.Value.PasswordReset.CodeExpirationMinutes),
             IpAddress = ipAddress
         };
         
@@ -224,7 +232,7 @@ public class AuthService(ILogger<AuthService> logger,
         if (resetCode != null)
         {
             resetCode.AttemptCount++;
-            if (resetCode.AttemptCount >= 5) resetCode.IsUsed = true;
+            if (resetCode.AttemptCount >= options.Value.PasswordReset.CodeMaxAttempts) resetCode.IsUsed = true;
             await dbContext.SaveChangesAsync();
             return resetCode.IsUsed ? null : resetCode;
         }
@@ -236,7 +244,7 @@ public class AuthService(ILogger<AuthService> logger,
         if (existingCode == null) return null;
         
         existingCode.AttemptCount++;
-        if (existingCode.AttemptCount >= 5) existingCode.IsUsed = true;
+        if (existingCode.AttemptCount >= options.Value.PasswordReset.CodeMaxAttempts) existingCode.IsUsed = true;
         await dbContext.SaveChangesAsync();
         
         return null;

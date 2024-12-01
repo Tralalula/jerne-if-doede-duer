@@ -119,10 +119,11 @@ try {
         
     #region Services Registration
     builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
+    builder.Services.AddSingleton(TimeProvider.System);
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
-    
+   
     builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)
                     .AddMailKitSender(new SmtpClientOptions
                     {

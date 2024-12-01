@@ -22,7 +22,8 @@ public interface ITokenService
 public class JwtTokenService(IOptions<AppOptions> options, 
                              UserManager<User> userManager, 
                              AppDbContext dbContext,
-                             ILogger<JwtTokenService> log) : ITokenService
+                             ILogger<JwtTokenService> logger,
+                             TimeProvider timeProvider) : ITokenService
 {
     private const int RefreshTokenBytes = 32;
     private const string SignatureAlgorithm = SecurityAlgorithms.HmacSha512;
@@ -41,13 +42,13 @@ public class JwtTokenService(IOptions<AppOptions> options,
                 SignatureAlgorithm
             ),
             Subject = new ClaimsIdentity(user.ToClaims(roles)),
-            Expires = DateTime.UtcNow.AddMinutes(options.Value.Token.AccessTokenLifetimeMinutes),
+            Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(options.Value.Token.AccessTokenLifetimeMinutes),
             Issuer = options.Value.Urls.Address,
             Audience = options.Value.Urls.Address
         };
         
         string token = new JsonWebTokenHandler().CreateToken(tokenDescriptor);
-        log.LogInformation("Security: Access token generated for user: {UserId}", user.Id);
+        logger.LogInformation("Security: Access token generated for user: {UserId}", user.Id);
             
         return token;
     }
@@ -58,8 +59,8 @@ public class JwtTokenService(IOptions<AppOptions> options,
         {
             Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytes)),
             UserId = user.Id,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays) 
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
+            ExpiresAt = timeProvider.GetUtcNow().UtcDateTime.AddDays(options.Value.Token.RefreshTokenLifetimeDays) 
         };
 
         try 
@@ -67,13 +68,13 @@ public class JwtTokenService(IOptions<AppOptions> options,
             await dbContext.RefreshTokens.AddAsync(refreshToken);
             await dbContext.SaveChangesAsync();
 
-            log.LogInformation("Security: New refresh token created for user: {UserId}, expires: {ExpiresAt}", user.Id, refreshToken.ExpiresAt);
+            logger.LogInformation("Security: New refresh token created for user: {UserId}, expires: {ExpiresAt}", user.Id, refreshToken.ExpiresAt);
             
             return refreshToken.Token;
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "Security: Failed to create refresh token for user: {UserId}", user.Id);
+            logger.LogError(ex, "Security: Failed to create refresh token for user: {UserId}", user.Id);
             throw;
         }
     }
@@ -83,9 +84,9 @@ public class JwtTokenService(IOptions<AppOptions> options,
         var oldToken = await dbContext.RefreshTokens.OrderByDescending(rt => rt.CreatedAt)
                                                     .FirstOrDefaultAsync(rt => rt.UserId == user.Id && rt.RevokedAt == null);
         
-        if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= DateTime.UtcNow)
+        if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime)
         {
-            log.LogWarning("Security: Token rotation failed - Invalid or expired refresh token for user: {UserId}", user.Id);
+            logger.LogWarning("Security: Token rotation failed - Invalid or expired refresh token for user: {UserId}", user.Id);
             throw new UnauthorizedException("Invalid or expired refresh token.");
         }
         
@@ -93,7 +94,7 @@ public class JwtTokenService(IOptions<AppOptions> options,
         {
             Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(RefreshTokenBytes)),
             UserId = user.Id,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = timeProvider.GetUtcNow().UtcDateTime,
             ExpiresAt = oldToken.ExpiresAt
         };
         
@@ -110,12 +111,12 @@ public class JwtTokenService(IOptions<AppOptions> options,
                 await dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
                 
-                log.LogInformation("Security: Refresh token rotated for user: {UserId}. New token ID: {NewTokenId}, expires: {ExpiresAt}", user.Id, refreshToken.Id, refreshToken.ExpiresAt);
+                logger.LogInformation("Security: Refresh token rotated for user: {UserId}. New token ID: {NewTokenId}, expires: {ExpiresAt}", user.Id, refreshToken.Id, refreshToken.ExpiresAt);
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                log.LogError(ex, "Security: Failed to rotate refresh token for user: {UserId}. Transaction rolled back", user.Id);
+                logger.LogError(ex, "Security: Failed to rotate refresh token for user: {UserId}. Transaction rolled back", user.Id);
                 throw;
             }
         }

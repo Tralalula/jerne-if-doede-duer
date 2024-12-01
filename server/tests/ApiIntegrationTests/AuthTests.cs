@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text.RegularExpressions;
 using ApiIntegrationTests.Auth;
 using ApiIntegrationTests.Common;
-using DataAccess.Models;
 using Generated;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -67,7 +66,6 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     private void Check_Refresh_Token_Cookie(IEnumerable<string> cookieHeaders)
     {
         var refreshTokenCookie = cookieHeaders.First(h => h.StartsWith("refreshToken="));
-        testOutputHelper.WriteLine(refreshTokenCookie);
         Assert.Contains("path=/", refreshTokenCookie);
         Assert.Contains("secure", refreshTokenCookie);
         Assert.Contains("samesite=none", refreshTokenCookie); 
@@ -195,8 +193,17 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     
     private async Task Check_Verify_Reset_Code(AuthClient client, string email, string code, bool shouldBeValid = true)
     {
-        var verifyResponse = await client.VerifyResetCodeAsync(new VerifyResetCodeRequest { Email = email, Code = code });
-        Assert.Equal(shouldBeValid ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, verifyResponse.StatusCode);
+        var request = new VerifyResetCodeRequest { Email = email, Code = code };
+        if (shouldBeValid)
+        {
+            var verifyResponse = await client.VerifyResetCodeAsync(request);
+            Assert.Equal(StatusCodes.Status200OK, verifyResponse.StatusCode);
+        }
+        else
+        {
+            var exception = await Assert.ThrowsAsync<ApiException>(() => client.VerifyResetCodeAsync(request));
+            Assert.Equal(StatusCodes.Status400BadRequest, exception.StatusCode);
+        }
     }
     
     private async Task Check_Complete_Password_Reset(AuthClient client, string email, string code, string newPassword, bool shouldSucceed = true)
@@ -276,5 +283,61 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         await WebAssert.ThrowsValidationAsync(() => client.VerifyResetCodeAsync(new VerifyResetCodeRequest { Email = "test@test.com", Code = "12345" }));
         
         await WebAssert.ThrowsValidationAsync(() => client.CompletePasswordResetAsync(new CompletePasswordResetRequest { Email = "test@test.com", Code = "123456", NewPassword = "short" }));
+    }
+    
+    [Fact]
+    public async Task Password_Reset_Code_Should_Expire()
+    {
+        var client = new AuthClient(TestHttpClient);
+        var email = AuthTestHelper.Users.Player.Email;
+    
+        var (resetEmail, code) = await Check_Initiate_Password_Reset(client, email);
+    
+        await Check_Verify_Reset_Code(client, resetEmail, code, shouldBeValid: true);
+    
+        TimeProvider.Advance(TimeSpan.FromMinutes(16)); // kode udløber efter 15m
+    
+        await Check_Verify_Reset_Code(client, resetEmail, code, shouldBeValid: false);
+    }
+    
+    [Fact]
+    public async Task Rate_Limiting_Should_Reset_After_Window()
+    {
+        var email = AuthTestHelper.Users.Player.Email;
+    
+        for (int i = 0; i < 5; i++)
+        {
+            await TestHttpClient.PostAsJsonAsync("/api/auth/forgot-password", new { email });
+        }
+    
+        var rateLimitedResponse = await TestHttpClient.PostAsJsonAsync("/api/auth/forgot-password", new { email });
+        Assert.Equal(429, (int)rateLimitedResponse.StatusCode);
+    
+        TimeProvider.Advance(TimeSpan.FromMinutes(61)); // udløber efter 1 time
+    
+        var response = await TestHttpClient.PostAsJsonAsync("/api/auth/forgot-password", new { email });
+        Assert.Equal(200, (int)response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task Refresh_Token_Should_Expire()
+    {
+        var (accessToken, cookieHeaders, client) = await Check_Login(AuthTestHelper.Users.Player);
+        var cookieEnumerable = cookieHeaders as string[] ?? cookieHeaders.ToArray();
+        
+        Check_Refresh_Token_Cookie(cookieEnumerable);
+        SetAccessToken(accessToken);
+        SetRefreshTokenCookie(cookieEnumerable);
+
+        var refreshResponse = await client.RefreshAsync();
+        Assert.Equal(StatusCodes.Status200OK, refreshResponse.StatusCode);
+
+        TimeProvider.Advance(TimeSpan.FromDays(8)); // Udløber efter 7 dage 
+
+        await WebAssert.ThrowsProblemAsync<ApiException>(
+            () => client.RefreshAsync(),
+            StatusCodes.Status401Unauthorized,
+            nameof(UnauthorizedException)
+        );
     }
 }

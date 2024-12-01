@@ -1,4 +1,6 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
+using ApiIntegrationTests.Common;
 using DataAccess;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +15,8 @@ namespace ApiIntegrationTests;
 
 public class ApiTestBase : WebApplicationFactory<Program>
 {
+    private readonly CookieContainer _cookieContainer;
+    protected readonly TestTimeProvider TimeProvider;
     public readonly PgCtxSetup<AppDbContext> PgCtxSetup; 
     public readonly HttpClient TestHttpClient;
     public readonly string JwtSecret = "dfKDL0Rq26AEQhdHBcQkOvMNjj9S8/thdKhTVzm3UDWXfJ0gePCuWyf48VK9/hk1ID4VHqZjXpYhinms1r+Khg==";
@@ -20,13 +24,21 @@ public class ApiTestBase : WebApplicationFactory<Program>
 
     protected ApiTestBase()
     {
+        _cookieContainer = new CookieContainer();
+        TimeProvider = new TestTimeProvider(DateTimeOffset.UtcNow);
         PgCtxSetup = new PgCtxSetup<AppDbContext>();
         Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.Database.LocalDbConn)}", PgCtxSetup._postgres.GetConnectionString());
         Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.AspNetCoreEnvironment)}", "Test");
  
         ServiceProvider = base.Services.CreateScope().ServiceProvider;
         
-        TestHttpClient = CreateClient();
+        TestHttpClient = CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("http://localhost:5009"),
+            HandleCookies = true
+        });
+        
         SetAccessToken(JwtSecret);
         
         SeedAsync().GetAwaiter().GetResult();
@@ -35,6 +47,26 @@ public class ApiTestBase : WebApplicationFactory<Program>
     public void SetAccessToken(string token)
     {
         TestHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+    
+    public void SetRefreshTokenCookie(IEnumerable<string> cookieHeaders)
+    {
+        foreach (var header in cookieHeaders)
+        {
+            if (!header.StartsWith("refreshToken=")) continue;
+            
+            var parts = header.Split(';');
+            var cookieValue = parts[0].Split('=')[1];
+            _cookieContainer.Add(new Uri("http://localhost:5009"), new Cookie("refreshToken", cookieValue, "/", "localhost"));
+            break;
+        }
+        
+        var cookies = _cookieContainer.GetCookieHeader(new Uri("http://localhost:5009"));
+        
+        if (string.IsNullOrEmpty(cookies)) return;
+        
+        TestHttpClient.DefaultRequestHeaders.Remove("Cookie");
+        TestHttpClient.DefaultRequestHeaders.Add("Cookie", cookies);
     }
     
     protected override IHost CreateHost(IHostBuilder builder)
@@ -52,6 +84,8 @@ public class ApiTestBase : WebApplicationFactory<Program>
                 options.EnableSensitiveDataLogging(false);
                 options.LogTo(_ => { });
             });
+            
+            services.AddSingleton<TimeProvider>(TimeProvider);
         });
         
         return base.CreateHost(builder);

@@ -33,7 +33,8 @@ public class AuthService(IOptions<AppOptions> options,
                          ITokenService tokenService,
                          AppDbContext dbContext,
                          IEmailService emailService,
-                         IHttpContextAccessor httpContextAccessor) : IAuthService
+                         IHttpContextAccessor httpContextAccessor,
+                         TimeProvider timeProvider) : IAuthService
 {
     private const string RefreshTokenCookieName = "refreshToken";
 
@@ -94,7 +95,7 @@ public class AuthService(IOptions<AppOptions> options,
         var token = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         if (token != null)
         {
-            token.RevokedAt = DateTime.UtcNow;
+            token.RevokedAt = timeProvider.GetUtcNow().UtcDateTime;
             await dbContext.SaveChangesAsync();
             logger.LogInformation("User logged out and refresh token revoked. UserId: {UserId}", token.UserId);
         }
@@ -118,7 +119,7 @@ public class AuthService(IOptions<AppOptions> options,
         
         var oldToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         
-        if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= DateTime.UtcNow)
+        if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime)
         {
             logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}", oldToken?.Id, oldToken?.UserId);
             throw new UnauthorizedException("Invalid or expired refresh token.");
@@ -161,7 +162,7 @@ public class AuthService(IOptions<AppOptions> options,
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
         logger.LogInformation("IP address {IpAddress} initiated password reset for email {Email}", ipAddress, email);
         
-        var cutoffTime = DateTime.UtcNow.AddMinutes(-options.Value.PasswordReset.RetryAfterMinutes);
+        var cutoffTime = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(-options.Value.PasswordReset.RetryAfterMinutes);
         
         var recentAttemptsFromIp = await dbContext.PasswordResetCodes.CountAsync(x => x.IpAddress == ipAddress && x.CreatedAt > cutoffTime);
         if (recentAttemptsFromIp >= options.Value.PasswordReset.MaxResetAttemptsIp) 
@@ -181,7 +182,7 @@ public class AuthService(IOptions<AppOptions> options,
         var sixDigitCode = Random.Shared.Next(100000, 999999).ToString();
 
         
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var resetCode = new PasswordResetCode
         {
             Email = email,
@@ -231,14 +232,14 @@ public class AuthService(IOptions<AppOptions> options,
         HttpOnly = true,
         Secure = true,
         SameSite = SameSiteMode.None,
-        Expires = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays)
+        Expires = timeProvider.GetUtcNow().UtcDateTime.AddDays(options.Value.Token.RefreshTokenLifetimeDays)
     };
     
     private async Task<PasswordResetCode?> VerifyAndUpdateResetCodeAsync(string email, string code)
     {
         var resetCode = await dbContext.PasswordResetCodes.FirstOrDefaultAsync(rc => rc.Email == email && 
                                                                                      rc.Code == code &&
-                                                                                     rc.ExpiresAt > DateTime.UtcNow &&
+                                                                                     rc.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime &&
                                                                                      !rc.IsUsed);
         if (resetCode != null)
         {
@@ -255,7 +256,7 @@ public class AuthService(IOptions<AppOptions> options,
         // Kig efter eksisterende kode hvis reset kode ikke findes
         var existingCode = await dbContext.PasswordResetCodes.FirstOrDefaultAsync(rc => rc.Email == email && 
                                                                                         !rc.IsUsed && 
-                                                                                        rc.ExpiresAt > DateTime.UtcNow);
+                                                                                        rc.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime);
         if (existingCode == null) return null;
         
         existingCode.AttemptCount++;

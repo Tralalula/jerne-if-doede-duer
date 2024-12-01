@@ -54,12 +54,15 @@ try {
     #endregion
                     
     #region Logging
-    builder.Services.AddSerilog((services, lc) => lc
-                    .ReadFrom.Configuration(builder.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .WriteTo.Seq(appOptions.Urls.SeqUrl));
+    var seqConfig = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
+                                                      .Enrich.FromLogContext()
+                                                      .WriteTo.Console();
+                                                      
+    var seqApiKey = Environment.GetEnvironmentVariable(appOptions.EnvVar.SeqApiKey);
+    if (!string.IsNullOrEmpty(seqApiKey)) seqConfig.WriteTo.Seq(appOptions.Urls.SeqUrl, apiKey: seqApiKey);
+    else seqConfig.WriteTo.Seq(appOptions.Urls.SeqUrl);
+    
+    builder.Services.AddSerilog(seqConfig.CreateLogger());
     #endregion
 
     #region Database  

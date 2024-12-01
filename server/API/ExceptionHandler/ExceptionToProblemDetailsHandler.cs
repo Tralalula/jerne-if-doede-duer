@@ -5,7 +5,7 @@ using Service.Exceptions;
 
 namespace API.ExceptionHandler;
 
-public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDetailsService, ILogger<ExceptionToProblemDetailsHandler> logger) : IExceptionHandler
 {
     
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -20,6 +20,8 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
             TooManyRequestsException => StatusCodes.Status429TooManyRequests, 
             _ => StatusCodes.Status500InternalServerError
         };
+        
+        LogException(exception, httpContext);
         
         if (exception is TooManyRequestsException tooManyRequestsException)
         {
@@ -52,7 +54,37 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
 
         return await problemDetailsService.TryWriteAsync(problemDetails);
     }
-    
+
+    private void LogException(Exception exception, HttpContext httpContext) 
+    {
+        switch (exception)
+        {
+            case UnauthorizedException:
+            case ValidationException:
+            case TooManyRequestsException:
+                logger.LogWarning(
+                    "API Security Event: {ExceptionType}. Path: {Path}, TraceId: {TraceId}",
+                    exception.GetType().Name,
+                    httpContext.Request.Path,
+                    httpContext.TraceIdentifier);
+                break;
+                
+            case NotFoundException:
+                logger.LogInformation(
+                    "Resource Not Found. Path: {Path}, TraceId: {TraceId}",
+                    httpContext.Request.Path,
+                    httpContext.TraceIdentifier);
+                break;
+                
+            default:
+                logger.LogError(exception,
+                    "Unhandled Exception. Path: {Path}, TraceId: {TraceId}",
+                    httpContext.Request.Path,
+                    httpContext.TraceIdentifier);
+                break;
+        }
+    }
+
     private static string GetTitleForException(Exception exception)
     {
         return exception switch

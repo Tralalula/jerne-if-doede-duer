@@ -32,7 +32,7 @@ public interface IAuthService
 public class AuthService(IOptions<AppOptions> options,
                          ILogger<AuthService> logger,
                          UserManager<User> userManager,
-                         ITokenClaimService tokenClaimService,
+                         ITokenService tokenService,
                          AppDbContext dbContext,
                          IFluentEmail fluentMail,
                          IHttpContextAccessor httpContextAccessor) : IAuthService
@@ -42,10 +42,16 @@ public class AuthService(IOptions<AppOptions> options,
     public async Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
-        if (user == null || !await userManager.CheckPasswordAsync(user, request.Password)) throw new UnauthorizedException("Invalid login credentials");
+        if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
+        { 
+            logger.LogWarning("Security: Invalid login credentials. Email: {Email}, IP: {IpAddress}", request.Email, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+            throw new UnauthorizedException("Invalid login credentials");
+        }
         
-        string accessToken = await tokenClaimService.GetAccessTokenAsync(user);
-        string refreshToken = await tokenClaimService.GetRefreshTokenAsync(user);
+        logger.LogInformation("Security: Successful login. UserId: {UserId}, IP: {IpAddress}", user.Id, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+        
+        string accessToken = await tokenService.GetAccessTokenAsync(user);
+        string refreshToken = await tokenService.GetRefreshTokenAsync(user);
         
         cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
         {
@@ -86,6 +92,7 @@ public class AuthService(IOptions<AppOptions> options,
                         .Body($"For at verificere din email adresse <a href='{verificationLink}'>klik her</a>", isHtml: true)
                         .SendAsync();
         
+        logger.LogInformation("New user registered. Email: {Email}, UserId: {UserId}", user.Email, user.Id);
         return new RegisterResponse(Email: user.Email);
     }
 
@@ -100,6 +107,7 @@ public class AuthService(IOptions<AppOptions> options,
         {
             token.RevokedAt = DateTime.UtcNow;
             await dbContext.SaveChangesAsync();
+            logger.LogInformation("User logged out and refresh token revoked. UserId: {UserId}", token.UserId);
         }
         
         responseCookies.Delete(RefreshTokenCookieName);
@@ -123,14 +131,15 @@ public class AuthService(IOptions<AppOptions> options,
         
         if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= DateTime.UtcNow)
         {
+            logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}", oldToken?.Id, oldToken?.UserId);
             throw new UnauthorizedException("Invalid or expired refresh token.");
         }
         
         var user = await userManager.FindByIdAsync(oldToken.UserId.ToString());
         if (user == null) throw new UnauthorizedException("Invalid user.");
         
-        var newAccessToken = await tokenClaimService.GetAccessTokenAsync(user);
-        var newRefreshToken = await tokenClaimService.RotateRefreshTokenAsync(user);
+        var newAccessToken = await tokenService.GetAccessTokenAsync(user);
+        var newRefreshToken = await tokenService.RotateRefreshTokenAsync(user);
         
         responseCookies.Append(RefreshTokenCookieName, newRefreshToken, new CookieOptions
         {
@@ -140,6 +149,7 @@ public class AuthService(IOptions<AppOptions> options,
             Expires = DateTime.UtcNow.AddDays(options.Value.Token.RefreshTokenLifetimeDays)
         });
         
+        logger.LogInformation("Security: Token refreshed. UserId: {UserId}, OldTokenId: {OldTokenId}", oldToken.UserId, oldToken.Id);
         return new RefreshResponse(AccessToken: newAccessToken);
     }
     
@@ -148,10 +158,15 @@ public class AuthService(IOptions<AppOptions> options,
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
         { 
+            logger.LogWarning("Email verification attempted for non-existent email: {Email}", email);
             return false;
         }
         
         var result = await userManager.ConfirmEmailAsync(user, token);
+        
+        if (result.Succeeded) logger.LogInformation("Email verified successfully for user: {UserId}", user.Id);
+        else logger.LogWarning("Email verification failed for user: {UserId}", user.Id);
+        
         return result.Succeeded;
     }
 
@@ -168,12 +183,20 @@ public class AuthService(IOptions<AppOptions> options,
         var recentAttemptsFromIp = await dbContext.PasswordResetCodes.CountAsync(x => x.IpAddress == ipAddress && 
                                                                                  x.CreatedAt > cutoffTime);
                                                                                  
-        if (recentAttemptsFromIp >= options.Value.PasswordReset.MaxResetAttemptsIp) throw new TooManyRequestsException("Too many reset attempts from this IP", retryAfterSeconds: options.Value.PasswordReset.RetryAfterMinutes * 60);
+        if (recentAttemptsFromIp >= options.Value.PasswordReset.MaxResetAttemptsIp) 
+        {
+            logger.LogWarning("Security: Password reset rate limit exceeded for IP: {IpAddress}. Attempts: {AttemptCount}", ipAddress, recentAttemptsFromIp);
+            throw new TooManyRequestsException("Too many reset attempts from this IP", retryAfterSeconds: options.Value.PasswordReset.RetryAfterMinutes * 60);
+        }
         
         var recentAttemptsForEmail = await dbContext.PasswordResetCodes.CountAsync(x => x.Email == email &&
                                                                                    x.CreatedAt > cutoffTime);
         
-        if (recentAttemptsForEmail >= options.Value.PasswordReset.MaxResetAttemptsEmail) throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds:  options.Value.PasswordReset.RetryAfterMinutes * 60);
+        if (recentAttemptsForEmail >= options.Value.PasswordReset.MaxResetAttemptsEmail)
+        {
+            logger.LogWarning("Security: Password reset rate limit exceeded for email: {Email}. Attempts: {AttemptCount}", email, recentAttemptsForEmail);
+            throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds:  options.Value.PasswordReset.RetryAfterMinutes * 60);
+        }
         
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var sixDigitCode = Random.Shared.Next(100000, 999999).ToString();
@@ -197,13 +220,15 @@ public class AuthService(IOptions<AppOptions> options,
                         .Subject("Password Reset Code")
                         .Body($"Your password reset code is: {sixDigitCode}<br>This code will expire in 15 minutes.", isHtml: true)
                         .SendAsync();
-        
+                        
+        logger.LogInformation("Password reset initiated for user: {UserId} from IP: {IpAddress}", user.Id, ipAddress);
         return true;
     }
 
     public async Task<bool> VerifyPasswordResetAsync(VerifyResetCodeRequest request)
     {
         var resetCode = await VerifyAndUpdateResetCodeAsync(request.Email, request.Code);
+        if (resetCode == null) logger.LogWarning("Security: Invalid reset code attempt. Email: {Email}, IP: {IpAddress}", request.Email, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
         return resetCode != null;
     }
 
@@ -220,6 +245,8 @@ public class AuthService(IOptions<AppOptions> options,
         
         resetCode.IsUsed = true;
         await dbContext.SaveChangesAsync();
+        
+        logger.LogInformation("Password reset completed successfully for user: {UserId}", user.Id);
         return true;
     }
     
@@ -232,7 +259,11 @@ public class AuthService(IOptions<AppOptions> options,
         if (resetCode != null)
         {
             resetCode.AttemptCount++;
-            if (resetCode.AttemptCount >= options.Value.PasswordReset.CodeMaxAttempts) resetCode.IsUsed = true;
+            if (resetCode.AttemptCount >= options.Value.PasswordReset.CodeMaxAttempts)
+            {
+                logger.LogWarning("Security: Reset code max attempts reached. Email: {Email}, AttemptCount: {AttemptCount}", email, resetCode.AttemptCount);
+                resetCode.IsUsed = true;
+            }
             await dbContext.SaveChangesAsync();
             return resetCode.IsUsed ? null : resetCode;
         }

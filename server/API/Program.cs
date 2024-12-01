@@ -97,7 +97,7 @@ try {
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-    }).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenClaimService.ValidationParameters(appOptions));
+    }).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenService.ValidationParameters(appOptions));
 
     builder.Services.AddAuthorization(options =>
     {
@@ -119,7 +119,7 @@ try {
     #region Services Registration
     builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
     builder.Services.AddScoped<IAuthService, AuthService>();
-    builder.Services.AddScoped<ITokenClaimService, JwtTokenClaimService>();
+    builder.Services.AddScoped<ITokenService, JwtTokenService>();
     
     
     builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)

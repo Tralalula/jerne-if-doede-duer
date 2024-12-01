@@ -10,15 +10,17 @@ using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Xunit.Abstractions;
 
-
 namespace ApiIntegrationTests;
 
+#pragma warning disable CS9113
 public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
+#pragma warning restore CS9113
 {
     // Kommer i forbindelse med Identity
     private const string RfcUnauthorized = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     private const string RfcForbidden = "https://tools.ietf.org/html/rfc9110#section-15.5.4";
     
+    #region Checks
     private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login(LoginRequest user)
     {
         var client = new AuthClient(TestHttpClient);
@@ -134,46 +136,6 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             StatusCodes.Status401Unauthorized, nameof(UnauthorizedException));
     }
     
-    [Fact]
-    public async Task Admin_Authentication_Flow()
-    {
-        var (accessToken, cookieHeaders, client) = await Check_Login(AuthTestHelper.Users.Admin);
-        
-        Check_JWT_Structure(accessToken);
-        Check_Refresh_Token_Cookie(cookieHeaders);
-        SetAccessToken(accessToken);
-        
-        await Check_Protected_Endpoint_Access(client);
-        await Check_Admin_Specific_Access(client);
-        await Check_Logout_Flow(client);
-    }
-    
-    [Fact]
-    public async Task Player_Authentication_Flow()
-    {
-        var (accessToken, cookieHeaders, client) = await Check_Login(AuthTestHelper.Users.Player);
-        
-        Check_JWT_Structure(accessToken);
-        Check_Refresh_Token_Cookie(cookieHeaders);
-        SetAccessToken(accessToken);
-        
-        await Check_Protected_Endpoint_Access(client);
-        
-        await WebAssert.ThrowsProblemAsync<ApiException>(
-            () => client.RegisterAsync(AuthTestHelper.Users.NewUser),
-            StatusCodes.Status403Forbidden, RfcForbidden);
-        await Check_Logout_Flow(client);
-    }
-    
-    [Fact]
-    public async Task Anonymous_Access_Restrictions()
-    {
-        var client = new AuthClient(TestHttpClient);
-        await Check_Anonymous_Endpoints(client);
-        await Check_Invalid_Token_Handling(client);
-    }
-    
-    // Password reset tests
     private async Task<(string Email, string Code)> Check_Initiate_Password_Reset(AuthClient client, string email)
     {
         var initiateResponse = await client.InitiatePasswordResetAsync(new ForgotPasswordRequest { Email = email } );
@@ -235,6 +197,46 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     
         Assert.NotNull(resetCode);
         Assert.True(resetCode.IsUsed);
+    }
+    #endregion
+    
+    [Fact]
+    public async Task Admin_Authentication_Flow()
+    {
+        var (accessToken, cookieHeaders, client) = await Check_Login(AuthTestHelper.Users.Admin);
+        
+        Check_JWT_Structure(accessToken);
+        Check_Refresh_Token_Cookie(cookieHeaders);
+        SetAccessToken(accessToken);
+        
+        await Check_Protected_Endpoint_Access(client);
+        await Check_Admin_Specific_Access(client);
+        await Check_Logout_Flow(client);
+    }
+    
+    [Fact]
+    public async Task Player_Authentication_Flow()
+    {
+        var (accessToken, cookieHeaders, client) = await Check_Login(AuthTestHelper.Users.Player);
+        
+        Check_JWT_Structure(accessToken);
+        Check_Refresh_Token_Cookie(cookieHeaders);
+        SetAccessToken(accessToken);
+        
+        await Check_Protected_Endpoint_Access(client);
+        
+        await WebAssert.ThrowsProblemAsync<ApiException>(
+            () => client.RegisterAsync(AuthTestHelper.Users.NewUser),
+            StatusCodes.Status403Forbidden, RfcForbidden);
+        await Check_Logout_Flow(client);
+    }
+    
+    [Fact]
+    public async Task Anonymous_Access_Restrictions()
+    {
+        var client = new AuthClient(TestHttpClient);
+        await Check_Anonymous_Endpoints(client);
+        await Check_Invalid_Token_Handling(client);
     }
     
     [Fact]

@@ -1,6 +1,6 @@
 ﻿namespace Service.Auth;
 
-public record LoginRequest(string Email, string Password);
+public record LoginRequest(string Email, string Password, string? DeviceName = null);
 
 public record RegisterRequest(string Email, string Password);
 

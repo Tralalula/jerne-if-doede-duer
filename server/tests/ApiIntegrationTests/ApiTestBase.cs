@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PgCtx;
 using Service;
+using User = DataAccess.Models.User;
 
 namespace ApiIntegrationTests;
 
@@ -32,21 +33,39 @@ public class ApiTestBase : WebApplicationFactory<Program>
  
         ServiceProvider = base.Services.CreateScope().ServiceProvider;
         
-        TestHttpClient = CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false,
-            BaseAddress = new Uri("http://localhost:5009"),
-            HandleCookies = true
-        });
+        TestHttpClient = CreateNewClient(); 
         
         SetAccessToken(JwtSecret);
         
         SeedAsync().GetAwaiter().GetResult();
     }
     
+    public HttpClient CreateNewClient()
+    {
+        return CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("http://localhost:5009"),
+            HandleCookies = true
+        });
+    }
+    
+    public HttpClient CreateNewClient(string userAgent)
+    {
+        var client = CreateNewClient();
+        client.DefaultRequestHeaders.Remove("User-Agent");
+        client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+        return client;
+    }
+    
     public void SetAccessToken(string token)
     {
         TestHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+    
+    public void SetAccessToken(HttpClient client, string token)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
     
     public void SetRefreshTokenCookie(IEnumerable<string> cookieHeaders)
@@ -68,6 +87,26 @@ public class ApiTestBase : WebApplicationFactory<Program>
         TestHttpClient.DefaultRequestHeaders.Remove("Cookie");
         TestHttpClient.DefaultRequestHeaders.Add("Cookie", cookies);
     }
+    
+    public void SetRefreshTokenCookie(HttpClient client, IEnumerable<string> cookieHeaders)
+    {
+        foreach (var header in cookieHeaders)
+        {
+            if (!header.StartsWith("refreshToken=")) continue;
+            
+            var parts = header.Split(';');
+            var cookieValue = parts[0].Split('=')[1];
+            _cookieContainer.Add(new Uri("http://localhost:5009"), new Cookie("refreshToken", cookieValue, "/", "localhost"));
+            break;
+        }
+        
+        var cookies = _cookieContainer.GetCookieHeader(new Uri("http://localhost:5009"));
+        
+        if (string.IsNullOrEmpty(cookies)) return;
+        
+        client.DefaultRequestHeaders.Remove("Cookie");
+        client.DefaultRequestHeaders.Add("Cookie", cookies); 
+    } 
     
     protected override IHost CreateHost(IHostBuilder builder)
     {

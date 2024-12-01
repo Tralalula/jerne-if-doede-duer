@@ -16,6 +16,7 @@ using NSwag.Generation.Processors.Security;
 using Serilog;
 using Service;
 using Service.Auth;
+using Service.Device;
 using Service.Email;
 using Service.Security;
 
@@ -123,6 +124,7 @@ try {
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IDeviceService, DeviceService>();
    
     builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)
                     .AddMailKitSender(new SmtpClientOptions

@@ -1,5 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using ApiIntegrationTests.Auth;
@@ -7,6 +6,7 @@ using ApiIntegrationTests.Common;
 using Generated;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Service.Exceptions;
 using Xunit.Abstractions;
 
@@ -41,25 +41,25 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     {
         var tokenParts = accessToken.Split('.');
         Assert.Equal(3, tokenParts.Length);
-        
-        var handler = new JwtSecurityTokenHandler();
-        var jsonToken = handler.ReadToken(accessToken) as JwtSecurityToken;
+    
+        var handler = new JsonWebTokenHandler();
+        var jsonToken = handler.ReadJsonWebToken(accessToken);
         Assert.NotNull(jsonToken);
-        
+    
         // Claims 
         var audClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "aud");
         Assert.NotNull(audClaim);
         Assert.Equal("http://localhost:5009", audClaim.Value);
-        
+    
         var userIdClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
         Assert.NotNull(userIdClaim);
         Assert.True(Guid.TryParse(userIdClaim.Value, out _), $"User ID '{userIdClaim.Value}' not a valid GUID");
-        
+    
         // Timestamps
         var exp = jsonToken.Claims.First(c => c.Type == "exp").Value;
         var expirationTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(exp));
         Assert.True(expirationTime > DateTimeOffset.UtcNow);
-        
+    
         var iat = jsonToken.Claims.First(c => c.Type == "iat").Value;
         var issuedTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(iat));
         Assert.True(issuedTime <= DateTimeOffset.UtcNow);
@@ -91,17 +91,17 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             
         // Kræver login
         await WebAssert.ThrowsProblemAsync<ApiException>(
-            () => client.LogoutAsync(),
+            client.LogoutAsync,
             StatusCodes.Status401Unauthorized, RfcUnauthorized);
             
         // Kræver login
         await WebAssert.ThrowsProblemAsync<ApiException>(
-            () => client.UserInfoAsync(),
+            client.UserInfoAsync,
             StatusCodes.Status401Unauthorized, RfcUnauthorized);
             
         // Har adgang her, men har ikke en reel token
         await WebAssert.ThrowsProblemAsync<UnauthorizedException>(
-            () => client.RefreshAsync(),
+            client.RefreshAsync,
             StatusCodes.Status401Unauthorized, nameof(UnauthorizedException));
     }
     
@@ -121,7 +121,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     {
         SetAccessToken("invalid.token.here");
         await WebAssert.ThrowsProblemAsync<ApiException>(
-            () => client.UserInfoAsync(),
+            client.UserInfoAsync,
             StatusCodes.Status401Unauthorized, RfcUnauthorized);
     }
     
@@ -132,7 +132,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             
         // Tjek at refresh token er ugyldig efter logud
         await WebAssert.ThrowsProblemAsync<ApiException>(
-            () => client.RefreshAsync(),
+            client.RefreshAsync,
             StatusCodes.Status401Unauthorized, nameof(UnauthorizedException));
     }
     
@@ -175,7 +175,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         
         if (shouldSucceed)
         {
-            // tjek at vi kan logge ind hvis ændring af kodeord er godkent
+            // tjek at vi kan logge ind hvis ændring af kodeord er godkendt
             var loginResponse = await client.LoginAsync(new LoginRequest { Email = email, Password = newPassword });
             Assert.Equal(StatusCodes.Status200OK, loginResponse.StatusCode);
         }
@@ -197,6 +197,42 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
     
         Assert.NotNull(resetCode);
         Assert.True(resetCode.IsUsed);
+    }
+    
+    private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login_With_Device(LoginRequest user, string deviceName, string userAgent)
+    {
+        var httpClient = CreateNewClient(userAgent);
+        var client = new AuthClient(httpClient);
+        
+        user.DeviceName = deviceName;
+        var loginResponse = await client.LoginAsync(user);
+        Assert.Equal(StatusCodes.Status200OK, loginResponse.StatusCode);
+        
+        var accessToken = loginResponse.Result.AccessToken;
+        Assert.NotEmpty(accessToken);
+        SetAccessToken(httpClient, accessToken);
+        
+        var setCookieHeaders = loginResponse.Headers.TryGetValue("Set-Cookie", out var values) ? values : [];
+        var cookieHeaders = setCookieHeaders as string[] ?? setCookieHeaders.ToArray();
+        Assert.Contains(cookieHeaders, header => header.StartsWith("refreshToken="));
+        SetRefreshTokenCookie(httpClient, cookieHeaders);
+        
+        return (accessToken, cookieHeaders, client);
+    }
+    
+    private async Task Check_Device_Count(string email, int expectedCount)
+    {
+        var devices = await GetUserDevices(email);
+        Assert.Equal(expectedCount, devices.Count);
+    }
+    
+    private async Task<List<DataAccess.Models.UserDevice>> GetUserDevices(string email)
+    {
+        var user = await PgCtxSetup.DbContextInstance.Users.Where(u => u.Email == email).FirstOrDefaultAsync(); 
+        Assert.NotNull(user);
+        
+        var devices = await PgCtxSetup.DbContextInstance.UserDevices.Where(d => d.UserId == user.Id).ToListAsync();
+        return devices;
     }
     #endregion
     
@@ -341,5 +377,157 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             StatusCodes.Status401Unauthorized,
             nameof(UnauthorizedException)
         );
+    }
+    
+    [Fact]
+    public async Task MultiDevice_Login_Up_To_MaxDevices()
+    {
+        var userCredentials = AuthTestHelper.Users.Player;
+        var deviceNames = new[] { "Device1", "Device2", "Device3", "Device4", "Device5" };
+        var userAgents = new[]
+        {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+            "Mozilla/5.0 (Linux; Android 10; SM-G973F)",
+            "Mozilla/5.0 (iPad; CPU OS 13_2 like Mac OS X)"
+        };
+        
+        var clients = new List<AuthClient>();
+        
+        // Login med 5 enheder
+        for (int i = 0; i < 5; i++)
+        {
+            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            Check_JWT_Structure(accessToken);
+            Check_Refresh_Token_Cookie(cookieHeaders);
+
+            clients.Add(client);
+        }
+        
+        await Check_Device_Count(userCredentials.Email, 5);
+        
+        foreach (var client in clients)
+        {
+            await client.LogoutAsync();
+        }
+    }
+    
+    [Fact]
+    public async Task MultiDevice_Exceed_MaxDevices_Should_Fail()
+    {
+        var userCredentials = AuthTestHelper.Users.Player;
+        var deviceNames = new[] { "Device1", "Device2", "Device3", "Device4", "Device5" };
+        var userAgents = new[]
+        {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+            "Mozilla/5.0 (Linux; Android 10; SM-G973F)",
+            "Mozilla/5.0 (iPad; CPU OS 13_2 like Mac OS X)"
+        };
+        
+        var clients = new List<AuthClient>();
+        
+        // Login med 5 enheder
+        for (int i = 0; i < 5; i++)
+        {
+            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            Check_JWT_Structure(accessToken);
+            Check_Refresh_Token_Cookie(cookieHeaders);
+
+            clients.Add(client);
+        }
+        
+        // Forsøg 6
+        userCredentials.DeviceName = "Device6";
+        var httpClient = CreateNewClient("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        var client6 = new AuthClient(httpClient);
+        var exception = await Assert.ThrowsAsync<ApiException>(() => client6.LoginAsync(userCredentials));
+        Assert.Contains("Maximum number of devices reached", exception.Response);
+        
+        await Check_Device_Count(userCredentials.Email, 5);
+        
+        foreach (var client in clients)
+        {
+            await client.LogoutAsync();
+        }
+    }
+    
+    [Fact]
+    public async Task MultiDevice_Logout_Removes_Device()
+    {
+        var userCredentials = AuthTestHelper.Users.Player;
+        var deviceNames = new[] { "Device1", "Device2" };
+        var userAgents = new[]
+        {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+        };
+        
+        var clients = new List<AuthClient>();
+
+        for (int i = 0; i < 2; i++)
+        {
+            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            Check_JWT_Structure(accessToken);
+            Check_Refresh_Token_Cookie(cookieHeaders);
+
+            clients.Add(client);
+        }
+        
+        await Check_Device_Count(userCredentials.Email, 2);
+        await clients[0].LogoutAsync();
+        await Check_Device_Count(userCredentials.Email, 1);
+        
+        var devices = await GetUserDevices(userCredentials.Email);
+        Assert.Contains(devices, d => d.DeviceName == deviceNames[1]);
+        await clients[1].LogoutAsync();
+    }
+    
+    
+    [Fact]
+    public async Task MultiDevice_Expired_Tokens_Are_Cleaned_Up()
+    {
+        var userCredentials = AuthTestHelper.Users.Player;
+        var deviceNames = new[] { "Device1", "Device2", "Device3", "Device4", "Device5" };
+        var userAgents = new[]
+        {
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)",
+            "Mozilla/5.0 (Linux; Android 10; SM-G973F)",
+            "Mozilla/5.0 (iPad; CPU OS 13_2 like Mac OS X)"
+        };
+        
+        for (int i = 0; i < 5; i++)
+        {
+            var (accessToken, cookieHeaders, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            Check_JWT_Structure(accessToken);
+            Check_Refresh_Token_Cookie(cookieHeaders);
+        }
+        
+        await Check_Device_Count(userCredentials.Email, 5);
+        TimeProvider.Advance(TimeSpan.FromDays(8)); // refresh token udløber efter 7 dage
+        
+        // Login med ny enhed; bør være succes efter udløbet enheder bliver fjernet
+        var newDeviceName = "NewDevice";
+        var newUserAgent = "Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1)";
+
+        var loginRequestNew = new LoginRequest
+        {
+            Email = userCredentials.Email,
+            Password = userCredentials.Password
+        };
+        
+        var (accessTokenNew, cookieHeadersNew, clientNew) = await Check_Login_With_Device(loginRequestNew, newDeviceName, newUserAgent);
+        Check_JWT_Structure(accessTokenNew);
+        Check_Refresh_Token_Cookie(cookieHeadersNew);
+        
+        await Check_Device_Count(userCredentials.Email, 1);
+        var devices = await GetUserDevices(userCredentials.Email);
+        Assert.Contains(devices, d => d.DeviceName == newDeviceName);
+        
+        await clientNew.LogoutAsync();
     }
 }

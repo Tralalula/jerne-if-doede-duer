@@ -23,6 +23,9 @@ public partial class User
     [InverseProperty("User")]
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 
+    [InverseProperty("User")]
+    public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
+
     [InverseProperty("AffectedUser")]
     public virtual ICollection<UserHistory> UserHistoryAffectedUsers { get; set; } = new List<UserHistory>();
 

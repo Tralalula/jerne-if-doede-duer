@@ -1,6 +1,7 @@
 ﻿-- Drop
 DROP TABLE IF EXISTS password_reset_codes CASCADE;
 DROP TABLE IF EXISTS refresh_tokens CASCADE;
+DROP TABLE IF EXISTS user_devices CASCADE;
 DROP TABLE IF EXISTS balance_history CASCADE;
 DROP TABLE IF EXISTS user_history CASCADE;
 DROP TABLE IF EXISTS winner_sequences CASCADE;
@@ -96,17 +97,31 @@ CREATE TABLE balance_history (
     CHECK (action IN ('user_bought', 'user_used', 'admin_assigned', 'admin_revoked', 'won_prize'))
 );
 
+CREATE TABLE user_devices (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL,
+    device_id TEXT NOT NULL,
+    device_name TEXT NOT NULL,
+    last_used_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by_ip TEXT,
+    user_agent TEXT,
+    FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+);
+
 CREATE TABLE refresh_tokens (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID NOT NULL,
+    device_id UUID NOT NULL,
     replaced_by_token_id UUID,
     token TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMPTZ NOT NULL,
     revoked_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     revoked_by_ip TEXT,
     created_by_ip TEXT,
     FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    FOREIGN KEY (device_id) REFERENCES user_devices (id) ON DELETE CASCADE,
     FOREIGN KEY (replaced_by_token_id) REFERENCES refresh_tokens (id)
 );
 
@@ -139,7 +154,13 @@ CREATE INDEX ix_user_history_timestamp ON user_history (timestamp);
 CREATE INDEX ix_balance_history_user_id ON balance_history (user_id);
 CREATE INDEX ix_balance_history_action ON balance_history (action);
 CREATE INDEX ix_balance_history_timestamp ON balance_history (timestamp);
+CREATE INDEX ix_user_devices_user_id ON user_devices (user_id);
+CREATE INDEX ix_user_devices_device_id ON user_devices (device_id);
+CREATE INDEX ix_user_devices_last_used_at ON user_devices (last_used_at);
 CREATE INDEX ix_refresh_tokens_user_id ON refresh_tokens (user_id);
+CREATE INDEX ix_refresh_tokens_device_id ON refresh_tokens (device_id);
 CREATE INDEX ix_refresh_tokens_expires_at ON refresh_tokens (expires_at);
 CREATE INDEX ix_password_reset_codes_email ON password_reset_codes (email);
 CREATE INDEX ix_password_reset_codes_expires_at ON password_reset_codes (expires_at);
+
+CREATE UNIQUE INDEX ix_user_devices_user_device ON user_devices (user_id, device_id);

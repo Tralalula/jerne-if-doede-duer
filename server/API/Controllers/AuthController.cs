@@ -3,12 +3,14 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Auth;
+using Service.Device;
+using Service.Security;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthService service) : ControllerBase
+public class AuthController(IAuthService authService, IDeviceService deviceService) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("login")]
@@ -16,7 +18,7 @@ public class AuthController(IAuthService service) : ControllerBase
                                                          [FromBody] LoginRequest request)
     {
         await validator.ValidateAndThrowAsync(request);
-        return Ok(await service.LoginAsync(Response.Cookies, request));
+        return Ok(await authService.LoginAsync(Response.Cookies, request));
     }
     
     [Authorize(Roles = Role.Admin)]
@@ -25,27 +27,27 @@ public class AuthController(IAuthService service) : ControllerBase
                                                  [FromBody] RegisterRequest request) 
     {
         await validator.ValidateAndThrowAsync(request);
-        return await service.RegisterAsync(request);
+        return await authService.RegisterAsync(request);
     }
     
     [HttpPost("logout")]
     public async Task<IResult> Logout()
     {
-        await service.LogoutAsync(Request.Cookies, Response.Cookies);
+        await authService.LogoutAsync(Request.Cookies, Response.Cookies);
         return Results.Ok();
     }
     
     [HttpGet("me")]
     public async Task<UserInfoResponse> UserInfo()
     {
-        return await service.UserInfoAsync(HttpContext.User); 
+        return await authService.UserInfoAsync(HttpContext.User); 
     }
     
     [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<ActionResult<RefreshResponse>> Refresh()
     {
-        return Ok(await service.RefreshAsync(Request.Cookies, Response.Cookies));
+        return Ok(await authService.RefreshAsync(Request.Cookies, Response.Cookies));
     }
     
     [AllowAnonymous]
@@ -54,7 +56,7 @@ public class AuthController(IAuthService service) : ControllerBase
                                                  [FromQuery] VerifyEmailQuery query)
     {
         await validator.ValidateAndThrowAsync(query);
-        var success = await service.VerifyEmailAsync(query.Token, query.Email);
+        var success = await authService.VerifyEmailAsync(query.Token, query.Email);
         return success ? Ok("Email confirmed successfully!") : BadRequest("Email confirmation failed.");
     }
     
@@ -65,7 +67,7 @@ public class AuthController(IAuthService service) : ControllerBase
                                                            [FromBody] ForgotPasswordRequest request)
     {
         await validator.ValidateAndThrowAsync(request);
-        await service.InitiatePasswordResetAsync(request.Email);
+        await authService.InitiatePasswordResetAsync(request.Email);
         return Ok();
     }
     
@@ -75,7 +77,7 @@ public class AuthController(IAuthService service) : ControllerBase
                                                      [FromBody] VerifyResetCodeRequest request)
     {
         await validator.ValidateAndThrowAsync(request);
-        var isValid = await service.VerifyPasswordResetAsync(request);
+        var isValid = await authService.VerifyPasswordResetAsync(request);
         return isValid ? Ok() : BadRequest("Invalid or expired code");
     }
 
@@ -85,7 +87,22 @@ public class AuthController(IAuthService service) : ControllerBase
                                                            [FromBody] CompletePasswordResetRequest request)
     {
         await validator.ValidateAndThrowAsync(request);
-        var success = await service.CompletePasswordResetAsync(request);
+        var success = await authService.CompletePasswordResetAsync(request);
         return success ? Ok() : BadRequest("Password reset failed");
+    }
+    
+    [HttpGet("devices")]
+    public async Task<ActionResult<List<UserDevice>>> GetDevices()
+    {
+        var userId = User.GetUserId();
+        return Ok(await deviceService.GetUserDevicesAsync(userId));
+    }
+
+    [HttpDelete("devices/{deviceId}")]
+    public async Task<IActionResult> RevokeDevice(string deviceId)
+    {
+        var userId = User.GetUserId();
+        await deviceService.RevokeDeviceAsync(userId, deviceId);
+        return Ok();
     }
 }

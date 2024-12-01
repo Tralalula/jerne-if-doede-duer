@@ -1,11 +1,17 @@
 ﻿using System.Security.Claims;
 using DataAccess.Models;
+using Service.Exceptions;
 
 namespace Service.Security;
 
 public static class ClaimExtensions
 {
-    public static string GetUserId(this ClaimsPrincipal user) => user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+    public static Guid GetUserId(this ClaimsPrincipal principal)
+    {
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedException("User ID claim not found");
+            
+        return Guid.Parse(userIdClaim);
+    }
     
     public static IEnumerable<Claim> ToClaims(this User user, IEnumerable<string> roles)
     {

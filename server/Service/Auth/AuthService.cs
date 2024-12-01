@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Service.Device;
 using Service.Email;
 using Service.Exceptions;
 using Service.Security;
@@ -34,7 +35,8 @@ public class AuthService(IOptions<AppOptions> options,
                          AppDbContext dbContext,
                          IEmailService emailService,
                          IHttpContextAccessor httpContextAccessor,
-                         TimeProvider timeProvider) : IAuthService
+                         TimeProvider timeProvider,
+                         IDeviceService deviceService) : IAuthService
 {
     private const string RefreshTokenCookieName = "refreshToken";
 
@@ -47,10 +49,14 @@ public class AuthService(IOptions<AppOptions> options,
             throw new UnauthorizedException("Invalid login credentials");
         }
         
-        logger.LogInformation("Security: Successful login. UserId: {UserId}, IP: {IpAddress}", user.Id, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+        var userAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
+        var deviceName = GetDeviceName(request.DeviceName, userAgent);
+        var device = await deviceService.GetOrCreateDeviceAsync(user, deviceName, userAgent);
         
-        string accessToken = await tokenService.GetAccessTokenAsync(user);
-        string refreshToken = await tokenService.GetRefreshTokenAsync(user);
+        logger.LogInformation("Security: Successful login. UserId: {UserId}, DeviceId: {DeviceId}, IP: {IpAddress}", user.Id, device.DeviceId, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+        
+        string accessToken = await tokenService.GetAccessTokenAsync(user, device);
+        string refreshToken = await tokenService.GetRefreshTokenAsync(user, device);
         
         cookies.Append(RefreshTokenCookieName, refreshToken, GetRefreshTokenCookieOptions());
         
@@ -96,8 +102,10 @@ public class AuthService(IOptions<AppOptions> options,
         if (token != null)
         {
             token.RevokedAt = timeProvider.GetUtcNow().UtcDateTime;
+            var device = await dbContext.UserDevices.FirstOrDefaultAsync(d => d.Id == token.DeviceId);
+            if (device != null) await deviceService.RevokeDeviceAsync(token.UserId, device.DeviceId);
             await dbContext.SaveChangesAsync();
-            logger.LogInformation("User logged out and refresh token revoked. UserId: {UserId}", token.UserId);
+            logger.LogInformation("User logged out and refresh token revoked. UserId: {UserId}, DeviceId: {DeviceId}", token.UserId, device?.DeviceId);
         }
         
         responseCookies.Delete(RefreshTokenCookieName);
@@ -105,7 +113,7 @@ public class AuthService(IOptions<AppOptions> options,
 
     public async Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal)
     {
-        var user = await userManager.FindByIdAsync(principal.GetUserId()) ?? throw new UnauthorizedException();
+        var user = await userManager.FindByIdAsync(principal.GetUserId().ToString()) ?? throw new UnauthorizedException();
         var roles = await userManager.GetRolesAsync(user);
         bool isAdmin = roles.Contains(Role.Admin);
         
@@ -117,23 +125,24 @@ public class AuthService(IOptions<AppOptions> options,
         var refreshToken = requestCookies[RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken)) throw new UnauthorizedException("Refresh token is missing");
         
-        var oldToken = await dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+        var oldToken = await dbContext.RefreshTokens.Include(rt => rt.Device)
+                                                    .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         
         if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime)
         {
-            logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}", oldToken?.Id, oldToken?.UserId);
+            logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}, DeviceId: {DeviceId}", oldToken?.Id, oldToken?.UserId, oldToken?.Device.DeviceId);
             throw new UnauthorizedException("Invalid or expired refresh token.");
         }
         
         var user = await userManager.FindByIdAsync(oldToken.UserId.ToString());
         if (user == null) throw new UnauthorizedException("Invalid user.");
         
-        var newAccessToken = await tokenService.GetAccessTokenAsync(user);
-        var newRefreshToken = await tokenService.RotateRefreshTokenAsync(user);
+        var newAccessToken = await tokenService.GetAccessTokenAsync(user, oldToken.Device);
+        var newRefreshToken = await tokenService.RotateRefreshTokenAsync(user, oldToken.Device);
         
         responseCookies.Append(RefreshTokenCookieName, newRefreshToken, GetRefreshTokenCookieOptions());
         
-        logger.LogInformation("Security: Token refreshed. UserId: {UserId}, OldTokenId: {OldTokenId}", oldToken.UserId, oldToken.Id);
+        logger.LogInformation("Security: Token refreshed. UserId: {UserId}, OldTokenId: {OldTokenId}, DeviceId: {DeviceId}", oldToken.UserId, oldToken.Id, oldToken.Device.DeviceId);
         return new RefreshResponse(AccessToken: newAccessToken);
     }
     
@@ -264,5 +273,24 @@ public class AuthService(IOptions<AppOptions> options,
         await dbContext.SaveChangesAsync();
         
         return null;
+    }
+    
+    private string GetDeviceName(string? providedName, string? userAgent)
+    {
+        if (!string.IsNullOrWhiteSpace(providedName)) return providedName;
+        if (string.IsNullOrWhiteSpace(userAgent)) return "Unknown Device";
+        
+        if (userAgent.Contains("Mobile") || userAgent.Contains("Android") || userAgent.Contains("iPhone"))
+        {
+            if (userAgent.Contains("iPhone")) return "iPhone";
+            if (userAgent.Contains("Android")) return "Android Device";
+            return "Mobile Device";
+        }
+        
+        if (userAgent.Contains("Windows")) return "Windows PC";
+        if (userAgent.Contains("Mac")) return "Mac";
+        if (userAgent.Contains("Linux")) return "Linux PC";
+    
+        return "Desktop Browser";
     }
 }

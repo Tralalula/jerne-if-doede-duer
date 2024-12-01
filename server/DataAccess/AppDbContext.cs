@@ -31,6 +31,8 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
 
     public virtual DbSet<Transaction> Transactions { get; set; }
 
+    public virtual DbSet<UserDevice> UserDevices { get; set; }
+
     public virtual DbSet<UserHistory> UserHistories { get; set; }
 
     public virtual DbSet<WinnerSequence> WinnerSequences { get; set; }
@@ -119,6 +121,8 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+            entity.HasOne(d => d.Device).WithMany(p => p.RefreshTokens).HasConstraintName("refresh_tokens_device_id_fkey");
+
             entity.HasOne(d => d.ReplacedByToken).WithMany(p => p.InverseReplacedByToken).HasConstraintName("refresh_tokens_replaced_by_token_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens).HasConstraintName("refresh_tokens_user_id_fkey");
@@ -132,6 +136,16 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(d => d.User).WithMany(p => p.Transactions).HasConstraintName("transactions_user_id_fkey");
+        });
+
+        modelBuilder.Entity<UserDevice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("user_devices_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserDevices).HasConstraintName("user_devices_user_id_fkey");
         });
 
         modelBuilder.Entity<UserHistory>(entity =>

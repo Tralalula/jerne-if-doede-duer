@@ -128,6 +128,8 @@ try {
                         Server = appOptions.EmailHost,
                         Port = appOptions.EmailPort
                     });
+                    
+    builder.Services.AddHttpContextAccessor();
     #endregion
     
     #region API Config

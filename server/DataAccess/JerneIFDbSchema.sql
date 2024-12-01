@@ -1,4 +1,5 @@
 ﻿-- Drop
+DROP TABLE IF EXISTS password_reset_codes CASCADE;
 DROP TABLE IF EXISTS refresh_tokens CASCADE;
 DROP TABLE IF EXISTS balance_history CASCADE;
 DROP TABLE IF EXISTS user_history CASCADE;
@@ -109,6 +110,18 @@ CREATE TABLE refresh_tokens (
     FOREIGN KEY (replaced_by_token_id) REFERENCES refresh_tokens (id)
 );
 
+CREATE TABLE password_reset_codes (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMPTZ NOT NULL,
+    email VARCHAR(256) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    token TEXT NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT false,
+    ip_address TEXT,
+    attempt_count INT NOT NULL DEFAULT 0
+);
+
 -- Indexes
 CREATE INDEX ix_transactions_user_id ON transactions (user_id);
 CREATE INDEX ix_transactions_timestamp ON transactions (timestamp);
@@ -128,3 +141,5 @@ CREATE INDEX ix_balance_history_action ON balance_history (action);
 CREATE INDEX ix_balance_history_timestamp ON balance_history (timestamp);
 CREATE INDEX ix_refresh_tokens_user_id ON refresh_tokens (user_id);
 CREATE INDEX ix_refresh_tokens_expires_at ON refresh_tokens (expires_at);
+CREATE INDEX ix_password_reset_codes_email ON password_reset_codes (email);
+CREATE INDEX ix_password_reset_codes_expires_at ON password_reset_codes (expires_at);

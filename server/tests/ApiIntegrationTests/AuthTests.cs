@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using ApiIntegrationTests.Auth;
@@ -6,6 +7,7 @@ using ApiIntegrationTests.Common;
 using DataAccess.Models;
 using Generated;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Xunit.Abstractions;
 
@@ -171,5 +173,108 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         var client = new AuthClient(TestHttpClient);
         await Check_Anonymous_Endpoints(client);
         await Check_Invalid_Token_Handling(client);
+    }
+    
+    // Password reset tests
+    private async Task<(string Email, string Code)> Check_Initiate_Password_Reset(AuthClient client, string email)
+    {
+        var initiateResponse = await client.InitiatePasswordResetAsync(new ForgotPasswordRequest { Email = email } );
+        Assert.Equal(StatusCodes.Status200OK, initiateResponse.StatusCode);
+        
+        var resetCode = await PgCtxSetup.DbContextInstance.PasswordResetCodes.OrderByDescending(x => x.CreatedAt)
+                                                                             .FirstOrDefaultAsync(x => x.Email == email);
+                                                                             
+        Assert.NotNull(resetCode);
+        Assert.False(resetCode.IsUsed);
+        Assert.True(resetCode.ExpiresAt > DateTime.UtcNow);
+        Assert.Equal(6, resetCode.Code.Length);
+        Assert.Matches("^[0-9]+$", resetCode.Code);
+        
+        return (email, resetCode.Code);
+    }
+    
+    private async Task Check_Verify_Reset_Code(AuthClient client, string email, string code, bool shouldBeValid = true)
+    {
+        var verifyResponse = await client.VerifyResetCodeAsync(new VerifyResetCodeRequest { Email = email, Code = code });
+        Assert.Equal(shouldBeValid ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, verifyResponse.StatusCode);
+    }
+    
+    private async Task Check_Complete_Password_Reset(AuthClient client, string email, string code, string newPassword, bool shouldSucceed = true)
+    {
+        var completeResponse = await client.CompletePasswordResetAsync(new CompletePasswordResetRequest { Email = email, Code = code, NewPassword = newPassword });
+        Assert.Equal(shouldSucceed ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest, completeResponse.StatusCode);
+        
+        if (shouldSucceed)
+        {
+            // tjek at vi kan logge ind hvis ændring af kodeord er godkent
+            var loginResponse = await client.LoginAsync(new LoginRequest { Email = email, Password = newPassword });
+            Assert.Equal(StatusCodes.Status200OK, loginResponse.StatusCode);
+        }
+    }
+    
+    private async Task Check_Invalid_Reset_Attempts(string email, string code)
+    {
+        // NSwag fucker op med at deserialize ProblemDetails, så gør på den her måde
+        for (int i = 0; i < 4; i++)
+        {
+            var response = await TestHttpClient.PostAsJsonAsync("/api/auth/verify-reset-code", new { email, code = "000000" });
+            Assert.Equal(400, (int)response.StatusCode);
+        }
+
+        var finalResponse = await TestHttpClient.PostAsJsonAsync("/api/auth/verify-reset-code", new { email, code });
+        Assert.Equal(400, (int)finalResponse.StatusCode);
+    
+        var resetCode = await PgCtxSetup.DbContextInstance.PasswordResetCodes.FirstOrDefaultAsync(x => x.Email == email && x.Code == code);
+    
+        Assert.NotNull(resetCode);
+        Assert.True(resetCode.IsUsed);
+    }
+    
+    [Fact]
+    public async Task Password_Reset_Happy_Path()
+    {
+        var client = new AuthClient(TestHttpClient);
+        var email = AuthTestHelper.Users.Player.Email;
+        
+        var (resetEmail, code) = await Check_Initiate_Password_Reset(client, email);
+        await Check_Verify_Reset_Code(client, resetEmail, code);
+        await Check_Complete_Password_Reset(client, resetEmail, code, "Kartoffelmel1234!");
+    }
+    
+    [Fact]
+    public async Task Password_Reset_Security_Measures()
+    {
+        var email = AuthTestHelper.Users.Player.Email;
+        
+        // NSwag fucker op med at deserialize ProblemDetails, så gør på den her måde
+        for (int i = 0; i < 5; i++)
+        {
+            await TestHttpClient.PostAsJsonAsync("/api/auth/forgot-password", new { email });
+        }
+    
+        var response = await TestHttpClient.PostAsJsonAsync("/api/auth/forgot-password", new { email });
+        Assert.Equal(429, (int)response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task Password_Reset_Invalid_Attempts()
+    {
+        var client = new AuthClient(TestHttpClient);
+        var email = AuthTestHelper.Users.Player.Email;
+    
+        var (resetEmail, code) = await Check_Initiate_Password_Reset(client, email);
+        await Check_Invalid_Reset_Attempts(resetEmail, code);
+    }
+    
+    [Fact]
+    public async Task Password_Reset_Validation()
+    {
+        var client = new AuthClient(TestHttpClient);
+        
+        await WebAssert.ThrowsValidationAsync(() => client.InitiatePasswordResetAsync(new ForgotPasswordRequest { Email = "invalid-email" } ));
+        
+        await WebAssert.ThrowsValidationAsync(() => client.VerifyResetCodeAsync(new VerifyResetCodeRequest { Email = "test@test.com", Code = "12345" }));
+        
+        await WebAssert.ThrowsValidationAsync(() => client.CompletePasswordResetAsync(new CompletePasswordResetRequest { Email = "test@test.com", Code = "123456", NewPassword = "short" }));
     }
 }

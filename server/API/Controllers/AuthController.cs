@@ -50,9 +50,42 @@ public class AuthController(IAuthService service) : ControllerBase
     
     [AllowAnonymous]
     [HttpGet("verify-email")]
-    public async Task<IActionResult> VerifyEmail([FromQuery] string token, [FromQuery] string email)
+    public async Task<IActionResult> VerifyEmail([FromServices] IValidator<VerifyEmailQuery> validator,
+                                                 [FromQuery] VerifyEmailQuery query)
     {
-        var success = await service.VerifyEmailAsync(token, email);
+        await validator.ValidateAndThrowAsync(query);
+        var success = await service.VerifyEmailAsync(query.Token, query.Email);
         return success ? Ok("Email confirmed successfully!") : BadRequest("Email confirmation failed.");
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> InitiatePasswordReset([FromServices] IValidator<ForgotPasswordRequest> validator, 
+                                                           [FromBody] ForgotPasswordRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        await service.InitiatePasswordResetAsync(request.Email);
+        return Ok();
+    }
+    
+    [AllowAnonymous]
+    [HttpPost("verify-reset-code")]
+    public async Task<IActionResult> VerifyResetCode([FromServices] IValidator<VerifyResetCodeRequest> validator,
+                                                     [FromBody] VerifyResetCodeRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var isValid = await service.VerifyPasswordResetAsync(request);
+        return isValid ? Ok() : BadRequest("Invalid or expired code");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("complete-password-reset")]
+    public async Task<IActionResult> CompletePasswordReset([FromServices] IValidator<CompletePasswordResetRequest> validator,
+                                                           [FromBody] CompletePasswordResetRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var success = await service.CompletePasswordResetAsync(request);
+        return success ? Ok() : BadRequest("Password reset failed");
     }
 }

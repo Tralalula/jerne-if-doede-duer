@@ -17,8 +17,15 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
             UnauthorizedException => StatusCodes.Status401Unauthorized,
             NotFoundException => StatusCodes.Status404NotFound,
             ConflictException => StatusCodes.Status409Conflict,
+            TooManyRequestsException => StatusCodes.Status429TooManyRequests, 
             _ => StatusCodes.Status500InternalServerError
         };
+        
+        if (exception is TooManyRequestsException tooManyRequestsException)
+        {
+            httpContext.Response.Headers.RetryAfter = tooManyRequestsException.RetryAfterSeconds.ToString();
+            httpContext.Response.Headers.Append("X-RateLimit-Reset", DateTime.UtcNow.AddSeconds(tooManyRequestsException.RetryAfterSeconds).ToString("R"));
+        }
         
         var problemDetails = new ProblemDetailsContext
         { 
@@ -54,6 +61,7 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
             UnauthorizedException => "Unauthorized access",
             NotFoundException => "Resource not found",
             ConflictException => "Conflict occurred",
+            TooManyRequestsException => "Too many requests",
             _ => "An internal error occurred"
         };
     }

@@ -21,6 +21,8 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
 
     public virtual DbSet<Game> Games { get; set; }
 
+    public virtual DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
+
     public virtual DbSet<Pot> Pots { get; set; }
 
     public virtual DbSet<Purchase> Purchases { get; set; }
@@ -81,6 +83,16 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
             entity.Property(e => e.FieldCount).HasDefaultValue(16);
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        modelBuilder.Entity<PasswordResetCode>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("password_reset_codes_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
+            entity.Property(e => e.AttemptCount).HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.IsUsed).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Pot>(entity =>

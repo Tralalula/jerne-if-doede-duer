@@ -23,13 +23,17 @@ public interface IAuthService
     Task<UserInfoResponse> UserInfoAsync(ClaimsPrincipal principal);
     Task<RefreshResponse> RefreshAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies);
     Task<bool> VerifyEmailAsync(string token, string email);
+    Task<bool> InitiatePasswordResetAsync(string email);
+    Task<bool> VerifyPasswordResetAsync(VerifyResetCodeRequest request);
+    Task<bool> CompletePasswordResetAsync(CompletePasswordResetRequest request);
 }
 
 public class AuthService(ILogger<AuthService> logger,
                          UserManager<User> userManager,
                          ITokenClaimService tokenClaimService,
                          AppDbContext dbContext,
-                         IFluentEmail fluentMail) : IAuthService
+                         IFluentEmail fluentMail,
+                         IHttpContextAccessor httpContextAccessor) : IAuthService
 {
     public async Task<LoginResponse> LoginAsync(IResponseCookies cookies, LoginRequest request)
     {
@@ -144,5 +148,97 @@ public class AuthService(ILogger<AuthService> logger,
         
         var result = await userManager.ConfirmEmailAsync(user, token);
         return result.Succeeded;
+    }
+
+    public async Task<bool> InitiatePasswordResetAsync(string email)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null) return true; // Sikkerhed; vi viser ikke om en email eksisterer eller ej
+        
+        var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+        logger.LogInformation($"IP address {ipAddress} initiated password reset for email {email}");
+        
+        var recentAttemptsFromIp = await dbContext.PasswordResetCodes.CountAsync(x => x.IpAddress == ipAddress && 
+                                                                                 x.CreatedAt > DateTime.UtcNow.AddHours(-1));
+                                                                                 
+        if (recentAttemptsFromIp >= 5) throw new TooManyRequestsException("Too many reset attempts from this IP", retryAfterSeconds: 3600);
+        
+        var recentAttemptsForEmail = await dbContext.PasswordResetCodes.CountAsync(x => x.Email == email &&
+                                                                                   x.CreatedAt > DateTime.UtcNow.AddHours(-1));
+        
+        if (recentAttemptsForEmail >= 3) throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds: 3600);
+        
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var sixDigitCode = Random.Shared.Next(100000, 999999).ToString();
+        
+        var now = DateTime.UtcNow;
+        var resetCode = new PasswordResetCode
+        {
+            Email = email,
+            Code = sixDigitCode,
+            Token = token,
+            CreatedAt = now,
+            ExpiresAt = now.AddMinutes(15),
+            IpAddress = ipAddress
+        };
+        
+        await dbContext.PasswordResetCodes.AddAsync(resetCode);
+        await dbContext.SaveChangesAsync();
+        
+        await fluentMail.To(email)
+                        .Subject("Password Reset Code")
+                        .Body($"Your password reset code is: {sixDigitCode}<br>This code will expire in 15 minutes.", isHtml: true)
+                        .SendAsync();
+        
+        return true;
+    }
+
+    public async Task<bool> VerifyPasswordResetAsync(VerifyResetCodeRequest request)
+    {
+        var resetCode = await VerifyAndUpdateResetCodeAsync(request.Email, request.Code);
+        return resetCode != null;
+    }
+
+    public async Task<bool> CompletePasswordResetAsync(CompletePasswordResetRequest request)
+    {
+        var resetCode = await VerifyAndUpdateResetCodeAsync(request.Email, request.Code);
+        if (resetCode == null) return false;
+        
+        var user = await userManager.FindByEmailAsync(request.Email);
+        if (user == null) return false;
+        
+        var result = await userManager.ResetPasswordAsync(user, resetCode.Token, request.NewPassword);
+        if (!result.Succeeded) return false;
+        
+        resetCode.IsUsed = true;
+        await dbContext.SaveChangesAsync();
+        return true;
+    }
+    
+    private async Task<PasswordResetCode?> VerifyAndUpdateResetCodeAsync(string email, string code)
+    {
+        var resetCode = await dbContext.PasswordResetCodes.FirstOrDefaultAsync(rc => rc.Email == email && 
+                                                                                     rc.Code == code &&
+                                                                                     rc.ExpiresAt > DateTime.UtcNow &&
+                                                                                     !rc.IsUsed);
+        if (resetCode != null)
+        {
+            resetCode.AttemptCount++;
+            if (resetCode.AttemptCount >= 5) resetCode.IsUsed = true;
+            await dbContext.SaveChangesAsync();
+            return resetCode.IsUsed ? null : resetCode;
+        }
+        
+        // Kig efter eksisterende kode hvis reset kode ikke findes
+        var existingCode = await dbContext.PasswordResetCodes.FirstOrDefaultAsync(rc => rc.Email == email && 
+                                                                                        !rc.IsUsed && 
+                                                                                        rc.ExpiresAt > DateTime.UtcNow);
+        if (existingCode == null) return null;
+        
+        existingCode.AttemptCount++;
+        if (existingCode.AttemptCount >= 5) existingCode.IsUsed = true;
+        await dbContext.SaveChangesAsync();
+        
+        return null;
     }
 }

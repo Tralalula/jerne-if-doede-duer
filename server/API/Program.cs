@@ -16,6 +16,7 @@ using NSwag.Generation.Processors.Security;
 using Serilog;
 using Service;
 using Service.Auth;
+using Service.Email;
 using Service.Security;
 
 #region Boostrap Logger
@@ -120,7 +121,7 @@ try {
     builder.Services.AddValidatorsFromAssemblyContaining<ServiceAssembly>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
-    
+    builder.Services.AddScoped<IEmailService, EmailService>();
     
     builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)
                     .AddMailKitSender(new SmtpClientOptions

@@ -19,6 +19,7 @@ public class EnvironmentVariables
     public string DatabaseUrl { get; set; } = "DATABASE_URL";
     public string JwtSecret { get; set; } = "JWT_SECRET";
     public string SeqApiKey { get; set; } = "SEQ_API_KEY";
+    public string SendGridApiKey { get; set; } = "SENDGRID_API_KEY";
 }
 
 public class DatabaseSettings

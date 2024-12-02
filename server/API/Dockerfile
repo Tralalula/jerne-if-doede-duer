@@ -23,4 +23,5 @@ RUN dotnet publish "API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY ["server/Service/Email/Templates", "/app/Templates"]
 ENTRYPOINT ["dotnet", "API.dll"]

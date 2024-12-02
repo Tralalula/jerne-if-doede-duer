@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PgCtx;
 using Service;
+using Service.Email;
 using User = DataAccess.Models.User;
 
 namespace ApiIntegrationTests;
@@ -100,7 +101,7 @@ public class ApiTestBase : WebApplicationFactory<Program>
             break;
         }
         
-        var cookies = _cookieContainer.GetCookieHeader(new Uri("http://localhost:5009"));
+    var cookies = _cookieContainer.GetCookieHeader(new Uri("http://localhost:5009"));
         
         if (string.IsNullOrEmpty(cookies)) return;
         
@@ -123,6 +124,11 @@ public class ApiTestBase : WebApplicationFactory<Program>
                 options.EnableSensitiveDataLogging(false);
                 options.LogTo(_ => { });
             });
+            
+            // Fjern email service og brug mock under testing
+            var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
+            if (emailDescriptor != null) services.Remove(emailDescriptor);
+            services.AddScoped<IEmailService, MockEmailService>();
             
             services.AddSingleton<TimeProvider>(TimeProvider);
         });

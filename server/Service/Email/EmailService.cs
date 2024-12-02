@@ -1,6 +1,7 @@
 ﻿using FluentEmail.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using RazorLight;
+using SharedDependencies.Email;
 
 namespace Service.Email;
 
@@ -10,22 +11,72 @@ public interface IEmailService
     Task SendPasswordResetCodeAsync(string email, string code, TimeSpan expiresIn);
 }
 
-public class EmailService(IFluentEmail fluentEmail, ILogger<EmailService> logger) : IEmailService
+public class EmailService : IEmailService
 {
+    private readonly IFluentEmail _fluentEmail;
+    private readonly ILogger<EmailService> _logger;
+    private readonly RazorLightEngine _razorEngine;
+    
+    private const string VerificationEmailTemplate = "VerificationEmail.cshtml";
+    private const string PasswordResetEmailTemplate = "PasswordResetEmail.cshtml";
+    
+    // Tags er vigtig - en mail kan ikke sendes uden en såkaldt kategori
+    private const string VerificationTag = "verification";
+    private const string PasswordResetTag = "password-reset";
+    
+    public EmailService(IFluentEmail fluentEmail, ILogger<EmailService> logger)
+    {
+        _fluentEmail = fluentEmail;
+        _logger = logger;
+        
+        
+        var templatePath = GetTemplatesPath();
+        _logger.LogInformation("Using template path: {TemplatePath}", templatePath);
+        
+        if (!Directory.Exists(templatePath))
+        {
+            throw new DirectoryNotFoundException($"Template directory not found at: {templatePath}");
+        }
+        
+        _razorEngine = new RazorLightEngineBuilder().UseFileSystemProject(templatePath)
+                                                    .UseMemoryCachingProvider()
+                                                    .Build();
+    }
+    
+    private static string GetTemplatesPath()
+    {
+        // Produktion sti
+        var templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates");
+        
+        if (Directory.Exists(templatePath))
+        {
+            return templatePath;
+        }
+        
+        // Lokal development
+        var rootPath = Directory.GetCurrentDirectory();
+        templatePath = Path.GetFullPath(Path.Combine(rootPath, "..", "Service", "Email", "Templates"));
+        
+        return templatePath;
+    }
+
     public async Task SendVerificationEmailAsync(string email, string verificationLink)
     {
         try
         {
-            await fluentEmail.To(email)
+            var template = await _razorEngine.CompileRenderAsync(VerificationEmailTemplate, new VerificationEmailModel(verificationLink));
+            
+            await _fluentEmail.To(email)
                              .Subject("Velkommen til Jerne IF døde duer")
-                             .Body($"For at verificere din email adresse <a href='{verificationLink}'>klik her</a>", isHtml: true)
+                             .Body(template, isHtml: true)
+                             .Tag(VerificationTag)
                              .SendAsync();
                             
-            logger.LogInformation("Verification email sent successfully to: {Email}", email);
+            _logger.LogInformation("Verification email sent successfully to: {Email}", email);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send verification email to: {Email}", email);
+            _logger.LogError(ex, "Failed to send verification email to: {Email}", email);
             throw;
         }
     }
@@ -34,16 +85,19 @@ public class EmailService(IFluentEmail fluentEmail, ILogger<EmailService> logger
     {
         try
         {
-            await fluentEmail.To(email)
-                             .Subject("Password Reset Code")
-                             .Body($"Your password reset code is: {code}<br>This code will expire in {expiresIn.TotalMinutes} minutes.", isHtml: true)
+            var template = await _razorEngine.CompileRenderAsync(PasswordResetEmailTemplate, new PasswordResetEmailModel(code, (int) expiresIn.TotalMinutes));
+
+            await _fluentEmail.To(email)
+                             .Subject("Nulstil adgangskode")
+                             .Body(template, isHtml: true)
+                             .Tag(PasswordResetTag)
                              .SendAsync();
                             
-            logger.LogInformation("Password reset code email sent successfully to: {Email}", email);
+            _logger.LogInformation("Password reset code email sent successfully to: {Email}", email);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send password reset code email to: {Email}", email);
+            _logger.LogError(ex, "Failed to send password reset code email to: {Email}", email);
             throw;
         }
     }

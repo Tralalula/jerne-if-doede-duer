@@ -27,4 +27,14 @@
     <Folder Include="logs\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
 </Project>

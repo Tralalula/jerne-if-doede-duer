@@ -128,14 +128,24 @@ try {
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IDeviceService, DeviceService>();
-   
-    builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.From)
-                    .AddMailKitSender(new SmtpClientOptions
-                    {
-                        Server = appOptions.Email.Host,
-                        Port = appOptions.Email.Port
-                    });
-                    
+  
+    if (builder.Environment.IsProduction())
+    { 
+        builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.Sender)
+                        .AddRazorRenderer()
+                        .AddSendGridSender(apiKey: Environment.GetEnvironmentVariable(appOptions.EnvVar.SendGridApiKey));
+    }
+    else
+    {
+        builder.Services.AddFluentEmail(appOptions.Email.From, appOptions.Email.Sender)
+                        .AddRazorRenderer()
+                        .AddMailKitSender(new SmtpClientOptions 
+                        {
+                            Server = appOptions.Email.Host, 
+                            Port = appOptions.Email.Port
+                        });
+    }
+
     builder.Services.AddHttpContextAccessor();
     #endregion
     

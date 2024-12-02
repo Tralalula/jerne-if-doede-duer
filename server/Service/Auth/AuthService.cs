@@ -84,7 +84,7 @@ public class AuthService(IOptions<AppOptions> options,
         var encodedToken = Uri.EscapeDataString(token); 
         
         // skal ændres i Produktion, men mangler løsning for mail i produktion først.
-        var verificationLink = $"http://localhost:5009/api/auth/verify-email?token={encodedToken}&email={Uri.EscapeDataString(user.Email)}";
+        var verificationLink = $"{options.Value.Urls.Address}/api/auth/verify-email?token={encodedToken}&email={Uri.EscapeDataString(user.Email)}";
         
         await emailService.SendVerificationEmailAsync(user.Email, verificationLink);
         
@@ -130,13 +130,19 @@ public class AuthService(IOptions<AppOptions> options,
         
         if (oldToken is not { RevokedAt: null } || oldToken.ExpiresAt <= timeProvider.GetUtcNow().UtcDateTime)
         {
-            logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}, DeviceId: {DeviceId}", oldToken?.Id, oldToken?.UserId, oldToken?.Device.DeviceId);
+            logger.LogWarning("Security: Invalid refresh token used. TokenId: {TokenId}, UserId: {UserId}, DeviceId: {DeviceId}", oldToken?.Id, oldToken?.UserId, oldToken?.Device?.DeviceId);
             throw new UnauthorizedException("Invalid or expired refresh token.");
+        }
+        
+        if (oldToken.Device == null)
+        {
+            logger.LogWarning("Security: Refresh token used for deleted device. TokenId: {TokenId}, UserId: {UserId}", oldToken.Id, oldToken.UserId);
+            throw new UnauthorizedException("Device has been logged out.");
         }
         
         var user = await userManager.FindByIdAsync(oldToken.UserId.ToString());
         if (user == null) throw new UnauthorizedException("Invalid user.");
-        
+
         var newAccessToken = await tokenService.GetAccessTokenAsync(user, oldToken.Device);
         var newRefreshToken = await tokenService.RotateRefreshTokenAsync(user, oldToken.Device);
         

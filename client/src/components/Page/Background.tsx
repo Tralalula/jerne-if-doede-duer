@@ -19,7 +19,7 @@ export default function Background() {
                     "--color-background-image-accent-5": "var(--color-background)",
                     "--color-background-image-accent-6": "var(--red-a4)",
                     "--color-background-image-accent-7": "var(--red-5)"
-                    }}
+                    } as React.CSSProperties } 
                 >
                 <g>
                 <path

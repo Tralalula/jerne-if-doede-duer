@@ -1,13 +1,14 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { HomePage, LoginPage } from "./pages/index";
+import { ForgotPassword, Game, HomePage, LoginPage } from "./pages/index";
 import { Navigation, DaisyToaster } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes } from "./helpers/index";
+import { Theme } from '@radix-ui/themes';
+import { ToastProvider } from "./hooks";
 
 const App = () => {
-
   const [theme] = useAtom(themeAtom);
 
   useEffect(() => {
@@ -17,12 +18,18 @@ const App = () => {
 
   return (
     <>
-      <Navigation/>
-      <DaisyToaster />
-      <Routes>
-          <Route path={AppRoutes.Home} element={<HomePage />} />
-          <Route path={AppRoutes.Login} element={<LoginPage />} />
-      </Routes>
+    <Theme appearance={theme} accentColor="red" panelBackground="translucent">
+      <ToastProvider>
+        <Navigation />
+        <DaisyToaster />
+          <Routes>
+              <Route path={AppRoutes.Home} element={<HomePage />} />
+              <Route path={AppRoutes.Login} element={<LoginPage />} />
+              <Route path={AppRoutes.Forgot} element={<ForgotPassword />} />
+              <Route path={AppRoutes.Game} element={<Game/>} />
+          </Routes>
+        </ToastProvider>
+      </Theme>
     </>
   );
 };

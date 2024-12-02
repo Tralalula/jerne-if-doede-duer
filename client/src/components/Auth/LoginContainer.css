@@ -1,0 +1,11 @@
+.error-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.error-wrapper.error-visible {
+    max-height: 100px;
+    opacity: 1;
+}

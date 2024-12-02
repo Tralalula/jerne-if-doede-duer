@@ -1,48 +1,21 @@
-import { useNavigate } from "react-router-dom";
-import Profile from "./Profile";
-import ThemeSwitcher from "./ThemeSwitcher";
+import { faGamepad, faCircleUser, faGear, faSignOut } from '@fortawesome/free-solid-svg-icons';
+import DesktopNavigation from "./DesktopNavigation";
+import MobileNavigation from "./MobileNavigation";
+import { Tab } from './types';
+
+const tabs: Tab[] = [
+  { name: "Spil", path: "/game", icon: faGamepad },
+  { name: "Konto", path: "/konto", icon: faCircleUser },
+  { name: "Kontakt", path: "/contact", icon: faGear },
+  { name: "Panel", path: "/panel", icon: faGear },
+];
 
 export default function Navigation() {
-  const navigate = useNavigate();
     return (
-        <div className="navbar">
-          <div className="navbar-start">
-            <div className="dropdown">
-              <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h8m-8 6h16" />
-                </svg>
-              </div>
-              <ul
-                tabIndex={0}
-                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                <li><a onClick={() => navigate("/")}>Placeholder 1</a></li>
-              </ul>
-            </div>
-            <a className="btn btn-ghost text-xl" onClick={() => navigate("/")}>Jerne IF</a>
-          </div>
-          <div className="navbar-center hidden lg:flex">
-            <ul className="menu menu-horizontal px-1">
-              <li><a onClick={() => navigate("/")}>Placeholder 2</a></li>
-            </ul>
-          </div>
-          <div className="navbar-end gap-2">
+    <div>
+        <DesktopNavigation tabs={tabs}/>
+        <MobileNavigation tabs={tabs}/>
+    </div>
+  );
 
-            <div className="form-control">
-              <input type="text" placeholder="Search" className="input input-bordered w-24 md:w-auto" />
-            </div>
-            <Profile />
-            <ThemeSwitcher />
-          </div>
-        </div>
-    );
 }

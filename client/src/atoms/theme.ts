@@ -1,6 +1,8 @@
-import { atom } from './import';
-import { Theme } from "daisyui";
+import { atom } from 'jotai';
 
-const initialTheme = localStorage.getItem('theme') || document.documentElement.getAttribute('data-theme') as Theme || 'cupcake';
+type RadixTheme = "light" | "dark";
 
-export const themeAtom = atom<string>(initialTheme);
+const initialTheme: RadixTheme =
+  (localStorage.getItem('theme') as RadixTheme) || "light";
+
+export const themeAtom = atom<RadixTheme>(initialTheme);

@@ -1,0 +1,18 @@
+:root {
+    --navbar-height: 64px;
+  }
+  
+  @media (max-width: 768px) {
+    :root {
+      --navbar-height: 20px;
+    }
+  }
+  
+  .desktop-header {
+    height: var(--navbar-height);
+  }
+  
+  .page-content {
+    padding-top: var(--navbar-height);
+  }
+  

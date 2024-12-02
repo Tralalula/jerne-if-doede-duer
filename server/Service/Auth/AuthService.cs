@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Service.Device;
 using Service.Email;
 using Service.Exceptions;
+using Service.Logging;
 using Service.Security;
 
 namespace Service.Auth;
@@ -45,12 +46,12 @@ public class AuthService(IOptions<AppOptions> options,
         var user = await userManager.FindByEmailAsync(request.Email);
         if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
         { 
-            logger.LogWarning("Security: Invalid login credentials. Email: {Email}, IP: {IpAddress}", request.Email, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+            logger.LogWarning("Security: Invalid login credentials. TraceId: {TraceId}, IP: {IpAddress}", request.Email.GetUserTraceId(), httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
             throw new UnauthorizedException("Invalid login credentials");
         }
         
         var userAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
-        var deviceName = GetDeviceName(request.DeviceName, userAgent);
+        var deviceName = DeviceService.GetDeviceName(request.DeviceName, userAgent);
         var device = await deviceService.GetOrCreateDeviceAsync(user, deviceName, userAgent);
         
         logger.LogInformation("Security: Successful login. UserId: {UserId}, DeviceId: {DeviceId}, IP: {IpAddress}", user.Id, device.DeviceId, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
@@ -70,6 +71,7 @@ public class AuthService(IOptions<AppOptions> options,
         
         if (!result.Succeeded)
         {
+            logger.LogWarning("Registration failed. TraceId: {TraceId}", request.Email.GetUserTraceId());
             var errors = result.Errors.Select(error => new ValidationFailure(
                 propertyName: error.Code,
                 errorMessage: error.Description
@@ -83,12 +85,11 @@ public class AuthService(IOptions<AppOptions> options,
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = Uri.EscapeDataString(token); 
         
-        // skal ændres i Produktion, men mangler løsning for mail i produktion først.
         var verificationLink = $"{options.Value.Urls.Address}/api/auth/verify-email?token={encodedToken}&email={Uri.EscapeDataString(user.Email)}";
         
         await emailService.SendVerificationEmailAsync(user.Email, verificationLink);
         
-        logger.LogInformation("New user registered. Email: {Email}, UserId: {UserId}", user.Email, user.Id);
+        logger.LogInformation("New user registered. UserId: {UserId}, TraceId: {TraceId}", user.Id, request.Email.GetUserTraceId());
         return new RegisterResponse(Email: user.Email);
     }
 
@@ -157,14 +158,14 @@ public class AuthService(IOptions<AppOptions> options,
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
         { 
-            logger.LogWarning("Email verification attempted for non-existent email: {Email}", email);
+            logger.LogWarning("Email verification attempted for non-existent user. TraceId: {TraceId}", email.GetUserTraceId());
             return false;
         }
         
         var result = await userManager.ConfirmEmailAsync(user, token);
         
-        if (result.Succeeded) logger.LogInformation("Email verified successfully for user: {UserId}", user.Id);
-        else logger.LogWarning("Email verification failed for user: {UserId}", user.Id);
+        if (result.Succeeded) logger.LogInformation("Email verified successfully. UserId: {UserId}, TraceId: {TraceId}", user.Id, email.GetUserTraceId());
+        else logger.LogWarning("Email verification failed. UserId: {UserId}, TraceId: {TraceId}", user.Id, email.GetUserTraceId());
         
         return result.Succeeded;
     }
@@ -175,7 +176,7 @@ public class AuthService(IOptions<AppOptions> options,
         if (user == null) return true; // Sikkerhed; vi viser ikke om en email eksisterer eller ej
         
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
-        logger.LogInformation("IP address {IpAddress} initiated password reset for email {Email}", ipAddress, email);
+        logger.LogInformation("Password reset initiated. TraceId: {TraceId}, IP: {IpAddress}, Email: {MaskedEmail}", email.GetUserTraceId(), ipAddress, email.MaskEmail());
         
         var cutoffTime = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(-options.Value.PasswordReset.RetryAfterMinutes);
         
@@ -189,7 +190,7 @@ public class AuthService(IOptions<AppOptions> options,
         var recentAttemptsForEmail = await dbContext.PasswordResetCodes.CountAsync(x => x.Email == email && x.CreatedAt > cutoffTime);
         if (recentAttemptsForEmail >= options.Value.PasswordReset.MaxResetAttemptsEmail)
         {
-            logger.LogWarning("Security: Password reset rate limit exceeded for email: {Email}. Attempts: {AttemptCount}", email, recentAttemptsForEmail);
+            logger.LogWarning("Security: Password reset rate limit exceeded for TraceId: {TraceId}. Attempts: {AttemptCount}", email.GetUserTraceId(), recentAttemptsForEmail);
             throw new TooManyRequestsException("Too many reset attempts for this email", retryAfterSeconds:  options.Value.PasswordReset.RetryAfterMinutes * 60);
         }
         
@@ -213,14 +214,14 @@ public class AuthService(IOptions<AppOptions> options,
         
         await emailService.SendPasswordResetCodeAsync(email, sixDigitCode, TimeSpan.FromMinutes(options.Value.PasswordReset.CodeExpirationMinutes)); 
                         
-        logger.LogInformation("Password reset initiated for user: {UserId} from IP: {IpAddress}", user.Id, ipAddress);
+        logger.LogInformation("Password reset initiated for user: {UserId}, from IP: {IpAddress}, TraceID: {TraceId}", user.Id, ipAddress, email.GetUserTraceId());
         return true;
     }
 
     public async Task<bool> VerifyPasswordResetAsync(VerifyResetCodeRequest request)
     {
         var resetCode = await VerifyAndUpdateResetCodeAsync(request.Email, request.Code);
-        if (resetCode == null) logger.LogWarning("Security: Invalid reset code attempt. Email: {Email}, IP: {IpAddress}", request.Email, httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+        if (resetCode == null) logger.LogWarning("Security: Invalid reset code attempt. TraceId: {TraceId}, IP: {IpAddress}", request.Email.GetUserTraceId(), httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
         return resetCode != null;
     }
 
@@ -238,7 +239,7 @@ public class AuthService(IOptions<AppOptions> options,
         resetCode.IsUsed = true;
         await dbContext.SaveChangesAsync();
         
-        logger.LogInformation("Password reset completed successfully for user: {UserId}", user.Id);
+        logger.LogInformation("Password reset completed successfully. UserId: {UserId}, TraceId: {TraceId}", user.Id, request.Email.GetUserTraceId());
         return true;
     }
     
@@ -261,7 +262,7 @@ public class AuthService(IOptions<AppOptions> options,
             resetCode.AttemptCount++;
             if (resetCode.AttemptCount >= options.Value.PasswordReset.CodeMaxAttempts)
             {
-                logger.LogWarning("Security: Reset code max attempts reached. Email: {Email}, AttemptCount: {AttemptCount}", email, resetCode.AttemptCount);
+                logger.LogWarning("Security: Reset code max attempts reached. TraceId: {TraceId}, AttemptCount: {AttemptCount}", email.GetUserTraceId(), resetCode.AttemptCount);
                 resetCode.IsUsed = true;
             }
             await dbContext.SaveChangesAsync();
@@ -279,24 +280,5 @@ public class AuthService(IOptions<AppOptions> options,
         await dbContext.SaveChangesAsync();
         
         return null;
-    }
-    
-    private string GetDeviceName(string? providedName, string? userAgent)
-    {
-        if (!string.IsNullOrWhiteSpace(providedName)) return providedName;
-        if (string.IsNullOrWhiteSpace(userAgent)) return "Unknown Device";
-        
-        if (userAgent.Contains("Mobile") || userAgent.Contains("Android") || userAgent.Contains("iPhone"))
-        {
-            if (userAgent.Contains("iPhone")) return "iPhone";
-            if (userAgent.Contains("Android")) return "Android Device";
-            return "Mobile Device";
-        }
-        
-        if (userAgent.Contains("Windows")) return "Windows PC";
-        if (userAgent.Contains("Mac")) return "Mac";
-        if (userAgent.Contains("Linux")) return "Linux PC";
-    
-        return "Desktop Browser";
     }
 }

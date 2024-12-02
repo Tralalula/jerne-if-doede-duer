@@ -1,6 +1,7 @@
 ﻿using FluentEmail.Core;
 using Microsoft.Extensions.Logging;
 using RazorLight;
+using Service.Logging;
 using SharedDependencies.Email;
 
 namespace Service.Email;
@@ -31,7 +32,6 @@ public class EmailService : IEmailService
         
         
         var templatePath = GetTemplatesPath();
-        _logger.LogInformation("Using template path: {TemplatePath}", templatePath);
         
         if (!Directory.Exists(templatePath))
         {
@@ -72,11 +72,11 @@ public class EmailService : IEmailService
                              .Tag(VerificationTag)
                              .SendAsync();
                             
-            _logger.LogInformation("Verification email sent successfully to: {Email}", email);
+            _logger.LogInformation("Verification email sent successfully [TraceId: {TraceId}, Email: {MaskedEmail}]", email.GetUserTraceId(), email.MaskEmail());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send verification email to: {Email}", email);
+            _logger.LogError(ex, "Failed to send verification email [TraceId: {TraceId}, Email: {MaskedEmail}]", email.GetUserTraceId(), email.MaskEmail());
             throw;
         }
     }
@@ -93,11 +93,11 @@ public class EmailService : IEmailService
                              .Tag(PasswordResetTag)
                              .SendAsync();
                             
-            _logger.LogInformation("Password reset code email sent successfully to: {Email}", email);
+            _logger.LogInformation("Password reset code email sent successfully [TraceId: {TraceId}, Email: {MaskedEmail}]", email.GetUserTraceId(), email.MaskEmail());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset code email to: {Email}", email);
+            _logger.LogError(ex, "Failed to send password reset code email [TraceId: {TraceId}, Email: {MaskedEmail}]", email.GetUserTraceId(), email.MaskEmail());
             throw;
         }
     }

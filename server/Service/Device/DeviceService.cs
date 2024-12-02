@@ -102,4 +102,23 @@ public class DeviceService(AppDbContext dbContext,
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToBase64String(hash);
     }
+    
+    public static string GetDeviceName(string? providedName, string? userAgent)
+    {
+        if (!string.IsNullOrWhiteSpace(providedName)) return providedName;
+        if (string.IsNullOrWhiteSpace(userAgent)) return "Unknown Device";
+        
+        if (userAgent.Contains("Mobile") || userAgent.Contains("Android") || userAgent.Contains("iPhone"))
+        {
+            if (userAgent.Contains("iPhone")) return "iPhone";
+            if (userAgent.Contains("Android")) return "Android Device";
+            return "Mobile Device";
+        }
+        
+        if (userAgent.Contains("Windows")) return "Windows PC";
+        if (userAgent.Contains("Mac")) return "Mac";
+        if (userAgent.Contains("Linux")) return "Linux PC";
+    
+        return "Desktop Browser";
+    }
 }

@@ -1,0 +1,79 @@
+name: Tests 
+permissions:
+  checks: write        # For at kunne publish test resultater 
+  pull-requests: write # Hvis test resultater i PR 
+  contents: read       # Pga privat repo 
+
+on:
+  push:
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-tests.yml'
+      - 'Directory.Build.props'
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: ["master"]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-tests.yml'
+      - 'Directory.Build.props'
+  
+jobs:
+  server_test_job:
+    name: Server test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup .NET with caching
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+          cache: true
+          cache-dependency-path: 'server/**/packages.lock.json'
+          
+      - name: Restore dependencies
+        run: dotnet restore
+        
+      - name: Build
+        run: dotnet build --no-restore
+        
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+          --logger "html"
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "**/TestResults/*.trx"
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/TestResults/*.html'
+          retention-days: 7
+          
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.1
+        if: success()
+        with:
+          reports: '**/TestResults/**/coverage.cobertura.xml'
+          targetdir: 'coveragereport'
+          reporttypes: 'HtmlInline;Cobertura'
+        
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: coverage-report
+          path: coveragereport
+          retention-days: 7 

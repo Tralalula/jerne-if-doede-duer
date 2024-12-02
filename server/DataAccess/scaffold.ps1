@@ -2,7 +2,7 @@ $connectionString = "Server=localhost;Database=jerneif;User Id=user;Password=pas
 $context = "AppDbContext"
 $identityUserFilePath = "Models/AspNetUser.cs"
 
-$tables = @("AspNetUsers", "games", "purchases", "transactions", "boards", "autoplay_boards", "pot", "winner_sequences", "user_history", "balance_history")
+$tables = @("AspNetUsers", "games", "purchases", "transactions", "boards", "autoplay_boards", "pot", "winner_sequences", "user_history", "balance_history", "user_devices", "refresh_tokens", "password_reset_codes")
 
 $scaffoldCommand = "dotnet ef dbcontext scaffold `"$connectionString`" Npgsql.EntityFrameworkCore.PostgreSQL --output-dir Models --context-dir . --context $context --no-onconfiguring --data-annotations --force"
 

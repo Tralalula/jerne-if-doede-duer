@@ -1,0 +1,77 @@
+# flyctl launch added from .gitignore
+**/.idea
+**/*.DotSettings.user
+**/worktrees
+
+# dotenv files
+server/**/*.env
+
+# User-specific files
+server/**/*.rsuser
+server/**/*.suo
+server/**/*.user
+server/**/*.userosscache
+server/**/*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+server/**/*.userprefs
+
+# Mono auto generated files
+server/**/mono_crash.*
+
+# Build results
+server/**/[Dd]ebug/
+server/**/[Dd]ebugPublic/
+server/**/[Rr]elease/
+server/**/[Rr]eleases/
+server/**/x64/
+server/**/x86/
+server/**/bld/
+server/**/[Bb]in/
+server/**/[Oo]bj/
+server/**/[Ll]og/
+server/**/[Ll]ogs/
+
+# Visual Studio 2015/2017 cache/options directory
+server/**/.vs/
+
+# MSTest test Results
+server/**/[Tt]est[Rr]esult*
+server/**/[Bb]uild[Ll]og.*
+
+# NUnit
+server/**/*.VisualState.xml
+server/**/TestResult.xml
+server/**/nunit-*.xml
+
+# Other build files
+server/**/*.tmp
+server/**/*.tlog
+server/**/*.pdb
+
+# NuGet Packages
+server/**/*.nupkg
+server/**/packages/
+server/**/*.nuget.props
+server/**/*.nuget.targets
+
+# Node.js Tools for Visual Studio
+server/**/node_modules/
+
+# Microsoft Azure Build Output
+server/**/csx/
+server/**/*.build.csdef
+
+# Visual Studio profiler
+server/**/*.psess
+server/**/*.vsp
+server/**/*.vspx
+server/**/*.sap
+
+# Others
+server/**/*.log
+server/**/*.vspscc
+server/**/*.vssscc
+server/**/*.scc
+server/**/.localhistory/
+server/**/.vscode/

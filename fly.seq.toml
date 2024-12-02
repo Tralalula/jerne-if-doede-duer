@@ -1,0 +1,47 @@
+# fly.toml app configuration file generated for jerne-if-seq on 2024-11-24T05:43:02+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "jerne-if-seq"
+primary_region = "fra"
+
+[build]
+  image = "datalust/seq"
+
+[mounts]
+  source = "seq_data"
+  destination = "/data"
+
+[env]
+  ACCEPT_EULA = "Y"
+
+[[services]]
+http_checks = []
+internal_port = 80
+processes = ["app"]
+protocol = "tcp"
+script_checks = []
+  [[services.ports]]
+  force_https = true
+  handlers = ["http"]
+  port = 80
+
+[[services.ports]]
+  handlers = ["tls", "http"]
+  port = 443
+
+[[services]]
+  http_checks = []
+  internal_port = 5341
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 5341
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

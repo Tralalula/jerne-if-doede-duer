@@ -1,6 +1,8 @@
 name: Deploy server
 on:
-  push: 
+  push:
+    branches:
+      - master
     paths:
       - 'server/**'
       - '.github/workflows/fly-server-deployment.yml'

@@ -1,6 +1,8 @@
 name: Deploy client
 on:
   push:
+    branches:
+      - master
     paths:
       - 'client/**'
       - '.github/workflows/firebase-client-deployment.yml'

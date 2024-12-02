@@ -199,7 +199,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         Assert.True(resetCode.IsUsed);
     }
     
-    private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login_With_Device(LoginRequest user, string deviceName, string userAgent)
+    private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client, HttpClient httpClient)> Check_Login_With_Device(LoginRequest user, string deviceName, string userAgent)
     {
         var httpClient = CreateNewClient(userAgent);
         var client = new AuthClient(httpClient);
@@ -217,7 +217,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         Assert.Contains(cookieHeaders, header => header.StartsWith("refreshToken="));
         SetRefreshTokenCookie(httpClient, cookieHeaders);
         
-        return (accessToken, cookieHeaders, client);
+        return (accessToken, cookieHeaders, client, httpClient);
     }
     
     private async Task Check_Device_Count(string email, int expectedCount)
@@ -398,7 +398,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         // Login med 5 enheder
         for (int i = 0; i < 5; i++)
         {
-            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            var (accessToken, cookieHeaders, client, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
             Check_JWT_Structure(accessToken);
             Check_Refresh_Token_Cookie(cookieHeaders);
 
@@ -432,7 +432,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         // Login med 5 enheder
         for (int i = 0; i < 5; i++)
         {
-            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            var (accessToken, cookieHeaders, client, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
             Check_JWT_Structure(accessToken);
             Check_Refresh_Token_Cookie(cookieHeaders);
 
@@ -469,7 +469,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
 
         for (int i = 0; i < 2; i++)
         {
-            var (accessToken, cookieHeaders, client) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            var (accessToken, cookieHeaders, client, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
             Check_JWT_Structure(accessToken);
             Check_Refresh_Token_Cookie(cookieHeaders);
 
@@ -502,7 +502,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         
         for (int i = 0; i < 5; i++)
         {
-            var (accessToken, cookieHeaders, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
+            var (accessToken, cookieHeaders, _, _) = await Check_Login_With_Device(userCredentials, deviceNames[i], userAgents[i]);
             Check_JWT_Structure(accessToken);
             Check_Refresh_Token_Cookie(cookieHeaders);
         }
@@ -520,7 +520,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             Password = userCredentials.Password
         };
         
-        var (accessTokenNew, cookieHeadersNew, clientNew) = await Check_Login_With_Device(loginRequestNew, newDeviceName, newUserAgent);
+        var (accessTokenNew, cookieHeadersNew, clientNew, _) = await Check_Login_With_Device(loginRequestNew, newDeviceName, newUserAgent);
         Check_JWT_Structure(accessTokenNew);
         Check_Refresh_Token_Cookie(cookieHeadersNew);
         
@@ -529,5 +529,63 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         Assert.Contains(devices, d => d.DeviceName == newDeviceName);
         
         await clientNew.LogoutAsync();
+    }
+    
+    [Fact]
+    public async Task Logout_After_Token_Rotation_Should_Properly_Cleanup()
+    {
+        // Login
+        var userCredentials = AuthTestHelper.Users.Player;
+        var deviceName = "TestDevice";
+        var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
+    
+        var (accessToken, cookieHeaders, client, httpClient) = await Check_Login_With_Device(userCredentials, deviceName, userAgent);
+        Check_JWT_Structure(accessToken);
+        Check_Refresh_Token_Cookie(cookieHeaders);
+    
+        await Check_Device_Count(userCredentials.Email, 1);
+        
+        // Roter token
+        var refreshResponse = await client.RefreshAsync();
+        var setCookieHeaders = refreshResponse.Headers.TryGetValue("Set-Cookie", out var values) ? values : [];
+        var refreshCookieHeaders = setCookieHeaders as string[] ?? setCookieHeaders.ToArray();
+        Assert.Contains(refreshCookieHeaders, header => header.StartsWith("refreshToken="));
+        SetRefreshTokenCookie(httpClient, refreshCookieHeaders);
+        Assert.Equal(StatusCodes.Status200OK, refreshResponse.StatusCode);
+        
+        // Har kun 1 enhed aktiv
+        await Check_Device_Count(userCredentials.Email, 1);
+        
+        // Tjek at vi har 2 refresh tokens (1 roteret, 1 aktiv)
+        var user = await PgCtxSetup.DbContextInstance.Users.FirstOrDefaultAsync(u => u.Email == userCredentials.Email);
+        Assert.NotNull(user);
+    
+        var refreshTokenCount = await PgCtxSetup.DbContextInstance.RefreshTokens.CountAsync(rt => rt.UserId == user.Id);
+        Assert.Equal(2, refreshTokenCount);
+        
+        // Tjek at 1 token er markeret som erstattet
+        var replacedToken = await PgCtxSetup.DbContextInstance.RefreshTokens.FirstOrDefaultAsync(rt => rt.UserId == user.Id && rt.ReplacedByTokenId != null);
+        Assert.NotNull(replacedToken);
+        Assert.NotNull(replacedToken.ReplacedByTokenId);
+        Assert.NotNull(replacedToken.RevokedAt);
+        
+        // Logud
+        var logoutResponse = await client.LogoutAsync();
+        Assert.Equal(StatusCodes.Status200OK, logoutResponse.StatusCode);
+        httpClient.DefaultRequestHeaders.Remove("Cookie");
+        
+        // Tjek at enheder er fjernet
+        await Check_Device_Count(userCredentials.Email, 0);
+
+        // Tjek at refresh tokens er revoked
+        refreshTokenCount = await PgCtxSetup.DbContextInstance.RefreshTokens.CountAsync(rt => rt.UserId == user.Id && rt.RevokedAt == null);
+        Assert.Equal(0, refreshTokenCount);
+        
+        // Tjek at vi ikke kan anvende refresh token igen
+        await WebAssert.ThrowsProblemAsync<ApiException>(
+            () => client.RefreshAsync(),
+            StatusCodes.Status401Unauthorized,
+            nameof(UnauthorizedException)
+        );
     }
 }

@@ -20,7 +20,7 @@ public partial class RefreshToken
     public Guid UserId { get; set; }
 
     [Column("device_id")]
-    public Guid DeviceId { get; set; }
+    public Guid? DeviceId { get; set; }
 
     [Column("replaced_by_token_id")]
     public Guid? ReplacedByTokenId { get; set; }
@@ -45,7 +45,7 @@ public partial class RefreshToken
 
     [ForeignKey("DeviceId")]
     [InverseProperty("RefreshTokens")]
-    public virtual UserDevice Device { get; set; } = null!;
+    public virtual UserDevice? Device { get; set; }
 
     [InverseProperty("ReplacedByToken")]
     public virtual ICollection<RefreshToken> InverseReplacedByToken { get; set; } = new List<RefreshToken>();

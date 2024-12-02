@@ -112,7 +112,7 @@ CREATE TABLE user_devices (
 CREATE TABLE refresh_tokens (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID NOT NULL,
-    device_id UUID NOT NULL,
+    device_id UUID,
     replaced_by_token_id UUID,
     token TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -121,7 +121,7 @@ CREATE TABLE refresh_tokens (
     revoked_by_ip TEXT,
     created_by_ip TEXT,
     FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
-    FOREIGN KEY (device_id) REFERENCES user_devices (id) ON DELETE CASCADE,
+    FOREIGN KEY (device_id) REFERENCES user_devices (id),
     FOREIGN KEY (replaced_by_token_id) REFERENCES refresh_tokens (id)
 );
 

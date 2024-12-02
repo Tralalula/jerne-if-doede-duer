@@ -65,18 +65,16 @@ public class DeviceService(AppDbContext dbContext,
 
     public async Task RevokeDeviceAsync(Guid userId, string deviceId)
     {
-        var device = await dbContext.UserDevices.Include(d => d.RefreshTokens.Where(rt => rt.RevokedAt == null))
+        var device = await dbContext.UserDevices.Include(d => d.RefreshTokens)
                                                 .FirstOrDefaultAsync(d => d.DeviceId == deviceId && d.UserId == userId);
         
         if (device == null) return;
         
         var now = timeProvider.GetUtcNow().UtcDateTime;
+        var revokedByIp = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
         
-        foreach (var token in device.RefreshTokens)
-        {
-            token.RevokedAt = now;
-            token.RevokedByIp = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
-        }
+        await dbContext.RefreshTokens.Where(rt => rt.DeviceId == device.Id)
+                                     .ExecuteUpdateAsync(s => s.SetProperty(b => b.RevokedAt, now).SetProperty(b => b.RevokedByIp, revokedByIp));
         
         dbContext.UserDevices.Remove(device);
         await dbContext.SaveChangesAsync();

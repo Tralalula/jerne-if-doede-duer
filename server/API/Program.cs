@@ -49,7 +49,8 @@ try {
     {
         options.AddPolicy("AllowClient", policy => policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || origin == appOptions.Urls.ClientUrl)
                                                          .AllowAnyMethod()
-                                                         .AllowAnyHeader());
+                                                         .AllowAnyHeader()
+                                                         .AllowCredentials());
     }); 
     #endregion
                     

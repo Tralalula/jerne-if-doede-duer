@@ -10,6 +10,8 @@ export {default as Page } from "./Page/Page"
 
 // Auth
 export {default as LoginContainer } from './Auth/LoginContainer'
+export { RequireAuth } from './Auth/RequireAuth'
+
 
 // Buttons
 export {default as LoadingButton } from './Button/LoadingButton'

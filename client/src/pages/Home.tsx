@@ -3,7 +3,7 @@ import { Page } from "../components";
 
 export default function HomePage() {
   return (
-    <Page>
+    <Page align="center" justify="center">
       <Text>
           hejsa
       </Text>

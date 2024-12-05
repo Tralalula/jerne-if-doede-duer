@@ -18,6 +18,7 @@ const schema: yup.ObjectSchema<LoginRequest> = yup
     .object({
         email: yup.string().email("Email skal være gyldig").required("Email er påkrævet"),
         password: yup.string().min(6, "Adgangskode skal være mindst 6 tegn").required("Adgangskode er påkrævet"),
+        deviceName: yup.string().required()
     })
     .required();
 
@@ -74,6 +75,7 @@ export default function LoginContainer() {
                 <Section>
                   <Card className='p-5 bg-whiteA5 dark:bg-gray1/75 backdrop-blur-md' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <form method="post" onSubmit={handleSubmit(onSubmit)}>
+                      <input type="hidden" {...register("deviceName")} value={window.navigator.userAgent} />
                       <Box mb="5">
                         <Flex direction="column">
                           <Text as="label" size="2" weight="medium" mb="2" htmlFor="email">

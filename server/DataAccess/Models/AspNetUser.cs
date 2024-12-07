@@ -20,8 +20,11 @@ public partial class User
     [InverseProperty("User")]
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
+    [InverseProperty("ReviewedByUser")]
+    public virtual ICollection<Transaction> TransactionReviewedByUsers { get; set; } = new List<Transaction>();
+
     [InverseProperty("User")]
-    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public virtual ICollection<Transaction> TransactionUsers { get; set; } = new List<Transaction>();
 
     [InverseProperty("User")]
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();

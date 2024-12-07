@@ -17,8 +17,8 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
 #pragma warning restore CS9113
 {
     // Kommer i forbindelse med Identity
-    private const string RfcUnauthorized = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
-    private const string RfcForbidden = "https://tools.ietf.org/html/rfc9110#section-15.5.4";
+    public static readonly string RfcUnauthorized = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly string RfcForbidden = "https://tools.ietf.org/html/rfc9110#section-15.5.4";
     
     #region Checks
     private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login(LoginRequest user)

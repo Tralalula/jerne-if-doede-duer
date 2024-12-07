@@ -33,8 +33,13 @@ CREATE TABLE transactions (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     user_id UUID NOT NULL,
     credits INTEGER NOT NULL,
-    mobilepay_transaction_number VARCHAR(50),
-    CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
+    mobilepay_transaction_number VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    reviewed_by_user_id UUID,
+    reviewed_at TIMESTAMPTZ,
+    CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
+    CONSTRAINT transactions_reviewed_by_user_id_fkey FOREIGN KEY (reviewed_by_user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL,
+    CONSTRAINT transactions_status_check CHECK (status IN ('pending', 'accepted', 'denied'))
 );
 
 CREATE TABLE boards (
@@ -138,8 +143,9 @@ CREATE TABLE password_reset_codes (
 );
 
 -- Indexes
-CREATE INDEX ix_transactions_user_id ON transactions (user_id);
-CREATE INDEX ix_transactions_timestamp ON transactions (timestamp);
+CREATE INDEX ix_transactions_user_id ON transactions(user_id);
+CREATE INDEX ix_transactions_status ON transactions(status);
+CREATE INDEX ix_transactions_timestamp ON transactions(timestamp);
 CREATE INDEX ix_boards_user_id ON boards (user_id);
 CREATE INDEX ix_boards_game_id ON boards (game_id);
 CREATE INDEX ix_boards_purchase_id ON boards (purchase_id);

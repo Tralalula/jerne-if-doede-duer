@@ -111,7 +111,8 @@ export type User = IdentityUserOfGuid & {
   balanceHistories?: BalanceHistory[];
   boards?: Board[];
   refreshTokens?: RefreshToken[];
-  transactions?: Transaction[];
+  transactionReviewedByUsers?: Transaction[];
+  transactionUsers?: Transaction[];
   userDevices?: UserDevice[];
   userHistoryAffectedUsers?: UserHistory[];
   userHistoryChangeMadeByUsers?: UserHistory[];
@@ -223,7 +224,17 @@ export interface Transaction {
    * @minLength 0
    * @maxLength 50
    */
-  mobilepayTransactionNumber: string | null;
+  mobilepayTransactionNumber: string;
+  /**
+   * @minLength 0
+   * @maxLength 20
+   */
+  status: string;
+  /** @format guid */
+  reviewedByUserId: string | null;
+  /** @format date-time */
+  reviewedAt: string | null;
+  reviewedByUser: User | null;
   user: User;
 }
 
@@ -276,6 +287,78 @@ export interface IdentityUserOfGuid {
   lockoutEnabled: boolean;
   /** @format int32 */
   accessFailedCount: number;
+}
+
+export interface BalanceResponse {
+  /** @format int32 */
+  currentBalance: number;
+  /** @format int32 */
+  pendingCredits: number;
+}
+
+export interface TransactionResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+  status: TransactionStatus;
+}
+
+export enum TransactionStatus {
+  Pending = "Pending",
+  Accepted = "Accepted",
+  Denied = "Denied",
+}
+
+export interface CreateTransactionRequest {
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+}
+
+export interface PagedTransactionResponse {
+  items: TransactionDetailsResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export interface TransactionDetailsResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+  status: TransactionStatus;
+  /** @format guid */
+  reviewedByUserId: string | null;
+  /** @format date-time */
+  reviewedAt: string | null;
+}
+
+export interface PagingInfo {
+  /** @format int32 */
+  totalItems: number;
+  /** @format int32 */
+  itemsPerPage: number;
+  /** @format int32 */
+  currentPage: number;
+  /** @format int32 */
+  totalPages: number;
+}
+
+export enum TransactionOrderBy {
+  Timestamp = "Timestamp",
+  Credits = "Credits",
+  Status = "Status",
+}
+
+export enum SortOrder {
+  Asc = "Asc",
+  Desc = "Desc",
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -615,6 +698,149 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<File, any>({
         path: `/api/auth/devices/${deviceId}`,
         method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+  };
+  transaction = {
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetBalance
+     * @request GET:/api/transaction/balance
+     * @secure
+     */
+    getBalance: (params: RequestParams = {}) =>
+      this.request<BalanceResponse, any>({
+        path: `/api/transaction/balance`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name CreateTransaction
+     * @request POST:/api/transaction
+     * @secure
+     */
+    createTransaction: (data: CreateTransactionRequest, params: RequestParams = {}) =>
+      this.request<TransactionResponse, any>({
+        path: `/api/transaction`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetMyTransactions
+     * @request GET:/api/transaction/my
+     * @secure
+     */
+    getMyTransactions: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: TransactionStatus | null;
+        OrderBy?: TransactionOrderBy;
+        Sort?: SortOrder;
+        /** @format date-time */
+        FromDate?: string | null;
+        /** @format date-time */
+        ToDate?: string | null;
+        /** @format int32 */
+        MinCredits?: number | null;
+        /** @format int32 */
+        MaxCredits?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedTransactionResponse, any>({
+        path: `/api/transaction/my`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetAllTransactions
+     * @request GET:/api/transaction/all
+     * @secure
+     */
+    getAllTransactions: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: TransactionStatus | null;
+        OrderBy?: TransactionOrderBy;
+        Sort?: SortOrder;
+        /** @format date-time */
+        FromDate?: string | null;
+        /** @format date-time */
+        ToDate?: string | null;
+        /** @format int32 */
+        MinCredits?: number | null;
+        /** @format int32 */
+        MaxCredits?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedTransactionResponse, any>({
+        path: `/api/transaction/all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name AcceptTransaction
+     * @request POST:/api/transaction/{id}/accept
+     * @secure
+     */
+    acceptTransaction: (id: string, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/transaction/${id}/accept`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name DenyTransaction
+     * @request POST:/api/transaction/{id}/deny
+     * @secure
+     */
+    denyTransaction: (id: string, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/transaction/${id}/deny`,
+        method: "POST",
         secure: true,
         ...params,
       }),

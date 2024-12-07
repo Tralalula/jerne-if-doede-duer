@@ -4,5 +4,7 @@ export const AppRoutes = {
     Home: "/",
     Login: "/login",
     Forgot: "/forgot",
-    Game: "/game"
+    Game: "/game",
+    MyTransactions: '/transactions',
+    AdminTransactions: '/admin/transactions',
 } as const;

@@ -20,6 +20,7 @@ using Service.Device;
 using Service.Email;
 using Service.Security;
 using Service.Transaction;
+using Service.Users;
 
 #region Boostrap Logger
 Log.Logger = new LoggerConfiguration().Enrich.FromLogContext()
@@ -150,6 +151,7 @@ try {
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IDeviceService, DeviceService>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
+    builder.Services.AddScoped<IUsersService, UsersService>();
   
     if (builder.Environment.IsProduction())
     { 

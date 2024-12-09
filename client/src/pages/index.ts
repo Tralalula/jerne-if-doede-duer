@@ -5,9 +5,12 @@ export { default as Game } from './Game'
 export { default as LoginPage } from "./auth/Login";
 export { default as ForgotPassword } from './auth/ForgotPassword';
 
-//------- Transactions -------//
+//------- Transaction -------//
 export { default as MyTransactionsPage } from './transaction/MyTransactionsPage';
 export { default as AdminTransactionsPage } from './transaction/AdminTransactionsPage';
+
+//------- User -------//
+export { default as AdminUserPage } from './user/AdminUserPage';
 
 //------- Error -------//
 export { default as ForbiddenPage } from "./error/ForbiddenPage";

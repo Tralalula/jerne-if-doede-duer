@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { ForgotPassword, Game, HomePage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage } from "./pages/index";
+import { ForgotPassword, Game, HomePage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage } from "./pages/index";
 import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
@@ -33,6 +33,7 @@ const App = () => {
               <Route path={AppRoutes.Game} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<Game />} />} />
               <Route path={AppRoutes.MyTransactions} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyTransactionsPage />} />} />
               <Route path={AppRoutes.AdminTransactions} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminTransactionsPage />} />} />
+              <Route path={AppRoutes.AdminUsers} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserPage />} />} />
           </Routes>
         </ToastProvider>
       </Theme>

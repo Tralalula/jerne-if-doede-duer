@@ -361,6 +361,36 @@ export enum SortOrder {
   Desc = "Desc",
 }
 
+export interface PagedUserResponse {
+  items: UserDetailsResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export interface UserDetailsResponse {
+  /** @format guid */
+  id: string;
+  email: string;
+  phoneNumber: string;
+  status: UserStatus;
+  /** @format int32 */
+  credits: number;
+  /** @format date-time */
+  timestamp: string;
+  roles: string[];
+}
+
+export enum RoleType {
+  Admin = "Admin",
+  Player = "Player",
+}
+
+export enum UserOrderBy {
+  Timestamp = "Timestamp",
+  Email = "Email",
+  Credits = "Credits",
+  Status = "Status",
+}
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
 import axios from "axios";
 
@@ -843,6 +873,72 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/api/transaction/${id}/deny`,
         method: "POST",
         secure: true,
+        ...params,
+      }),
+  };
+  user = {
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GetUsers
+     * @request GET:/api/user
+     * @secure
+     */
+    getUsers: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: UserStatus | null;
+        Search?: string | null;
+        Role?: RoleType | null;
+        OrderBy?: UserOrderBy;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedUserResponse, any>({
+        path: `/api/user`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ActivateUser
+     * @request POST:/api/user/{id}/activate
+     * @secure
+     */
+    activateUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}/activate`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name DeactivateUser
+     * @request POST:/api/user/{id}/deactivate
+     * @secure
+     */
+    deactivateUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}/deactivate`,
+        method: "POST",
+        secure: true,
+        format: "json",
         ...params,
       }),
   };

@@ -23,6 +23,9 @@ export { default as TransactionFilters } from './Transaction/TransactionFilters'
 export { default as TransactionListView } from './Transaction/TransactionListView';
 export { default as AddCreditsDialog } from './Transaction/AddCreditsDialog';
 
+// User
+export { default as UserListView } from './User/UserListView';
+
 // Buttons
 export {default as LoadingButton } from './Button/LoadingButton'
 export {default as AnimatedIconButton } from './Button/AnimatedIconButton'

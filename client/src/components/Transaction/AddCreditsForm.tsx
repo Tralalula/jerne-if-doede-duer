@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Flex, Text, TextField, Button } from '@radix-ui/themes';
 import { useAtom } from 'jotai';
-import { balanceAtom, TransactionDetailsResponse, transactionsAtom, useToast } from '../import';
+import { balanceAtom, TransactionDetailsResponse, transactionsAtom, transactionPagingAtom, useToast } from '../import';
 import * as yup from "yup";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -41,6 +41,7 @@ const schema = yup.object({
 export default function AddCreditsForm({ onSuccess, submitLabel = 'Tilføj', cancelButton }: AddCreditsFormProps) {
     const [, setBalance] = useAtom(balanceAtom);
     const [, setTransactions] = useAtom(transactionsAtom);
+    const [, setPaging] = useAtom(transactionPagingAtom);
     const { showToast } = useToast();
 
     const {
@@ -72,6 +73,10 @@ export default function AddCreditsForm({ onSuccess, submitLabel = 'Tilføj', can
                 reviewedAt: null
             };
             setTransactions(prev => [newTransaction, ...prev]);
+            setPaging(prev => ({
+                ...prev,
+                totalItems: prev.totalItems + 1
+            }));
 
             const balanceResponse = await api.transaction.getBalance();
             setBalance(balanceResponse.data);

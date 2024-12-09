@@ -47,20 +47,20 @@ public class TransactionController(ITransactionService transactionService) : Con
     
     [Authorize(Roles = Role.Admin)]
     [HttpPost("{id}/accept")]
-    public async Task<ActionResult> AcceptTransaction(Guid id)
+    public async Task<ActionResult<TransactionDetailsResponse>> AcceptTransaction(Guid id)
     {
         var adminId = User.GetUserId();
-        await transactionService.AcceptTransactionAsync(id, adminId);
-        return Ok();
+        var result = await transactionService.AcceptTransactionAsync(id, adminId);
+        return Ok(result);
     }
 
     [Authorize(Roles = Role.Admin)]
     [HttpPost("{id}/deny")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> DenyTransaction(Guid id)
+    public async Task<ActionResult<TransactionDetailsResponse>> DenyTransaction(Guid id)
     {
         var adminId = User.GetUserId();
-        await transactionService.DenyTransactionAsync(id, adminId);
-        return Ok();
+        var result = await transactionService.DenyTransactionAsync(id, adminId);
+        return Ok(result);
     }
 }

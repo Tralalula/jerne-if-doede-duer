@@ -822,10 +822,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     acceptTransaction: (id: string, params: RequestParams = {}) =>
-      this.request<File, any>({
+      this.request<TransactionDetailsResponse, any>({
         path: `/api/transaction/${id}/accept`,
         method: "POST",
         secure: true,
+        format: "json",
         ...params,
       }),
 

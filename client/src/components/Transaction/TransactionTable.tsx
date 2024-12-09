@@ -2,7 +2,8 @@ import React from 'react';
 import { Table, Button, Card, Text, Badge, Flex } from '@radix-ui/themes';
 import { format } from 'date-fns'
 import TransactionTableHeader from "./TransactionTableHeader";
-import { transactionPagingAtom, useFetchTransactions, TransactionStatus, TransactionOrderBy, sortTransactions, transactionSortAtom, TransactionDetailsResponse } from '../import';
+import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { TransactionStatus, TransactionOrderBy, TransactionDetailsResponse } from '../import';
 
 
 interface TransactionTableProps {
@@ -83,16 +84,12 @@ export default function TransactionTable({ isAdmin = false, transactions, onAcce
                                 <Table.Cell>
                                     {transaction.status === TransactionStatus.Pending && (
                                         <Flex gap="2">
-                                            <Button
-                                                onClick={() => onAccept?.(transaction.id)}
-                                                color="green"
-                                            >
+                                            <Button onClick={() => onAccept?.(transaction.id)} color="green" variant="soft" size="1">
+                                                <CheckIcon />
                                                 Godkend
                                             </Button>
-                                            <Button
-                                                onClick={() => onDeny?.(transaction.id)}
-                                                color="red"
-                                            >
+                                            <Button onClick={() => onDeny?.(transaction.id)} color="red" variant="soft" size="1">
+                                                <Cross2Icon />
                                                 Afvis
                                             </Button>
                                         </Flex>

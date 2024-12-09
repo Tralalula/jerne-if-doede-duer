@@ -11,7 +11,6 @@ import {
     transactionCreditsRangeAtom,
     transactionLoadingAtom,
     transactionErrorAtom,
-    jwtAtom
 } from './import';
 
 interface UseTransactionsParams {
@@ -27,8 +26,6 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
     const [creditsRange] = useAtom(transactionCreditsRangeAtom);
     const [loading, setLoading] = useAtom(transactionLoadingAtom);
     const [error, setError] = useAtom(transactionErrorAtom);
-
-    const jwt = useAtomValue(jwtAtom);
     
     const fetchTransactions = async () => {
         setLoading(true);
@@ -78,12 +75,13 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
         );
     };
 
+
     const acceptTransaction = async (id: string) => {
         try {
-            await api.transaction.acceptTransaction(id);
+            const response = await api.transaction.acceptTransaction(id);
             updateTransactionLocally(id, t => ({
                 ...t,
-                reviewedAt: new Date().toISOString(), // hm? Her eller server?
+                ...response.data
             }));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Problemer med at acceptere transaktion');
@@ -94,10 +92,10 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
 
     const denyTransaction = async (id: string) => {
         try {
-            await api.transaction.denyTransaction(id);
+            const response = await api.transaction.denyTransaction(id);
             updateTransactionLocally(id, t => ({
                 ...t,
-                reviewedAt: new Date().toISOString(), // hm? Her eller server?
+                ...response.data 
             }));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Problemer med at afvise transaktion');
@@ -105,8 +103,10 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
         }
     };
 
-    useEffect(() => { if (jwt) { fetchTransactions(); } }, [isAdmin, paging.currentPage, paging.itemsPerPage, status, 
-                                                                dateRange.fromDate, dateRange.toDate,creditsRange.minCredits, creditsRange.maxCredits]);
+    useEffect(() => { 
+        fetchTransactions();
+    }, [isAdmin, paging.currentPage, paging.itemsPerPage, status, 
+             dateRange.fromDate, dateRange.toDate,creditsRange.minCredits, creditsRange.maxCredits]);
     
     return {
         transactions,

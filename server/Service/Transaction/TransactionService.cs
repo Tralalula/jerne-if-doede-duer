@@ -14,8 +14,8 @@ public interface ITransactionService
     Task<TransactionResponse> CreateTransactionAsync(Guid userId, CreateTransactionRequest request);
     Task<PagedTransactionResponse> GetUserTransactionsAsync(Guid userId, TransactionsQuery query);
     Task<PagedTransactionResponse> GetTransactionsAsync(TransactionsQuery query);
-    Task AcceptTransactionAsync(Guid transactionId, Guid adminId);
-    Task DenyTransactionAsync(Guid transactionId, Guid adminId);
+    Task<TransactionDetailsResponse> AcceptTransactionAsync(Guid transactionId, Guid adminId);
+    Task<TransactionDetailsResponse> DenyTransactionAsync(Guid transactionId, Guid adminId);
 }
 
 public class TransactionService(AppDbContext dbContext, ILogger<TransactionService> logger, TimeProvider timeProvider): ITransactionService
@@ -68,7 +68,7 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         return await GetPagedTransactionsAsync(dbContext.Transactions.AsQueryable(), query);
     }
 
-    public async Task AcceptTransactionAsync(Guid transactionId, Guid adminId)
+    public async Task<TransactionDetailsResponse> AcceptTransactionAsync(Guid transactionId, Guid adminId)
     {
         var transaction = await dbContext.Transactions.FindAsync(transactionId) ?? throw new NotFoundException("Transaction not found");
     
@@ -91,9 +91,19 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         });
 
         await dbContext.SaveChangesAsync();
+        
+        return new TransactionDetailsResponse(
+            transaction.Id,
+            transaction.Timestamp,
+            transaction.Credits,
+            transaction.MobilepayTransactionNumber,
+            transaction.Status.ToTransactionStatus(),
+            transaction.ReviewedByUserId,
+            transaction.ReviewedAt
+        );
     }
 
-    public async Task DenyTransactionAsync(Guid transactionId, Guid adminId)
+    public async Task<TransactionDetailsResponse> DenyTransactionAsync(Guid transactionId, Guid adminId)
     {
         var transaction = await dbContext.Transactions.FindAsync(transactionId) ?? throw new NotFoundException("Transaction not found");
     
@@ -104,6 +114,16 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         transaction.ReviewedAt = timeProvider.GetUtcNow().UtcDateTime;
     
         await dbContext.SaveChangesAsync();
+        
+        return new TransactionDetailsResponse(
+            transaction.Id,
+            transaction.Timestamp,
+            transaction.Credits,
+            transaction.MobilepayTransactionNumber,
+            transaction.Status.ToTransactionStatus(),
+            transaction.ReviewedByUserId,
+            transaction.ReviewedAt
+        );
     }
     
     private static async Task<PagedTransactionResponse> GetPagedTransactionsAsync(IQueryable<DataAccess.Models.Transaction> baseQuery, TransactionsQuery query)

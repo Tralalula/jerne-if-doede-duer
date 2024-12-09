@@ -3,6 +3,7 @@ import { Card, Flex, Text, Button } from '@radix-ui/themes';
 import { format } from 'date-fns';
 import { TransactionStatus, TransactionDetailsResponse } from '../import';
 import { da } from 'date-fns/locale';
+import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 
 interface TransactionCardProps {
     transaction: TransactionDetailsResponse;
@@ -34,17 +35,6 @@ export default function TransactionCard({transaction, isAdmin = false, onAccept,
                     </Text>
                 </Flex>
 
-                {isAdmin && transaction.status === TransactionStatus.Pending && (
-                    <Flex gap="2" mt="2">
-                        <Button onClick={() => onAccept?.(transaction.id)} color="green" variant="soft" className="w-full">
-                            Godkend
-                        </Button>
-                        <Button onClick={() => onDeny?.(transaction.id)} color="red" variant="soft" className="w-full">
-                            Afvis
-                        </Button>
-                    </Flex>
-                )}
-
                 <Flex justify="between" mt="auto">
                     <Text size="2" color="gray">
                         Nr: {transaction.mobilePayTransactionNumber}
@@ -53,6 +43,19 @@ export default function TransactionCard({transaction, isAdmin = false, onAccept,
                         {format(new Date(transaction.timestamp), 'd. MMMM yyyy HH:mm', { locale: da })}
                     </Text>
                 </Flex>
+
+                {isAdmin && transaction.status === TransactionStatus.Pending && (
+                    <Flex gap="2" justify="end">
+                        <Button onClick={() => onAccept?.(transaction.id)} color="green" variant="soft" size="1">
+                            <CheckIcon />
+                            Godkend
+                        </Button>
+                        <Button onClick={() => onDeny?.(transaction.id)} color="red" variant="soft" size="1">
+                            <Cross2Icon />
+                            Afvis
+                        </Button>
+                    </Flex>
+                )}
             </Flex>
         </Card>
     );

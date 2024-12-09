@@ -1,10 +1,10 @@
 import React from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 import { Card, Text, Flex, Dialog, Heading, Button } from '@radix-ui/themes';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { transactionPagingAtom, useFetchTransactions, transactionSortAtom, sortTransactions } from '../import'; 
+import { transactionPagingAtom, useFetchTransactions, transactionSortAtom, sortTransactions, useToast } from '../import'; 
 import TransactionCard from './TransactionCard';
 import TransactionTable from './TransactionTable';
 import TransactionFilters from './TransactionFilters';
@@ -36,9 +36,14 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
     );
 
     const ContentState = ({ className }: { className: string }) => {
-        if (error) {
-            return <Text color="red" className={className}>Fejl: {error}</Text>;
-        }
+        const { showToast } = useToast();
+
+        useEffect(() => {
+            if (error) {
+                showToast("Fejl", error, "error");
+            }
+        }, [error]);
+
         if (loading) {
             return <Text align="center" className={className}>Indlæser...</Text>;
         }
@@ -65,7 +70,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
             {/* Mobil/Tablet indhold */}
             <Flex direction="column" gap="2">
                 <ContentState className="p-4" />
-                {!error && !loading && transactions.length > 0 && (
+                {!loading && transactions.length > 0 && (
                     sortedTransactions.map(transaction => (
                         <TransactionCard key={transaction.id} 
                                          transaction={transaction} 
@@ -78,21 +83,25 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
 
             {/* Tablet pagination */}
             <Flex className="hidden md:flex lg:hidden justify-center mt-4">
+                {paging.totalPages > 1 && (
                 <Pagination currentPage={paging.currentPage} 
                             totalPages={paging.totalPages} 
                             onPageChange={(page) => setPaging(prev => ({...prev, currentPage: page}))} />
+                )}
             </Flex>
         </Flex>
 
         {/* Desktop */}
         <Flex gap="4" className="w-full hidden lg:flex">
             <Flex direction="column" gap="4" className="w-80">
+                {!isAdmin && (
                 <Card>
                     <Flex direction="column" gap="4" p="4">
                         <Heading size="3">Tilføj Credits</Heading>
                         <AddCreditsForm />
                     </Flex>
                 </Card>
+                )}
 
                 <TransactionFilters />
             </Flex>
@@ -100,7 +109,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
             {/* Desktop indhold */}
             <Card className="flex-1">
                 <Flex direction="column" gap="4" className="p-4">
-                    {!error && !loading && transactions.length > 0 && (
+                    {!loading && transactions.length > 0 && (
                     <Flex justify="between" align="center" className="flex-wrap gap-2">
                         <PageInfoDisplay currentPage={paging.currentPage} pageSize={paging.itemsPerPage} totalItems={paging.totalItems} />
                         <PageSizeSelector pageSize={paging.itemsPerPage}
@@ -109,7 +118,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
                     )}
 
                     <ContentState className="p-4" />
-                    {!error && !loading && transactions.length > 0 && (
+                    {!loading && transactions.length > 0 && (
                         <div className="w-full min-w-[600px] overflow-x-auto">
                             <TransactionTable transactions={sortedTransactions} 
                                               isAdmin={isAdmin} 
@@ -118,7 +127,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
                         </div>
                     )}
 
-                    {!error && !loading && transactions.length > 0 && (
+                    {paging.totalPages > 1 && !loading && transactions.length > 0 && (
                         <Pagination currentPage={paging.currentPage} 
                                     totalPages={paging.totalPages} 
                                     onPageChange={(page) => setPaging(prev => ({...prev, currentPage: page}))} />

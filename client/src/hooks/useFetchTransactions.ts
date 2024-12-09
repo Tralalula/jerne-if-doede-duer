@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import {
     api,
     TransactionDetailsResponse, 
@@ -11,6 +11,7 @@ import {
     transactionCreditsRangeAtom,
     transactionLoadingAtom,
     transactionErrorAtom,
+    jwtAtom
 } from './import';
 
 interface UseTransactionsParams {
@@ -27,10 +28,12 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
     const [loading, setLoading] = useAtom(transactionLoadingAtom);
     const [error, setError] = useAtom(transactionErrorAtom);
 
+    const jwt = useAtomValue(jwtAtom);
+    
     const fetchTransactions = async () => {
         setLoading(true);
         setError(null);
-
+        
         try {
             const response = await (isAdmin
                 ? api.transaction.getAllTransactions({
@@ -102,7 +105,7 @@ export function useFetchTransactions({ isAdmin = false }: UseTransactionsParams 
         }
     };
 
-    useEffect(() => { fetchTransactions(); }, [isAdmin, paging.currentPage, paging.itemsPerPage, status, 
+    useEffect(() => { if (jwt) { fetchTransactions(); } }, [isAdmin, paging.currentPage, paging.itemsPerPage, status, 
                                                                 dateRange.fromDate, dateRange.toDate,creditsRange.minCredits, creditsRange.maxCredits]);
     
     return {

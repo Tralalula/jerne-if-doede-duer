@@ -110,8 +110,23 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
     {
         // Filter
         if (query.Status.HasValue) baseQuery = baseQuery.Where(t => t.Status == query.Status.Value.ToDbString());
-        if (query.FromDate.HasValue) baseQuery = baseQuery.Where(t => t.Timestamp >= query.FromDate.Value);
-        if (query.ToDate.HasValue) baseQuery = baseQuery.Where(t => t.Timestamp <= query.ToDate.Value);
+        if (query.FromDate.HasValue) 
+        {
+            var fromDateTime = DateTime.SpecifyKind(
+                query.FromDate.Value.ToDateTime(TimeOnly.MinValue), 
+                DateTimeKind.Utc
+            );
+            baseQuery = baseQuery.Where(t => t.Timestamp >= fromDateTime);
+        }
+
+        if (query.ToDate.HasValue)
+        {
+            var toDateTime = DateTime.SpecifyKind(
+                query.ToDate.Value.ToDateTime(TimeOnly.MaxValue), 
+                DateTimeKind.Utc
+            );
+            baseQuery = baseQuery.Where(t => t.Timestamp <= toDateTime);
+        }
         if (query.MinCredits.HasValue) baseQuery = baseQuery.Where(t => t.Credits >= query.MinCredits.Value);
         if (query.MaxCredits.HasValue) baseQuery = baseQuery.Where(t => t.Credits <= query.MaxCredits.Value);
         

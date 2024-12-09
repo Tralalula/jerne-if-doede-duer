@@ -11,7 +11,7 @@ export const transactionStatusFilterAtom = atom<TransactionStatus | null>(null);
 
 export const transactionPagingAtom = atom<PagingInfo>({
     currentPage: 1,
-    itemsPerPage: 20,
+    itemsPerPage: 25,
     totalPages: 1,
     totalItems: 0,
 });

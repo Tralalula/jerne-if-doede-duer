@@ -756,9 +756,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         Status?: TransactionStatus | null;
         OrderBy?: TransactionOrderBy;
         Sort?: SortOrder;
-        /** @format date-time */
+        /** @format date */
         FromDate?: string | null;
-        /** @format date-time */
+        /** @format date */
         ToDate?: string | null;
         /** @format int32 */
         MinCredits?: number | null;
@@ -793,9 +793,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         Status?: TransactionStatus | null;
         OrderBy?: TransactionOrderBy;
         Sort?: SortOrder;
-        /** @format date-time */
+        /** @format date */
         FromDate?: string | null;
-        /** @format date-time */
+        /** @format date */
         ToDate?: string | null;
         /** @format int32 */
         MinCredits?: number | null;

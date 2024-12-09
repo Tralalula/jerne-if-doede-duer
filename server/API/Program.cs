@@ -104,23 +104,42 @@ try {
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-    }).AddJwtBearer(options => options.TokenValidationParameters = JwtTokenService.ValidationParameters(appOptions));
-
-    builder.Services.AddAuthorization(options =>
+    }).AddJwtBearer(options =>
     {
-        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAssertion(context =>
+        options.TokenValidationParameters = JwtTokenService.ValidationParameters(appOptions);
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
             {
-                if (context.Resource is HttpContext httpContext && 
-                    (httpContext.Request.Path.StartsWithSegments("/swagger") || // så swagger kan tilgås i deployment
-                     httpContext.Request.Path.StartsWithSegments("/swagger-ui") ||
-                     httpContext.Request.Path.Equals("/"))) // Absurd vigtig; hvis dette endpoint ikke kan tilgås anonymt 
-                {                                           // kan fly.io ikke få kontakt til app og serveren vil ikke køre
-                    return true;  
+                var error = context.Exception.ToString();
+                Log.Error("Token validation failed: {Error}", error);
+                return Task.CompletedTask;
+            }
+        };
+    });
+    
+    builder.Services.AddAuthorizationBuilder()
+        .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAssertion(context =>
+            {
+                if (context.Resource is not HttpContext httpContext) return false;
+                // Tillad OPTIONS
+                if (string.Equals(httpContext.Request.Method, "OPTIONS", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
                 }
+
+                // Tillad swagger og root
+                if (httpContext.Request.Path.StartsWithSegments("/swagger") ||
+                    httpContext.Request.Path.StartsWithSegments("/swagger-ui") ||
+                    httpContext.Request.Path.Equals("/"))
+                {
+                    return true;
+                }
+
+                // Blacklist alt andet
                 return context.User.Identity?.IsAuthenticated ?? false;
             })
-            .Build();
-    });
+            .Build());
     #endregion
         
     #region Services Registration

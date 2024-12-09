@@ -9,7 +9,8 @@ public class DbSeeder(
     ILogger<DbSeeder> logger,
     AppDbContext context,
     UserManager<User> userManager,
-    RoleManager<Role> roleManager)
+    RoleManager<Role> roleManager,
+    TimeProvider timeProvider)
 {
     public async Task SeedAsync()
     {
@@ -19,6 +20,7 @@ public class DbSeeder(
         await CreateRoles(Role.All);
         await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin);
         await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player);
+        await SeedGameAsync();
     }
     
     private async Task CreateRoles(params string[] roles)
@@ -53,5 +55,21 @@ public class DbSeeder(
         }
         
         await userManager.AddToRoleAsync(user, role);
+    }
+    
+    private async Task SeedGameAsync()
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var testGame = new Game
+        {
+            StartTime = now - TimeSpan.FromDays(1),
+            EndTime = now + TimeSpan.FromDays(1),
+            Id = Guid.NewGuid(),
+            FieldCount = 47
+        };
+        
+        await context.Games.AddAsync(testGame);
+        await context.SaveChangesAsync();
     }
 }

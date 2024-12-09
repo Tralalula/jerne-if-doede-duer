@@ -10,7 +10,33 @@
  */
 
 export interface LoginResponse {
-  jwt: string;
+  accessToken: string;
+}
+
+/** @example {"email":"admin@example.com","password":"Kakao1234!"} */
+export interface LoginRequest {
+  email: string;
+  password: string;
+  deviceName: string | null;
+}
+
+export interface RegisterResponse {
+  email: string;
+}
+
+/** @example {"email":"børge@example.com","password":"SecurePass123!"} */
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface UserInfoResponse {
+  email: string;
+  isAdmin: boolean;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
 }
 
 export interface ProblemDetails {
@@ -24,23 +50,232 @@ export interface ProblemDetails {
   [key: string]: any;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterResponse {
+export interface ForgotPasswordRequest {
   email: string;
 }
 
-export interface RegisterRequest {
+export interface VerifyResetCodeRequest {
   email: string;
-  password: string;
+  code: string;
 }
 
-export interface UserInfoResponse {
+export interface CompletePasswordResetRequest {
   email: string;
-  isAdmin: boolean;
+  code: string;
+  newPassword: string;
+}
+
+export interface UserDevice {
+  /** @format guid */
+  id: string;
+  /** @format guid */
+  userId: string;
+  deviceId: string;
+  deviceName: string;
+  /** @format date-time */
+  lastUsedAt: string;
+  /** @format date-time */
+  createdAt: string;
+  createdByIp: string | null;
+  userAgent: string | null;
+  refreshTokens: RefreshToken[];
+  user: User;
+}
+
+export interface RefreshToken {
+  /** @format guid */
+  id: string;
+  /** @format guid */
+  userId: string;
+  /** @format guid */
+  deviceId: string | null;
+  /** @format guid */
+  replacedByTokenId: string | null;
+  token: string;
+  /** @format date-time */
+  createdAt: string | null;
+  /** @format date-time */
+  expiresAt: string;
+  /** @format date-time */
+  revokedAt: string | null;
+  revokedByIp: string | null;
+  createdByIp: string | null;
+  device: UserDevice | null;
+  inverseReplacedByToken: RefreshToken[];
+  replacedByToken: RefreshToken | null;
+  user: User;
+}
+
+export type User = IdentityUserOfGuid & {
+  autoplayBoards?: AutoplayBoard[];
+  balanceHistories?: BalanceHistory[];
+  boards?: Board[];
+  refreshTokens?: RefreshToken[];
+  transactions?: Transaction[];
+  userDevices?: UserDevice[];
+  userHistoryAffectedUsers?: UserHistory[];
+  userHistoryChangeMadeByUsers?: UserHistory[];
+  /** @format int32 */
+  credits?: number;
+  status?: UserStatus;
+  /** @format date-time */
+  timestamp?: string;
+};
+
+export interface AutoplayBoard {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  configuration: number[];
+  /** @format guid */
+  purchaseId: string;
+  purchase: Purchase;
+  user: User;
+}
+
+export interface Purchase {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  fields: number[];
+  /** @format int32 */
+  price: number;
+  autoplayBoards: AutoplayBoard[];
+  boards: Board[];
+}
+
+export interface Board {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  /** @format guid */
+  gameId: string;
+  configuration: number[];
+  /** @format guid */
+  purchaseId: string;
+  game: Game;
+  purchase: Purchase;
+  user: User;
+}
+
+export interface Game {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format date-time */
+  startTime: string;
+  /** @format date-time */
+  endTime: string;
+  /** @format int32 */
+  fieldCount: number;
+  boards: Board[];
+  winnerSequences: WinnerSequence[];
+}
+
+export interface WinnerSequence {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  gameId: string;
+  sequence: number[];
+  game: Game;
+}
+
+export interface BalanceHistory {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  /** @format int32 */
+  amount: number;
+  /** @format guid */
+  additionalId: string | null;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  action: string;
+  user: User;
+}
+
+export interface Transaction {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  /** @format int32 */
+  credits: number;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  mobilepayTransactionNumber: string | null;
+  user: User;
+}
+
+export interface UserHistory {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  affectedUserId: string;
+  /** @format guid */
+  changeMadeByUserId: string;
+  /**
+   * @minLength 0
+   * @maxLength 256
+   */
+  email: string;
+  passwordHash: string;
+  phoneNumber: string;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  status: string;
+  affectedUser: User;
+  changeMadeByUser: User;
+}
+
+export enum UserStatus {
+  Active = "Active",
+  Inactive = "Inactive",
+}
+
+export interface IdentityUserOfGuid {
+  /** @format guid */
+  id: string;
+  userName: string | null;
+  normalizedUserName: string | null;
+  email: string | null;
+  normalizedEmail: string | null;
+  emailConfirmed: boolean;
+  passwordHash: string | null;
+  securityStamp: string | null;
+  concurrencyStamp: string | null;
+  phoneNumber: string | null;
+  phoneNumberConfirmed: boolean;
+  twoFactorEnabled: boolean;
+  /** @format date-time */
+  lockoutEnd: string | null;
+  lockoutEnabled: boolean;
+  /** @format int32 */
+  accessFailedCount: number;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -192,12 +427,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Auth
      * @name Login
      * @request POST:/api/auth/login
+     * @secure
      */
     login: (data: LoginRequest, params: RequestParams = {}) =>
-      this.request<LoginResponse, ProblemDetails>({
+      this.request<LoginResponse, any>({
         path: `/api/auth/login`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -209,12 +446,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Auth
      * @name Register
      * @request POST:/api/auth/register
+     * @secure
      */
     register: (data: RegisterRequest, params: RequestParams = {}) =>
-      this.request<RegisterResponse, ProblemDetails>({
+      this.request<RegisterResponse, any>({
         path: `/api/auth/register`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -226,11 +465,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Auth
      * @name Logout
      * @request POST:/api/auth/logout
+     * @secure
      */
     logout: (params: RequestParams = {}) =>
       this.request<File, any>({
         path: `/api/auth/logout`,
         method: "POST",
+        secure: true,
         ...params,
       }),
 
@@ -240,12 +481,141 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Auth
      * @name UserInfo
      * @request GET:/api/auth/me
+     * @secure
      */
     userInfo: (params: RequestParams = {}) =>
       this.request<UserInfoResponse, any>({
         path: `/api/auth/me`,
         method: "GET",
+        secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name Refresh
+     * @request POST:/api/auth/refresh
+     * @secure
+     */
+    refresh: (params: RequestParams = {}) =>
+      this.request<RefreshResponse, any>({
+        path: `/api/auth/refresh`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name VerifyEmail
+     * @request GET:/api/auth/verify-email
+     * @secure
+     */
+    verifyEmail: (
+      query?: {
+        Token?: string;
+        Email?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<File, any>({
+        path: `/api/auth/verify-email`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name InitiatePasswordReset
+     * @request POST:/api/auth/forgot-password
+     * @secure
+     */
+    initiatePasswordReset: (data: ForgotPasswordRequest, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/auth/forgot-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name VerifyResetCode
+     * @request POST:/api/auth/verify-reset-code
+     * @secure
+     */
+    verifyResetCode: (data: VerifyResetCodeRequest, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/auth/verify-reset-code`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name CompletePasswordReset
+     * @request POST:/api/auth/complete-password-reset
+     * @secure
+     */
+    completePasswordReset: (data: CompletePasswordResetRequest, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/auth/complete-password-reset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name GetDevices
+     * @request GET:/api/auth/devices
+     * @secure
+     */
+    getDevices: (params: RequestParams = {}) =>
+      this.request<UserDevice[], any>({
+        path: `/api/auth/devices`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name RevokeDevice
+     * @request DELETE:/api/auth/devices/{deviceId}
+     * @secure
+     */
+    revokeDevice: (deviceId: string, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/auth/devices/${deviceId}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
   };

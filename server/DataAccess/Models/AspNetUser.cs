@@ -18,7 +18,13 @@ public partial class User
     public virtual ICollection<Board> Boards { get; set; } = new List<Board>();
 
     [InverseProperty("User")]
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+    [InverseProperty("User")]
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
 
     [InverseProperty("AffectedUser")]
     public virtual ICollection<UserHistory> UserHistoryAffectedUsers { get; set; } = new List<UserHistory>();

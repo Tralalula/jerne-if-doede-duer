@@ -105,7 +105,7 @@ export default function ForgotPassword() {
 
 
   return (
-    <Page>
+    <Page align="center" justify="center">
       <Flex justify='center'>
         <AnimatedCard
           asChild

@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { Flex, IconButton, Tooltip } from "@radix-ui/themes";
 import AnimatedIconButton from "../Button/AnimatedIconButton";
+import { useAuthContext } from "../../AuthContext";
+import { canAccess } from "../import";
 
 interface DesktopNavigationProps {
   tabs: Tab[];
@@ -15,7 +17,10 @@ interface DesktopNavigationProps {
 export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
   let [activeTab, setActiveTab] = useState(tabs[0].path);
   const navigate = useNavigate();
+  const { logout, user } = useAuthContext();
 
+  const visibleTabs = tabs.filter(tab => canAccess(tab.access, user))
+  
   const changeTab = (tab: Tab) => {
     setActiveTab(tab.path);
     navigate(tab.path);
@@ -31,7 +36,7 @@ export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
           />
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex space-x-1">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.name}
               onClick={() => changeTab(tab)}
@@ -60,10 +65,12 @@ export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
         </div>
         <Flex className="ml-auto" align='center' gap='2'>
           <ThemeSwitcher />
-          <AnimatedIconButton tooltipContent='Log ud' onClick={() => console.log("logger ud")}>
+          { user && (
+          <AnimatedIconButton tooltipContent='Log ud' onClick={logout}>
               <FontAwesomeIcon className="text-gray5 dark:text-gray11" icon={faArrowRightFromBracket}/>
-            </AnimatedIconButton>
-          </Flex>
+          </AnimatedIconButton>
+          )}
+        </Flex>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { LoginContainer, Page } from "../import";
 
 export default function LoginPage() {
     return (
-      <Page>
+      <Page justify="center" align="center">
           <Flex className="text-center" gap='2' direction='column'>
             <Heading>
                 Jerne IF Døde Duer

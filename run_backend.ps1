@@ -18,9 +18,13 @@ if (-not $dockerProcess) {
 
 $composeStatus = docker-compose ps --services --filter "status=running"
 
-if (-not $composeStatus) {
-    Write-Output "Docker services are not running. Starting Docker Compose..."
-    docker-compose up -d
+if ($composeStatus) {
+    Write-Output "Stopping running Docker services with docker-compose down..."
+    docker-compose down
 }
 
+Write-Output "Starting Docker services with docker-compose up..."
+docker-compose up -d
+
+Write-Output "Running .NET project..."
 dotnet run --project ./server/api

@@ -24,5 +24,4 @@
     <ItemGroup>
         <ProjectReference Include="..\SharedTestDependencies\SharedTestDependencies.csproj" />
     </ItemGroup>
-
 </Project>

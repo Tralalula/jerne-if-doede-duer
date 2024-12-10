@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DataAccess.Models;
 
 [Table("purchases")]
+[Index("BoardId", Name = "ix_purchases_board_id")]
 public partial class Purchase
 {
     [Key]
@@ -16,8 +17,8 @@ public partial class Purchase
     [Column("timestamp")]
     public DateTime Timestamp { get; set; }
 
-    [Column("fields")]
-    public List<int> Fields { get; set; } = null!;
+    [Column("board_id")]
+    public Guid BoardId { get; set; }
 
     [Column("price")]
     public int Price { get; set; }
@@ -25,7 +26,8 @@ public partial class Purchase
     [InverseProperty("Purchase")]
     public virtual ICollection<AutoplayBoard> AutoplayBoards { get; set; } = new List<AutoplayBoard>();
 
-    [InverseProperty("Purchase")]
-    public virtual ICollection<Board> Boards { get; set; } = new List<Board>();
+    [ForeignKey("BoardId")]
+    [InverseProperty("Purchases")]
+    public virtual Board Board { get; set; } = null!;
 }
 

@@ -52,8 +52,9 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             _ => throw new ArgumentException("Invalid board pick.")
         };
     }
-
     
+    
+    //TODO: husk at tjekke lørdag kl 17:00 (se disc) - bruger kun kan spille hvis aktiveret
     public async Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");

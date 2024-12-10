@@ -43,7 +43,21 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Email).EmailRule();
-        RuleFor(x => x.Password).BasicPasswordRule();
+        
+        RuleFor(x => x.FirstName).NotEmpty()
+                                 .MaximumLength(50)
+                                 .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                 .WithMessage("First name can only contain letters");
+                                 
+        RuleFor(x => x.LastName).NotEmpty()
+                                .MaximumLength(50)
+                                .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                .WithMessage("Last name can only contain letters");
+                                
+        RuleFor(x => x.PhoneNumber).MaximumLength(20)
+                                   .Matches(@"^\+?[0-9\s-]+$")
+                                   .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+                                   .WithMessage("Invalid phone number format");
     }
 }
 

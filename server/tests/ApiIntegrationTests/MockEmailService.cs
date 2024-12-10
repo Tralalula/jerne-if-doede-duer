@@ -4,9 +4,9 @@ namespace ApiIntegrationTests;
 
 public class MockEmailService : IEmailService
 {
-    public Task SendVerificationEmailAsync(string email, string verificationLink)
+    public Task SendWelcomeEmailAsync(string email, string verificationLink, string password)
     {
-        return Task.CompletedTask;
+        throw new NotImplementedException();
     }
 
     public Task SendPasswordResetCodeAsync(string email, string code, TimeSpan expiresIn)

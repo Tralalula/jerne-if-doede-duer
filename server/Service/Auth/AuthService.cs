@@ -66,8 +66,10 @@ public class AuthService(IOptions<AppOptions> options,
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
     {
-        var user = new User { Email = request.Email, UserName = request.Email };
-        var result = await userManager.CreateAsync(user, request.Password);
+        var user = new User { Email = request.Email, UserName = request.Email, FirstName = request.FirstName, LastName = request.LastName, PhoneNumber = request.PhoneNumber };
+        var password = DanishPasswordGenerator.GeneratePassword();
+        var result = await userManager.CreateAsync(user, password);
+        
         
         if (!result.Succeeded)
         {
@@ -87,10 +89,10 @@ public class AuthService(IOptions<AppOptions> options,
         
         var verificationLink = $"{options.Value.Urls.Address}/api/auth/verify-email?token={encodedToken}&email={Uri.EscapeDataString(user.Email)}";
         
-        await emailService.SendVerificationEmailAsync(user.Email, verificationLink);
+        await emailService.SendWelcomeEmailAsync(user.Email, verificationLink, password);
         
         logger.LogInformation("New user registered. UserId: {UserId}, TraceId: {TraceId}", user.Id, request.Email.GetUserTraceId());
-        return new RegisterResponse(Email: user.Email);
+        return new RegisterResponse(Email: user.Email, FullName: user.FullName);
     }
 
     public async Task LogoutAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)

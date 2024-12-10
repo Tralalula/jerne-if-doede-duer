@@ -22,9 +22,18 @@
                 <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">Velkommen!</h2>
                 
                 <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
-                    Tak for din tilmelding. For at komme i gang skal du verificere din email adresse.
+                    Tak for din tilmelding. Her er dine login oplysninger:
                 </p>
 
+                <div style="background-color: #f8f8f8; border: 1px solid #eee; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                    <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 0;">
+                        <strong>Din adgangskode:</strong> @Model.Password
+                    </p>
+                </div>
+
+                <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 20px 0;">
+                    For at komme i gang skal du verificere din email adresse ved at klikke på knappen nedenfor.
+                </p>
 
                 <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0;">
                     <tr>
@@ -47,6 +56,10 @@
                 </p>
 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+
+                <p style="color: #666666; font-size: 14px; line-height: 1.5; margin: 20px 0;">
+                    Af sikkerhedsmæssige årsager anbefaler vi, at du ændrer din adgangskode ved første login.
+                </p>
 
                 <p style="color: #999999; font-size: 14px; line-height: 1.5; margin: 0;">
                     Denne email blev sendt fra Jerne IF døde duer. Hvis du ikke har oprettet denne konto, 

@@ -8,7 +8,7 @@ namespace Service.Email;
 
 public interface IEmailService
 {
-    Task SendVerificationEmailAsync(string email, string verificationLink);
+    Task SendWelcomeEmailAsync(string email, string verificationLink, string password);
     Task SendPasswordResetCodeAsync(string email, string code, TimeSpan expiresIn);
 }
 
@@ -18,7 +18,7 @@ public class EmailService : IEmailService
     private readonly ILogger<EmailService> _logger;
     private readonly RazorLightEngine _razorEngine;
     
-    private const string VerificationEmailTemplate = "VerificationEmail.cshtml";
+    private const string VerificationEmailTemplate = "WelcomeEmail.cshtml";
     private const string PasswordResetEmailTemplate = "PasswordResetEmail.cshtml";
     
     // Tags er vigtig - en mail kan ikke sendes uden en såkaldt kategori
@@ -60,11 +60,11 @@ public class EmailService : IEmailService
         return templatePath;
     }
 
-    public async Task SendVerificationEmailAsync(string email, string verificationLink)
+    public async Task SendWelcomeEmailAsync(string email, string verificationLink, string password)
     {
         try
         {
-            var template = await _razorEngine.CompileRenderAsync(VerificationEmailTemplate, new VerificationEmailModel(verificationLink));
+            var template = await _razorEngine.CompileRenderAsync(VerificationEmailTemplate, new VerificationEmailModel(verificationLink, password));
             
             await _fluentEmail.To(email)
                              .Subject("Velkommen til Jerne IF døde duer")

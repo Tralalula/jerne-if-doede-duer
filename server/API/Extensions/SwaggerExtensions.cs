@@ -29,7 +29,7 @@ public class ExampleSchemaProcessor : ISchemaProcessor
     private readonly Dictionary<Type, object> _examples = new()
     {
         { typeof(LoginRequest), new { email = "admin@example.com", password = "Kakao1234!" } },
-        { typeof(RegisterRequest), new { email = "børge@example.com", password = "SecurePass123!" } },
+        { typeof(RegisterRequest), new { email = "børge@example.com", firstName = "Børge", lastName = "Steensen", phoneNumber = "12345678"  } },
     };
 
     public void Process(SchemaProcessorContext context)

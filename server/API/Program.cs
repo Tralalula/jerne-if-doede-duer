@@ -16,6 +16,7 @@ using NSwag.Generation.Processors.Security;
 using Serilog;
 using Service;
 using Service.Auth;
+using Service.BalanceHistory;
 using Service.Device;
 using Service.Email;
 using Service.Security;
@@ -152,6 +153,7 @@ try {
     builder.Services.AddScoped<IDeviceService, DeviceService>();
     builder.Services.AddScoped<ITransactionService, TransactionService>();
     builder.Services.AddScoped<IUsersService, UsersService>();
+    builder.Services.AddScoped<IBalanceHistoryService, BalanceHistoryService>();
   
     if (builder.Environment.IsProduction())
     { 

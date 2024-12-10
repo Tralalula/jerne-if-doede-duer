@@ -35,7 +35,7 @@ const TransactionStatusBadge = ({ status }: { status: TransactionStatus }) => {
 
 export default function TransactionTable({ isAdmin = false, transactions, onAccept, onDeny  }: TransactionTableProps) {
     return (
-        <Table.Root variant="surface">
+        <Table.Root variant="ghost">
             <Table.Header>
                 <Table.Row>
                     <TransactionTableHeader orderBy={TransactionOrderBy.Timestamp}>
@@ -88,7 +88,7 @@ export default function TransactionTable({ isAdmin = false, transactions, onAcce
                                                 <CheckIcon />
                                                 Godkend
                                             </Button>
-                                            <Button onClick={() => onDeny?.(transaction.id)} color="red" variant="soft" size="1">
+                                            <Button onClick={() => onDeny?.(transaction.id)} color="crimson" variant="soft" size="1">
                                                 <Cross2Icon />
                                                 Afvis
                                             </Button>

@@ -1,6 +1,6 @@
 ﻿namespace Service.BalanceHistory;
 
-public static class BalanceExtensions 
+public static class BalanceHistoryExtensions 
 {
     public static string ToDbString(this BalanceAction action) => action.ToString().ToLower();
     

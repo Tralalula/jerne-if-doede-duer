@@ -21,7 +21,7 @@ public class UserController(IUsersService userService) : ControllerBase
     }
 
     [Authorize(Roles = Role.Admin)]
-    [HttpPost("{id}/activate")]
+    [HttpPost("{id:guid}/activate")]
     public async Task<ActionResult<UserDetailsResponse>> ActivateUser(Guid id)
     {
         var adminId = User.GetUserId();
@@ -29,7 +29,7 @@ public class UserController(IUsersService userService) : ControllerBase
     }
 
     [Authorize(Roles = Role.Admin)]
-    [HttpPost("{id}/deactivate")]
+    [HttpPost("{id:guid}/deactivate")]
     public async Task<ActionResult<UserDetailsResponse>> DeactivateUser(Guid id)
     {
         var adminId = User.GetUserId();

@@ -46,7 +46,7 @@ public class TransactionController(ITransactionService transactionService) : Con
     }
     
     [Authorize(Roles = Role.Admin)]
-    [HttpPost("{id}/accept")]
+    [HttpPost("{id:guid}/accept")]
     public async Task<ActionResult<TransactionDetailsResponse>> AcceptTransaction(Guid id)
     {
         var adminId = User.GetUserId();
@@ -55,7 +55,7 @@ public class TransactionController(ITransactionService transactionService) : Con
     }
 
     [Authorize(Roles = Role.Admin)]
-    [HttpPost("{id}/deny")]
+    [HttpPost("{id:guid}/deny")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TransactionDetailsResponse>> DenyTransaction(Guid id)
     {

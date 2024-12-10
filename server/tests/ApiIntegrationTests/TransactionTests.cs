@@ -102,8 +102,8 @@ namespace ApiIntegrationTests
             var balanceHistory = await PgCtxSetup.DbContextInstance.BalanceHistories
                 .FirstOrDefaultAsync(bh => bh.UserId == userId && 
                                            bh.AdditionalId == transactionId &&
-                                           bh.Action == BalanceAction.UserBought.ToDbString());
-                
+                                           bh.Action == Service.BalanceHistory.BalanceAction.UserBought.ToDbString());
+            
             Assert.NotNull(balanceHistory);
             Assert.Equal(credits, balanceHistory.Amount);
         }
@@ -236,7 +236,7 @@ namespace ApiIntegrationTests
                 .ToListAsync();
 
             Assert.Single(history);
-            Assert.Equal(BalanceAction.UserBought.ToDbString(), history[0].Action);
+            Assert.Equal(Service.BalanceHistory.BalanceAction.UserBought.ToDbString(), history[0].Action);
         }
         
         [Fact]

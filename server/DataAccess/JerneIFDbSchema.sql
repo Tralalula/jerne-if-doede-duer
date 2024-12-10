@@ -30,22 +30,22 @@ CREATE TABLE transactions (
     CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE
 );
 
+CREATE TABLE purchases (
+       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+       timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+       price INTEGER NOT NULL
+);
+
 CREATE TABLE boards (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     user_id UUID NOT NULL,
     game_id UUID NOT NULL,
     configuration INTEGER[] NOT NULL,
+    purchase_id UUID NOT NULL,
     CONSTRAINT boards_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
-    CONSTRAINT boards_game_id_fkey FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE
-);
-
-CREATE TABLE purchases (
-       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-       timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-       board_id UUID NOT NULL,
-       price INTEGER NOT NULL,
-       CONSTRAINT board_id_fkey FOREIGN KEY (board_id) REFERENCES boards (id) ON DELETE CASCADE
+    CONSTRAINT boards_game_id_fkey FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE,
+    CONSTRAINT boards_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE
 );
 
 CREATE TABLE autoplay_boards (
@@ -141,6 +141,7 @@ CREATE INDEX ix_transactions_user_id ON transactions (user_id);
 CREATE INDEX ix_transactions_timestamp ON transactions (timestamp);
 CREATE INDEX ix_boards_user_id ON boards (user_id);
 CREATE INDEX ix_boards_game_id ON boards (game_id);
+CREATE INDEX ix_boards_purchase_id ON boards (purchase_id);
 CREATE INDEX ix_autoplay_boards_user_id ON autoplay_boards (user_id);
 CREATE INDEX ix_autoplay_boards_purchase_id ON autoplay_boards (purchase_id);
 CREATE INDEX ix_games_start_time ON games (start_time);
@@ -160,7 +161,5 @@ CREATE INDEX ix_refresh_tokens_device_id ON refresh_tokens (device_id);
 CREATE INDEX ix_refresh_tokens_expires_at ON refresh_tokens (expires_at);
 CREATE INDEX ix_password_reset_codes_email ON password_reset_codes (email);
 CREATE INDEX ix_password_reset_codes_expires_at ON password_reset_codes (expires_at);
-CREATE INDEX ix_purchases_board_id ON purchases (board_id);
-
 
 CREATE UNIQUE INDEX ix_user_devices_user_device ON user_devices (user_id, device_id);

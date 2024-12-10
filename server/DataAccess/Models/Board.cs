@@ -8,6 +8,7 @@ namespace DataAccess.Models;
 
 [Table("boards")]
 [Index("GameId", Name = "ix_boards_game_id")]
+[Index("PurchaseId", Name = "ix_boards_purchase_id")]
 [Index("UserId", Name = "ix_boards_user_id")]
 public partial class Board
 {
@@ -27,12 +28,16 @@ public partial class Board
     [Column("configuration")]
     public List<int> Configuration { get; set; } = null!;
 
+    [Column("purchase_id")]
+    public Guid PurchaseId { get; set; }
+
     [ForeignKey("GameId")]
     [InverseProperty("Boards")]
     public virtual Game Game { get; set; } = null!;
 
-    [InverseProperty("Board")]
-    public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+    [ForeignKey("PurchaseId")]
+    [InverseProperty("Boards")]
+    public virtual Purchase Purchase { get; set; } = null!;
 
     [ForeignKey("UserId")]
     [InverseProperty("Boards")]

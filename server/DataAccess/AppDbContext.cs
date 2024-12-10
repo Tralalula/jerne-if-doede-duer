@@ -73,6 +73,8 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
 
             entity.HasOne(d => d.Game).WithMany(p => p.Boards).HasConstraintName("boards_game_id_fkey");
 
+            entity.HasOne(d => d.Purchase).WithMany(p => p.Boards).HasConstraintName("boards_purchase_id_fkey");
+
             entity.HasOne(d => d.User).WithMany(p => p.Boards).HasConstraintName("boards_user_id_fkey");
         });
 
@@ -110,8 +112,6 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
 
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity.HasOne(d => d.Board).WithMany(p => p.Purchases).HasConstraintName("board_id_fkey");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

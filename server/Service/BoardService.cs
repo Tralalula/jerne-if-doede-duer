@@ -57,38 +57,47 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     public async Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+        
+        if (board.Amount <= 0)
+            throw new BadRequestException("You must place bet on atleast 1 board.");
+
+        var totalPrice = GetBoardPrice(board.SelectedNumbers.Count) * board.Amount;
+        
+        if (user.Credits < totalPrice)
+            throw new BadRequestException("You don't have enough credits for this bet.");
 
         board.SelectedNumbers = board.SelectedNumbers.OrderBy(n => n).ToList();
         ValidateBoard(board.SelectedNumbers);
 
         var game = await GetActiveGameAsync();
-        
-        var purchase = new Purchase
-        {
-            Timestamp = timeProvider.GetUtcNow().UtcDateTime,
-            Price = GetBoardPrice(board.SelectedNumbers.Count),
-        };
+        var purchase = board.ToPurchase(timeProvider, totalPrice);
 
-        var newBoard = board.ToBoard(user, game, timeProvider, purchase);
-        
+        var newBoards = new List<Board>();
         using (var transaction = await context.Database.BeginTransactionAsync())
         {
             try
             {
-                await context.Boards.AddAsync(newBoard);
-                await context.SaveChangesAsync();
-                
-                purchase.Board = newBoard;
-                
+                user.Credits -= totalPrice;
+                context.Users.Update(user);
+
                 context.Purchases.Add(purchase);
                 await context.SaveChangesAsync();
-
+                
+                for (int i = 0; i < board.Amount; i++)
+                {
+                    var newBoard = board.ToBoard(user, game, timeProvider, purchase);
+                    newBoards.Add(newBoard);
+                }
+                
+                await context.Boards.AddRangeAsync(newBoards);
+                await context.SaveChangesAsync();
+                
                 await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw new BadRequestException("Failed to place bet.");
+                throw new BadRequestException($"Failed to place bet.");
             }
         }
         return new Board();

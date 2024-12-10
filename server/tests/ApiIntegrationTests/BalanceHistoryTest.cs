@@ -28,7 +28,6 @@ namespace ApiIntegrationTests
             var setCookieHeaders = loginResponse.Headers.TryGetValue("Set-Cookie", out var values) ? values : [];
             var cookieHeaders = setCookieHeaders as string[] ?? setCookieHeaders.ToArray();
             Assert.Contains(cookieHeaders, header => header.StartsWith("refreshToken="));
-        
             return (accessToken, cookieHeaders, client);
         }
 

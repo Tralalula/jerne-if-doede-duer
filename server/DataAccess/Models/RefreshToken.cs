@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DataAccess.Models;
 
 [Table("refresh_tokens")]
+[Index("ReplacedByTokenId", Name = "IX_refresh_tokens_replaced_by_token_id")]
 [Index("DeviceId", Name = "ix_refresh_tokens_device_id")]
 [Index("ExpiresAt", Name = "ix_refresh_tokens_expires_at")]
 [Index("UserId", Name = "ix_refresh_tokens_user_id")]

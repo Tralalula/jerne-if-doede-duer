@@ -41,6 +41,19 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         return game;
     }
     
+    public int GetBoardPrice(int length)
+    {
+        return length switch
+        {
+            5 => 20,
+            6 => 40,
+            7 => 80,
+            8 => 160,
+            _ => throw new ArgumentException("Invalid board pick.")
+        };
+    }
+
+    
     public async Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
@@ -54,10 +67,14 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         int boardNumbers = int.Parse(string.Join("", board.SelectedNumbers));
 
         var purchase = board.ToPurchase();
-        
+        purchase.Timestamp = timeProvider.GetUtcNow().UtcDateTime;
+        purchase.Price = GetBoardPrice(board.SelectedNumbers.Count);
+
+        purchase.Fields = board.SelectedNumbers;
         
         // log til købshistorik
 
+        context.AddAsync(purchase);
         await context.SaveChangesAsync();
         return new Board();
     }

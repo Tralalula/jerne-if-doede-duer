@@ -2,7 +2,7 @@
 
 namespace Service.Models.Requests;
 
-public class BoardPickRequest
+public class BoardPickRequest()
 {
     public int Amount { get; set; }
     public List<int> SelectedNumbers { get; set; } = new List<int>();
@@ -11,8 +11,7 @@ public class BoardPickRequest
     {
         var newPurchase = new Purchase
         {
-            Id = Guid.NewGuid(),
-            Timestamp = DateTime.Now
+            Id = Guid.NewGuid()
         };
         return newPurchase;
     }

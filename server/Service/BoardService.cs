@@ -14,7 +14,7 @@ public interface IBoardService
 
 public class BoardService(AppDbContext context, UserManager<User> userManager, TimeProvider timeProvider) : IBoardService
 {
-    public async Task ValidateBoardAsync(List<int> numbers)
+    public void ValidateBoard(List<int> numbers)
     {
         int count = numbers.Count;
         if (count < 5 || count > 8)
@@ -46,8 +46,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
 
         board.SelectedNumbers = board.SelectedNumbers.OrderBy(n => n).ToList();
-        
-        await ValidateBoardAsync(board.SelectedNumbers);
+        ValidateBoard(board.SelectedNumbers);
 
         var game = await GetActiveGameAsync();
         

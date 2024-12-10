@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using ApiIntegrationTests.Auth;
 using ApiIntegrationTests.Common;
 using Generated;
 using Microsoft.AspNetCore.Http;

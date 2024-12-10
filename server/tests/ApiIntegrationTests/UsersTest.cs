@@ -1,5 +1,4 @@
-﻿using ApiIntegrationTests.Auth;
-using ApiIntegrationTests.Common;
+﻿using ApiIntegrationTests.Common;
 using Generated;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

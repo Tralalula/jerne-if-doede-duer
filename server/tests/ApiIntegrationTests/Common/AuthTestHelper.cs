@@ -1,6 +1,6 @@
 ﻿using Generated;
 
-namespace ApiIntegrationTests.Auth;
+namespace ApiIntegrationTests.Common;
 
 public class AuthTestHelper
 {
@@ -27,7 +27,9 @@ public class AuthTestHelper
       public static readonly RegisterRequest NewUser = new()
       {
          Email = "børge@example.com",
-         Password = "Kakao1234!"
+         FirstName = "Børge",
+         LastName = "Steensen",
+         PhoneNumber = "12345678"
       };
    }
 }

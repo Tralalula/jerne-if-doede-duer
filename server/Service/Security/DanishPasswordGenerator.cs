@@ -31,10 +31,16 @@ public class DanishPasswordGenerator
         "Slagter", "Bageri", "Posthus", "Togstation"
     };
     
+    private static readonly Random Random = new Random();
+    private static readonly object Lock = new object();
+    
     public static string GeneratePassword()
     {
-        var word = DanishWords[new Random().Next(DanishWords.Length)];
-        var numbers = new Random().Next(10, 100); 
-        return $"{word}{numbers}!";
+        lock (Lock)
+        {
+            var word = DanishWords[Random.Next(DanishWords.Length)];
+            var numbers = Random.Next(10, 100); 
+            return $"{word}{numbers}!";
+        }
     }
 }

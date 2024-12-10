@@ -6,7 +6,7 @@ public class MockEmailService : IEmailService
 {
     public Task SendWelcomeEmailAsync(string email, string verificationLink, string password)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public Task SendPasswordResetCodeAsync(string email, string code, TimeSpan expiresIn)

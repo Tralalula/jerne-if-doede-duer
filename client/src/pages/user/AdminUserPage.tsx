@@ -1,8 +1,11 @@
-﻿import React from 'react';
-import { Page, UserListView } from '../import';
-import { Flex, Heading } from '@radix-ui/themes';
+﻿import React, {useState} from 'react';
+import { Page, UserListView, RegisterUserDialog } from '../import';
+import {Button, Flex, Heading} from '@radix-ui/themes';
+import {PlusIcon} from "@radix-ui/react-icons";
 
 export default function AdminUsersPage() {
+    const [showAddDialog, setShowAddDialog] = useState(false);
+    
     return (
         <Page>
             <Flex className="p-4 w-full max-w-[1200px] mx-auto" gap="4" direction="column">
@@ -18,6 +21,13 @@ export default function AdminUsersPage() {
 
                 <UserListView />
             </Flex>
+
+            {/* Mobil/Tablet FAB */}
+            <Button className="lg:hidden fixed right-4 shadow-lg z-30 rounded-full h-12 w-12 bottom-16 md:bottom-4" onClick={() => setShowAddDialog(true)}>
+                <PlusIcon width={24} height={24} />
+            </Button>
+
+            <RegisterUserDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
         </Page>
     );
 }

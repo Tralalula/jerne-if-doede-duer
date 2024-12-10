@@ -21,13 +21,18 @@ export interface LoginRequest {
 }
 
 export interface RegisterResponse {
+  /** @format guid */
+  id: string;
   email: string;
+  fullName: string;
 }
 
-/** @example {"email":"børge@example.com","password":"SecurePass123!"} */
+/** @example {"email":"børge@example.com","firstName":"Børge","lastName":"Steensen","phoneNumber":"12345678"} */
 export interface RegisterRequest {
   email: string;
-  password: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string | null;
 }
 
 export interface UserInfoResponse {
@@ -116,6 +121,17 @@ export type User = IdentityUserOfGuid & {
   userDevices?: UserDevice[];
   userHistoryAffectedUsers?: UserHistory[];
   userHistoryChangeMadeByUsers?: UserHistory[];
+  fullName?: string;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  firstName?: string;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  lastName?: string;
   /** @format int32 */
   credits?: number;
   status?: UserStatus;
@@ -253,7 +269,7 @@ export interface UserHistory {
    */
   email: string;
   passwordHash: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   /**
    * @minLength 0
    * @maxLength 50
@@ -279,7 +295,7 @@ export interface IdentityUserOfGuid {
   passwordHash: string | null;
   securityStamp: string | null;
   concurrencyStamp: string | null;
-  phoneNumber: string | null;
+  phoneNumber?: string | null;
   phoneNumberConfirmed: boolean;
   twoFactorEnabled: boolean;
   /** @format date-time */
@@ -287,6 +303,22 @@ export interface IdentityUserOfGuid {
   lockoutEnabled: boolean;
   /** @format int32 */
   accessFailedCount: number;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangeEmailRequest {
+  newEmail: string;
+  password: string;
 }
 
 export interface PagedBalanceHistoryResponse {
@@ -390,7 +422,7 @@ export interface UserDetailsResponse {
   /** @format guid */
   id: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   status: UserStatus;
   /** @format int32 */
   credits: number;
@@ -414,6 +446,13 @@ export enum UserOrderBy {
   Email = "Email",
   Credits = "Credits",
   Status = "Status",
+}
+
+export interface UpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  email: string | null;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -756,6 +795,85 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         secure: true,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name UpdateProfile
+     * @request PUT:/api/auth/profile
+     * @secure
+     */
+    updateProfile: (data: UpdateProfileRequest, params: RequestParams = {}) =>
+      this.request<UserInfoResponse, any>({
+        path: `/api/auth/profile`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name ChangePassword
+     * @request POST:/api/auth/change-password
+     * @secure
+     */
+    changePassword: (data: ChangePasswordRequest, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/auth/change-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name InitiateEmailChange
+     * @request POST:/api/auth/change-email
+     * @secure
+     */
+    initiateEmailChange: (data: ChangeEmailRequest, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/auth/change-email`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name VerifyEmailChange
+     * @request GET:/api/auth/verify-email-change
+     * @secure
+     */
+    verifyEmailChange: (
+      query?: {
+        OldEmail?: string;
+        NewEmail?: string;
+        Token?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<File, any>({
+        path: `/api/auth/verify-email-change`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
   };
   balancehistory = {
     /**
@@ -1013,6 +1131,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/api/user/${id}`,
         method: "GET",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name UpdateUser
+     * @request PUT:/api/user/{id}
+     * @secure
+     */
+    updateUser: (id: string, data: UpdateUserRequest, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

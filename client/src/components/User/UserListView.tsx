@@ -2,7 +2,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
-import { Card, Text, Flex, Dialog, Button } from '@radix-ui/themes';
+import {Card, Text, Flex, Dialog, Button, Heading} from '@radix-ui/themes';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { userPagingAtom, useFetchUsers, userSortAtom, useToast } from '../import';
 import UserTable from './UserTable';
@@ -11,6 +11,7 @@ import UserFilters from './UserFilters';
 import PageInfoDisplay from '../Pagination/PageInfoDisplay';
 import PageSizeSelector from '../Pagination/PageSizeSelector';
 import Pagination from '../Pagination/Pagination';
+import RegisterUserForm from './RegisterUserForm';
 
 export default function UserListView() {
     const [paging, setPaging] = useAtom(userPagingAtom);
@@ -109,6 +110,13 @@ export default function UserListView() {
             {/* Desktop */}
             <Flex gap="4" className="w-full hidden lg:flex">
                 <Flex direction="column" gap="4" className="w-80">
+                    <Card>
+                        <Flex direction="column" gap="4" p="4">
+                            <Heading size="3">Opret bruger</Heading>
+                            <RegisterUserForm />
+                        </Flex>
+                    </Card>
+                    
                     <UserFilters />
                 </Flex>
 

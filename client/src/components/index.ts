@@ -25,6 +25,7 @@ export { default as AddCreditsDialog } from './Transaction/AddCreditsDialog';
 
 // User
 export { default as UserListView } from './User/UserListView';
+export { default as RegisterUserDialog } from './User/RegisterUserDialog';
 
 // Balancehistory
 export { default as BalanceHistoryListView } from './BalanceHistory/BalanceHistoryListView';

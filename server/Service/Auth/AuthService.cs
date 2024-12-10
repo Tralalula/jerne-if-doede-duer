@@ -96,7 +96,7 @@ public class AuthService(IOptions<AppOptions> options,
         await emailService.SendWelcomeEmailAsync(user.Email, verificationLink, password);
         
         logger.LogInformation("New user registered. UserId: {UserId}, TraceId: {TraceId}", user.Id, request.Email.GetUserTraceId());
-        return new RegisterResponse(Email: user.Email, FullName: user.FullName);
+        return new RegisterResponse(user.Id, user.Email, user.FullName);
     }
 
     public async Task LogoutAsync(IRequestCookieCollection requestCookies, IResponseCookies responseCookies)

@@ -1,8 +1,11 @@
 ﻿using DataAccess;
 using DataAccess.Models;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Service.Email;
 using Service.Exceptions;
 using Service.Models;
 
@@ -13,9 +16,10 @@ public interface IUsersService
     Task<UserDetailsResponse> GetUserAsync(Guid userId); 
     Task<PagedUserResponse> GetUsersAsync(UsersQuery query);
     Task<UserDetailsResponse> UpdateUserStatusAsync(Guid userId, UserStatus status, Guid adminId);
+    Task<UserDetailsResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, Guid adminId);
 }
 
-public class UsersService(AppDbContext dbContext, UserManager<User> userManager, ILogger<UsersService> logger) : IUsersService
+public class UsersService(AppDbContext dbContext, UserManager<User> userManager, ILogger<UsersService> logger, IEmailService emailService) : IUsersService
 {
     public async Task<UserDetailsResponse> GetUserAsync(Guid userId)
     {
@@ -104,6 +108,64 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
 
         logger.LogInformation("User status updated. UserId: {UserId}, NewStatus: {Status}, AdminId: {AdminId}", userId, status, adminId);
 
+        var roles = await userManager.GetRolesAsync(user);
+        return new UserDetailsResponse(user.Id, 
+                                       user.Email ?? "", 
+                                       user.PhoneNumber ?? "", 
+                                       user.Status, 
+                                       user.Credits, 
+                                       user.Timestamp, 
+                                       roles.ToList());
+    }
+
+    public async Task<UserDetailsResponse> UpdateUserAsync(Guid userId, UpdateUserRequest request, Guid adminId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+        
+        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingUser = await userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null && existingUser.Id != user.Id)
+            {
+                throw new ConflictException("This email is already in use.");
+            }
+        }
+        
+        var oldEmail = user.Email;
+        
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.PhoneNumber;
+        
+        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            user.Email = request.Email;
+            user.UserName = request.Email;
+            user.EmailConfirmed = true;
+        }
+        
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            logger.LogWarning("Failed to update user. UserId: {UserId}, AdminId: {AdminId}, Errors: {Errors}", userId, adminId, string.Join(", ", errors));
+            throw new ValidationException("Failed to update user profile.", result.Errors.Select(e => new ValidationFailure(e.Code, e.Description)).ToList());
+        }
+        
+        logger.LogInformation("User updated by Admin. UserId: {UserId}, AdminId: {AdminId}", userId, adminId);
+        
+        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(oldEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(oldEmail)) await emailService.SendEmailChangeNotificationAsync(oldEmail, request.Email);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to send email change notification. UserId: {UserId}", userId);
+            }
+        }
+        
         var roles = await userManager.GetRolesAsync(user);
         return new UserDetailsResponse(user.Id, 
                                        user.Email ?? "", 

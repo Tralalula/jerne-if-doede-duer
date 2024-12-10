@@ -19,3 +19,28 @@ public class UsersQueryValidator : AbstractValidator<UsersQuery>
                               .WithMessage("Search term cannot exceed 100 characters");
     }
 }
+
+public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
+{
+    public UpdateUserRequestValidator()
+    {
+        RuleFor(x => x.FirstName).NotEmpty()
+                                 .MaximumLength(50)
+                                 .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                 .WithMessage("First name can only contain letters and must not be empty.");
+
+        RuleFor(x => x.LastName).NotEmpty()
+                                .MaximumLength(50)
+                                .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                .WithMessage("Last name can only contain letters and must not be empty.");
+
+        RuleFor(x => x.PhoneNumber).MaximumLength(20)
+                                   .Matches(@"^\+?[0-9\s-]+$")
+                                   .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+                                   .WithMessage("Invalid phone number format");
+                                   
+        RuleFor(x => x.Email).EmailAddress()
+                             .MaximumLength(256)
+                             .When(x => !string.IsNullOrEmpty(x.Email));
+    }
+}

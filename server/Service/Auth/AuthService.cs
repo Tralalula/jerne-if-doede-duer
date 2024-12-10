@@ -27,6 +27,10 @@ public interface IAuthService
     Task<bool> InitiatePasswordResetAsync(string email);
     Task<bool> VerifyPasswordResetAsync(VerifyResetCodeRequest request);
     Task<bool> CompletePasswordResetAsync(CompletePasswordResetRequest request);
+    Task<UserInfoResponse> UpdateProfileAsync(Guid userId, UpdateProfileRequest request);
+    Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
+    Task InitiateEmailChangeAsync(Guid userId, ChangeEmailRequest request);
+    Task<bool> ConfirmEmailChangeAsync(string oldEmail, string newEmail, string token);
 }
 
 public class AuthService(IOptions<AppOptions> options,
@@ -244,7 +248,146 @@ public class AuthService(IOptions<AppOptions> options,
         logger.LogInformation("Password reset completed successfully. UserId: {UserId}, TraceId: {TraceId}", user.Id, request.Email.GetUserTraceId());
         return true;
     }
-    
+
+    public async Task<UserInfoResponse> UpdateProfileAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            logger.LogWarning("Attempted profile update for non-existent user. UserId: {UserId}", userId);
+            throw new UnauthorizedException("User not found.");
+        } 
+        
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.PhoneNumber = request.PhoneNumber;
+        
+        var result = await userManager.UpdateAsync(user);
+        
+        if (!result.Succeeded)
+        {
+            logger.LogWarning("Failed to update profile. UserId: {UserId}, Errors: {Errors}", userId, string.Join(", ", result.Errors.Select(e => e.Description)));
+            var errors = result.Errors.Select(e => new ValidationFailure(e.Code, e.Description)).ToList();
+            throw new ValidationException("Failed to update user profile.", errors);
+        }
+        
+        logger.LogInformation("User profile updated successfully. UserId: {UserId}", userId);
+        var roles = await userManager.GetRolesAsync(user);
+        bool isAdmin = roles.Contains(Role.Admin);
+
+        return new UserInfoResponse(user.Email!, isAdmin);
+    }
+
+    public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            logger.LogWarning("Attempted password change for non-existent user. UserId: {UserId}", userId);
+            throw new UnauthorizedException("User not found.");
+        }
+        
+        var validCurrentPassword = await userManager.CheckPasswordAsync(user, request.CurrentPassword);
+        if (!validCurrentPassword)
+        {
+            logger.LogWarning("Invalid current password for password change. UserId: {UserId}", userId);
+            throw new UnauthorizedException("Invalid current password.");
+        }
+        
+        var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            logger.LogWarning("Failed to change password. UserId: {UserId}, Errors: {Errors}", userId, string.Join(", ", result.Errors.Select(e => e.Description)));
+            var errors = result.Errors.Select(e => new ValidationFailure(e.Code, e.Description)).ToList();
+            throw new ValidationException("Failed to change password.", errors);
+        }
+        
+        logger.LogInformation("Password changed successfully. UserId: {UserId}", userId);
+    }
+
+    public async Task InitiateEmailChangeAsync(Guid userId, ChangeEmailRequest request)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            logger.LogWarning("Attempted email change for non-existent user. UserId: {UserId}", userId);
+            throw new UnauthorizedException("User not found.");
+        }
+        
+        var validPassword = await userManager.CheckPasswordAsync(user, request.Password);
+        if (!validPassword)
+        {
+            logger.LogWarning("Invalid password for email change. UserId: {UserId}", userId);
+            throw new UnauthorizedException("Invalid password.");
+        }
+        
+        var existingUser = await userManager.FindByEmailAsync(request.NewEmail);
+        if (existingUser != null && existingUser.Id != userId)
+        {
+            logger.LogWarning("Email change conflict. UserId: {UserId}, NewEmail: {NewEmail}", userId, request.NewEmail);
+            throw new ConflictException("This email is already in use.");
+        }
+        
+        var token = await userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
+        var encodedToken = Uri.EscapeDataString(token);
+
+        var verificationLink = $"{options.Value.Urls.Address}/api/auth/verify-email-change?token={encodedToken}&oldEmail={Uri.EscapeDataString(user.Email!)}&newEmail={Uri.EscapeDataString(request.NewEmail)}";
+        await emailService.SendEmailChangeVerificationAsync(user.Email!, request.NewEmail, verificationLink);
+
+        logger.LogInformation("Email change initiated. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", userId, user.Email, request.NewEmail);
+    }
+
+    public async Task<bool> ConfirmEmailChangeAsync(string oldEmail, string newEmail, string token)
+    {
+        var user = await userManager.FindByEmailAsync(oldEmail);
+        if (user == null)
+        {
+            logger.LogWarning("Email change verification attempted for non-existent user. OldEmail: {OldEmail}, NewEmail: {NewEmail}", oldEmail, newEmail);
+            return false;
+        }
+        
+        var emailChangeResult = await userManager.ChangeEmailAsync(user, newEmail, token);
+        if (!emailChangeResult.Succeeded)
+        {
+            logger.LogWarning("Email change verification failed. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}, Errors: {Errors}",
+                user.Id, oldEmail, newEmail, string.Join(", ", emailChangeResult.Errors.Select(e => e.Description)));
+            return false;
+        }
+        
+        var usernameChangeResult = await userManager.SetUserNameAsync(user, newEmail);
+        if (!usernameChangeResult.Succeeded)
+        {
+            logger.LogWarning("Username update failed after email change. UserId: {UserId}, NewEmail: {NewEmail}, Errors: {Errors}",
+                user.Id, newEmail, string.Join(", ", usernameChangeResult.Errors.Select(e => e.Description)));
+            
+            var revertToken = await userManager.GenerateChangeEmailTokenAsync(user, oldEmail);
+            var revertResult = await userManager.ChangeEmailAsync(user, oldEmail, revertToken);
+
+            if (!revertResult.Succeeded)
+            {
+                // Revert fejlede = gg 
+                logger.LogError("Failed to revert email after username update failed. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}, Errors: {Errors}",
+                    user.Id, oldEmail, newEmail, string.Join(", ", revertResult.Errors.Select(e => e.Description)));
+            }
+            
+            return false;
+        }
+        
+        logger.LogInformation("Email changed successfully. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail, newEmail);
+
+        try
+        {
+            await emailService.SendEmailChangeNotificationAsync(oldEmail, newEmail);
+        }
+        catch (Exception ex)
+        {
+            // Gammel email blev ikke notificeret, men email er stadig ændret - skal vi revert?
+            logger.LogError(ex, "Failed to send email change notification. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail, newEmail);
+        }
+        
+        return true;
+    }
+
     private CookieOptions GetRefreshTokenCookieOptions() => new()
     {
         HttpOnly = true,

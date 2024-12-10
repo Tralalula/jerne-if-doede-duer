@@ -42,4 +42,15 @@ public class UserController(IUsersService userService) : ControllerBase
         var adminId = User.GetUserId();
         return Ok(await userService.UpdateUserStatusAsync(id, UserStatus.Inactive, adminId));
     }
+    
+    [Authorize(Roles = Role.Admin)]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<UserDetailsResponse>> UpdateUser(Guid id, 
+                                                                    [FromServices] IValidator<UpdateUserRequest> validator, 
+                                                                    [FromBody] UpdateUserRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var adminId = User.GetUserId();
+        return Ok(await userService.UpdateUserAsync(id, request, adminId));
+    }
 }

@@ -2,6 +2,7 @@
 using Generated;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Service.Exceptions;
 using Xunit.Abstractions;
 using PagedUserResponse = Generated.PagedUserResponse;
 using UserDetailsResponse = Generated.UserDetailsResponse;
@@ -161,5 +162,54 @@ namespace ApiIntegrationTests
             // pageSize max 100
             await WebAssert.ThrowsValidationAsync(() => client.GetUsersAsync(1, 101, null, null, null, null, null));
         }
+        
+        [Fact]
+        public async Task Update_User_Happy_And_Sad_Paths()
+        {
+            // Login som admin
+            var (adminAccessToken, _, _) = await Check_Login(AuthTestHelper.Users.Admin, TestHttpClient);
+            SetAccessToken(adminAccessToken);
+
+            var userClient = new UserClient(TestHttpClient);
+
+            // Få bruger data
+            var usersResponse = await userClient.GetUsersAsync(page: 1, pageSize: 20, status: null, search: null, role: RoleType.Player, orderBy: null, sort: null);
+            Assert.Equal(StatusCodes.Status200OK, usersResponse.StatusCode);
+            var playerUser = usersResponse.Result.Items.First();
+            Assert.Equal(AuthTestHelper.Users.Player.Email, playerUser.Email);
+
+            // Opdater deres data
+            var updateRequest = new UpdateUserRequest { FirstName = "NewFirstName", LastName = "NewLastName", PhoneNumber = "1234567890", Email = playerUser.Email };
+            var updateResponse = await userClient.UpdateUserAsync(playerUser.Id, updateRequest);
+            Assert.Equal(StatusCodes.Status200OK, updateResponse.StatusCode);
+
+            var updatedUser = updateResponse.Result;
+            //Assert.Equal("NewFirstName", updatedUser);
+            //Assert.Equal("NewLastName", updatedUser);
+            Assert.Equal("1234567890", updatedUser.PhoneNumber);
+
+            // Prøv at opdater med ugyldig email
+            var invalidEmailRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", Email = "invalid-email" };
+            await WebAssert.ThrowsValidationAsync(() => userClient.UpdateUserAsync(playerUser.Id, invalidEmailRequest));
+
+            // Prøv at opdater til en allerede eksisterende email
+            var conflictRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", Email = AuthTestHelper.Users.Admin.Email };
+            await WebAssert.ThrowsProblemAsync<ApiException>(
+                () => userClient.UpdateUserAsync(playerUser.Id, conflictRequest),
+                StatusCodes.Status409Conflict,
+                nameof(ConflictException));
+
+            // Login som player og prøv at opdater 
+            var (playerAccessToken, _, _) = await Check_Login(AuthTestHelper.Users.Player, CreateNewClient());
+            SetAccessToken(playerAccessToken);
+            
+            var playerClient = new UserClient(TestHttpClient);
+            var forbiddenRequest = new UpdateUserRequest { FirstName = "Hacker", LastName = "Attempt", PhoneNumber = "0000000000", Email = "hacker@example.com" };
+            await WebAssert.ThrowsProblemAsync<ApiException>(
+                () => playerClient.UpdateUserAsync(playerUser.Id, forbiddenRequest),
+                StatusCodes.Status403Forbidden,
+                RfcForbidden);
+        }
+
     }
 }

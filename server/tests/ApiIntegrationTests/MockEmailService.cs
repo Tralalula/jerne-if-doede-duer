@@ -13,4 +13,14 @@ public class MockEmailService : IEmailService
     {
         return Task.CompletedTask;
     }
+
+    public Task SendEmailChangeVerificationAsync(string oldEmail, string newEmail, string verificationLink)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task SendEmailChangeNotificationAsync(string oldEmail, string newEmail)
+    {
+        return Task.CompletedTask;
+    }
 }

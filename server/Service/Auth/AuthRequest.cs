@@ -9,3 +9,9 @@ public record ForgotPasswordRequest(string Email);
 public record VerifyResetCodeRequest(string Email, string Code);
 
 public record CompletePasswordResetRequest(string Email, string Code, string NewPassword);
+
+public record UpdateProfileRequest(string FirstName, string LastName, string PhoneNumber);
+
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+public record ChangeEmailRequest(string NewEmail, string Password);

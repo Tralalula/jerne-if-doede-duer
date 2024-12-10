@@ -96,3 +96,54 @@ public class CompletePasswordResetRequestValidator : AbstractValidator<CompleteP
         RuleFor(x => x.NewPassword).BasicPasswordRule();
     }
 }
+
+public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequest>
+{
+    public UpdateProfileRequestValidator()
+    {
+        RuleFor(x => x.FirstName).NotEmpty()
+                                 .MaximumLength(50)
+                                 .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                 .WithMessage("First name can only contain letters and must not be empty.");
+
+        RuleFor(x => x.LastName).NotEmpty()
+                                .MaximumLength(50)
+                                .Matches("^[a-zA-ZæøåÆØÅ ]+$")
+                                .WithMessage("Last name can only contain letters and must not be empty.");
+
+        RuleFor(x => x.PhoneNumber).MaximumLength(20)
+                                   .Matches(@"^\+?[0-9\s-]+$")
+                                   .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+                                   .WithMessage("Invalid phone number format");
+    }
+}
+
+public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
+{
+    public ChangePasswordRequestValidator()
+    {
+        RuleFor(x => x.CurrentPassword).NotEmpty();
+
+        RuleFor(x => x.NewPassword).BasicPasswordRule();
+    }
+}
+
+public class ChangeEmailRequestValidator : AbstractValidator<ChangeEmailRequest>
+{
+    public ChangeEmailRequestValidator()
+    {
+        RuleFor(x => x.NewEmail).EmailRule();
+
+        RuleFor(x => x.Password).NotEmpty();
+    }
+}
+
+public class VerifyEmailChangeQueryValidator : AbstractValidator<VerifyEmailChangeQuery>
+{
+    public VerifyEmailChangeQueryValidator()
+    {
+        RuleFor(x => x.OldEmail).EmailRule();
+        RuleFor(x => x.NewEmail).EmailRule();
+        RuleFor(x => x.Token).NotEmpty();
+    }
+}

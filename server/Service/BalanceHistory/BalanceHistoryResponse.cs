@@ -3,7 +3,8 @@
 namespace Service.BalanceHistory;
 
 public record BalanceHistoryEntryResponse(Guid Id, 
-                                          DateTime Timestamp, 
+                                          DateTime Timestamp,
+                                          Guid UserId, 
                                           int Amount, 
                                           BalanceAction Action); 
 

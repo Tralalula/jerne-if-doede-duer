@@ -55,6 +55,7 @@ public class BalanceHistoryService(AppDbContext dbContext) : IBalanceHistoryServ
             .Select(h => new BalanceHistoryEntryResponse(
                 h.Id,
                 h.Timestamp,
+                h.UserId,
                 h.Amount,
                 h.Action.ToBalanceAction()))
             .ToListAsync();

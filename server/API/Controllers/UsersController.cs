@@ -12,6 +12,13 @@ namespace API.Controllers;
 public class UserController(IUsersService userService) : ControllerBase
 {
     [Authorize(Roles = Role.Admin)]
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<UserDetailsResponse>> GetUser(Guid id)
+    {
+        return Ok(await userService.GetUserAsync(id));
+    } 
+
+    [Authorize(Roles = Role.Admin)]
     [HttpGet]
     public async Task<ActionResult<PagedUserResponse>> GetUsers([FromServices] IValidator<UsersQuery> validator, 
                                                                 [FromQuery] UsersQuery query)

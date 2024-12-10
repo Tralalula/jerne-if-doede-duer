@@ -10,12 +10,28 @@ namespace Service.Users;
 
 public interface IUsersService
 {
+    Task<UserDetailsResponse> GetUserAsync(Guid userId); 
     Task<PagedUserResponse> GetUsersAsync(UsersQuery query);
     Task<UserDetailsResponse> UpdateUserStatusAsync(Guid userId, UserStatus status, Guid adminId);
 }
 
 public class UsersService(AppDbContext dbContext, UserManager<User> userManager, ILogger<UsersService> logger) : IUsersService
 {
+    public async Task<UserDetailsResponse> GetUserAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+    
+        var roles = await userManager.GetRolesAsync(user);
+        return new UserDetailsResponse(
+            user.Id,
+            user.Email ?? "",
+            user.PhoneNumber ?? "",
+            user.Status,
+            user.Credits,
+            user.Timestamp,
+            roles.ToList());
+    }
+
     public async Task<PagedUserResponse> GetUsersAsync(UsersQuery query)
     {
         var baseQuery = userManager.Users.AsQueryable();

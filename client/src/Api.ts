@@ -289,6 +289,47 @@ export interface IdentityUserOfGuid {
   accessFailedCount: number;
 }
 
+export interface PagedBalanceHistoryResponse {
+  items: BalanceHistoryEntryResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export interface BalanceHistoryEntryResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  /** @format int32 */
+  amount: number;
+  action: BalanceAction;
+}
+
+export enum BalanceAction {
+  UserBought = "UserBought",
+  UserUsed = "UserUsed",
+  AdminAssigned = "AdminAssigned",
+  AdminRevoked = "AdminRevoked",
+  WonPrize = "WonPrize",
+}
+
+export interface PagingInfo {
+  /** @format int32 */
+  totalItems: number;
+  /** @format int32 */
+  itemsPerPage: number;
+  /** @format int32 */
+  currentPage: number;
+  /** @format int32 */
+  totalPages: number;
+}
+
+export enum SortOrder {
+  Asc = "Asc",
+  Desc = "Desc",
+}
+
 export interface BalanceResponse {
   /** @format int32 */
   currentBalance: number;
@@ -339,31 +380,10 @@ export interface TransactionDetailsResponse {
   reviewedAt: string | null;
 }
 
-export interface PagingInfo {
-  /** @format int32 */
-  totalItems: number;
-  /** @format int32 */
-  itemsPerPage: number;
-  /** @format int32 */
-  currentPage: number;
-  /** @format int32 */
-  totalPages: number;
-}
-
 export enum TransactionOrderBy {
   Timestamp = "Timestamp",
   Credits = "Credits",
   Status = "Status",
-}
-
-export enum SortOrder {
-  Asc = "Asc",
-  Desc = "Desc",
-}
-
-export interface PagedUserResponse {
-  items: UserDetailsResponse[];
-  pagingInfo: PagingInfo;
 }
 
 export interface UserDetailsResponse {
@@ -377,6 +397,11 @@ export interface UserDetailsResponse {
   /** @format date-time */
   timestamp: string;
   roles: string[];
+}
+
+export interface PagedUserResponse {
+  items: UserDetailsResponse[];
+  pagingInfo: PagingInfo;
 }
 
 export enum RoleType {
@@ -732,6 +757,104 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
+  balancehistory = {
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetMyBalanceHistory
+     * @request GET:/api/balancehistory/my
+     * @secure
+     */
+    getMyBalanceHistory: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/my`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetUserBalanceHistory
+     * @request GET:/api/balancehistory/users/{userId}
+     * @secure
+     */
+    getUserBalanceHistory: (
+      userId: string,
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/users/${userId}`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetAllBalanceHistory
+     * @request GET:/api/balancehistory/all
+     * @secure
+     */
+    getAllBalanceHistory: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
   transaction = {
     /**
      * No description
@@ -877,6 +1000,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   user = {
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GetUser
+     * @request GET:/api/user/{id}
+     * @secure
+     */
+    getUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *

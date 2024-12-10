@@ -8,4 +8,7 @@ export const AppRoutes = {
     MyTransactions: '/transactions',
     AdminTransactions: '/admin/transactions',
     AdminUsers: '/admin/users',
+    MyBalanceHistory: '/balance-history',
+    AdminBalanceHistory: '/admin/balance-history',
+    AdminUserBalanceHistory: '/admin/balance-history/:userId',
 } as const;

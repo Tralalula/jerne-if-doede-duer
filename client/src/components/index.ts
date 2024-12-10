@@ -26,6 +26,9 @@ export { default as AddCreditsDialog } from './Transaction/AddCreditsDialog';
 // User
 export { default as UserListView } from './User/UserListView';
 
+// Balancehistory
+export { default as BalanceHistoryListView } from './BalanceHistory/BalanceHistoryListView';
+
 // Buttons
 export {default as LoadingButton } from './Button/LoadingButton'
 export {default as AnimatedIconButton } from './Button/AnimatedIconButton'

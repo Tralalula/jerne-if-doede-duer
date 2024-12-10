@@ -12,6 +12,11 @@ export { default as AdminTransactionsPage } from './transaction/AdminTransaction
 //------- User -------//
 export { default as AdminUserPage } from './user/AdminUserPage';
 
+//------- Balance history -------//
+export { default as AdminBalanceHistoryPage } from './balancehistory/AdminBalanceHistoryPage';
+export { default as AdminUserBalanceHistoryPage } from './balancehistory/AdminUserBalanceHistoryPage';
+export { default as MyBalanceHistoryPage } from './balancehistory/MyBalanceHistoryPage';
+
 //------- Error -------//
 export { default as ForbiddenPage } from "./error/ForbiddenPage";
 export { default as NotFoundPage } from "./error/NotFoundPage";

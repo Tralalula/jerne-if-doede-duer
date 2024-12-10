@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { ForgotPassword, Game, HomePage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage } from "./pages/index";
+import { ForgotPassword, Game, HomePage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage, AdminBalanceHistoryPage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage } from "./pages/index";
 import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
@@ -34,6 +34,9 @@ const App = () => {
               <Route path={AppRoutes.MyTransactions} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyTransactionsPage />} />} />
               <Route path={AppRoutes.AdminTransactions} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminTransactionsPage />} />} />
               <Route path={AppRoutes.AdminUsers} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserPage />} />} />
+              <Route path={AppRoutes.MyBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyBalanceHistoryPage />} />} />
+              <Route path={AppRoutes.AdminBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminBalanceHistoryPage />} />} />
+              <Route path={AppRoutes.AdminUserBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserBalanceHistoryPage />} />} />
           </Routes>
         </ToastProvider>
       </Theme>

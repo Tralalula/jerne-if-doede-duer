@@ -1,5 +1,5 @@
 ﻿import { atom } from 'jotai';
-import { UserOrderBy, SortOrder, UserStatus, RoleType, PagingInfo, UserDetailsResponse } from './import';
+import { UserOrderBy, SortOrder, UserStatus, RoleType, PagingInfo, UserDetailsResponse, api } from './import';
 
 export const userSortAtom = atom({
     orderBy: UserOrderBy.Email,
@@ -24,3 +24,24 @@ export const userPagingAtom = atom<PagingInfo>({
 export const userLoadingAtom = atom(false);
 
 export const userErrorAtom = atom<string | null>(null);
+
+
+export const userDetailsMapAtom = atom<Map<string, UserDetailsResponse>>(new Map());
+
+export const getUserDetailsAtom = atom(
+    (get) => async (userId: string) => {
+        const cached = get(userDetailsMapAtom).get(userId);
+        if (cached) return cached;
+
+        try {
+            const response = await api.user.getUser(userId);
+            const user = response.data;
+
+            get(userDetailsMapAtom).set(userId, user);
+            return user;
+        } catch (error) {
+            console.error('Failed to fetch user details:', error);
+            return null;
+        }
+    }
+);

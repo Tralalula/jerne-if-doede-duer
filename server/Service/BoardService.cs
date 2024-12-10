@@ -63,19 +63,34 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
 
         var game = await GetActiveGameAsync();
         
-        // klar til at spille
-        int boardNumbers = int.Parse(string.Join("", board.SelectedNumbers));
+        var purchase = new Purchase
+        {
+            Timestamp = timeProvider.GetUtcNow().UtcDateTime,
+            Price = GetBoardPrice(board.SelectedNumbers.Count),
+        };
 
-        var purchase = board.ToPurchase();
-        purchase.Timestamp = timeProvider.GetUtcNow().UtcDateTime;
-        purchase.Price = GetBoardPrice(board.SelectedNumbers.Count);
-
-        purchase.Fields = board.SelectedNumbers;
+        var newBoard = board.ToBoard(user, game, timeProvider, purchase);
         
-        // log til købshistorik
+        using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                await context.Boards.AddAsync(newBoard);
+                await context.SaveChangesAsync();
+                
+                purchase.Board = newBoard;
+                
+                context.Purchases.Add(purchase);
+                await context.SaveChangesAsync();
 
-        context.AddAsync(purchase);
-        await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new BadRequestException("Failed to place bet.");
+            }
+        }
         return new Board();
     }
 }

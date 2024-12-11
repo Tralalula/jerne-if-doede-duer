@@ -141,7 +141,6 @@ export interface Purchase {
   id: string;
   /** @format date-time */
   timestamp: string;
-  fields: number[];
   /** @format int32 */
   price: number;
   autoplayBoards: AutoplayBoard[];
@@ -276,6 +275,17 @@ export interface IdentityUserOfGuid {
   lockoutEnabled: boolean;
   /** @format int32 */
   accessFailedCount: number;
+}
+
+export interface BoardPickResponse {
+  board: Board;
+}
+
+/** @example {"amount":1,"selectedNumbers":[1,2,3,4,5]} */
+export interface BoardPickRequest {
+  /** @format int32 */
+  amount: number;
+  selectedNumbers: number[];
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -616,6 +626,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/api/auth/devices/${deviceId}`,
         method: "DELETE",
         secure: true,
+        ...params,
+      }),
+  };
+  board = {
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name PickBoard
+     * @request POST:/api/board/pick
+     * @secure
+     */
+    pickBoard: (data: BoardPickRequest, params: RequestParams = {}) =>
+      this.request<BoardPickResponse, any>({
+        path: `/api/board/pick`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

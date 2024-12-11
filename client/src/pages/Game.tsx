@@ -1,10 +1,14 @@
 import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Text } from "@radix-ui/themes";
 import { GameButton, Countdown, Page, ResizablePanel, LoadingButton } from "../components";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import WeekPicker from "../components/Feedback/WeekPicker";
 
 export default function Game() {
     let [state, setState] = useState<"select" | "confirm">("select");
+    const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+    const maxNumbers = 8;
+    const minNumbers = 5;
+
 
     const [time, setTime] = useState({
         hours: new Date().getHours(),
@@ -24,6 +28,28 @@ export default function Game() {
     
         return () => clearInterval(interval);
       }, []);
+
+      const toggleNumber = (num: number) => {
+        setSelectedNumbers((prev) => {
+            if (prev.includes(num)) {
+                return prev.filter((n) => n !== num);
+            } else if (prev.length < maxNumbers) {
+                return [...prev, num];
+            }
+            return prev;
+        });
+    };
+
+    const calculatePrice = () => {
+        const count = selectedNumbers.length;
+        if (count === 5) return 20;
+        if (count === 6) return 40;
+        if (count === 7) return 80;
+        if (count === 8) return 160;
+        return 0;
+    };
+
+    const canProceed = selectedNumbers.length >= minNumbers;
 
     return (
         <Page>
@@ -45,33 +71,44 @@ export default function Game() {
                         <ResizablePanel.Content value="select">
                         <Flex justify='center' align='center' direction='column' gap='3'>
                             <Grid className="p-2 transition-all duration-200" align="center" justify="center" columns={{ initial: "4", md: "4" }} gap="3">
-                                {Array.from({ length: 16 }, (_, i) => (
-                                    <GameButton className="md:p-12 p-8 w-full cursor-pointer" key={i}>
-                                        {i + 1}
+                                {Array.from({ length: 16 }, (_, i) => {
+                                    const num = i + 1;
+                                    const isSelected = selectedNumbers.includes(num);
+                                    const isDisabled = !isSelected && selectedNumbers.length >= maxNumbers;
+
+                                    return (
+                                    <GameButton
+                                        key={i}
+                                        className="md:p-12 p-8 w-full cursor-pointer"
+                                        isSelected={isSelected}
+                                        selectable={!isDisabled}
+                                        disabled={isDisabled}
+                                        onClick={() => toggleNumber(num)}
+                                    >
+                                        {num}
                                     </GameButton>
-                                ))}
+                                    );
+                                })}
                             </Grid>
                             <Separator className="w-full"/>
-                            <Button className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
+                                <Text>Credits ialt: {calculatePrice()} DKK</Text>
+                            <Button disabled={!canProceed} className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
                         </Flex>
                         </ResizablePanel.Content>
                             <ResizablePanel.Content value="confirm">
                                 <Flex className="w-full" justify='center' align='center' direction='column' gap='3'>
                                     <Text>
-                                        Du har valgt følgende <b>6</b> numre:
+                                        Du har valgt følgende <b>{selectedNumbers.length}</b> numre:
                                     </Text>
                                     <Flex gap='1' className="pt-1">
-                                    {Array.from({ length: 6 }, (_, i) => (
-                                        <>
-                                        <Badge size='3'>
-                                            {i + 1 }
-                                        </Badge>
-                                        {i < 5 && 
-                                            <Text>-</Text>
-                                        }
-                                        </>
+                                    {selectedNumbers.map((num, i) => (
+                                        <Fragment key={num}>
+                                            <Badge size="3">{num}</Badge>
+                                            {i < selectedNumbers.length - 1 && <Text>-</Text>}
+                                        </Fragment>
                                     ))}
-                                    </Flex>
+
+                                        </Flex>
                                     <Separator className="w-full"/>
                                     <Text>
                                         Dette valg gøre sig gældende for uge:

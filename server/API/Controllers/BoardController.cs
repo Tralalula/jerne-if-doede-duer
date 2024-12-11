@@ -10,7 +10,7 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class BoardController(IBoardService service): ControllerBase
 {
-    [HttpPost("board/pick")]
+    [HttpPost("pick")]
     public async Task<ActionResult<BoardPickResponse>> PickBoard([FromBody] BoardPickRequest request)
     {
         var userId = User.GetUserId();

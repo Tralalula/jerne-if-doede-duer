@@ -59,6 +59,8 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
         
+        if (user.)
+        
         if (board.Amount <= 0)
             throw new BadRequestException("You must place bet on atleast 1 board.");
 

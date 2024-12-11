@@ -77,19 +77,6 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         if (user.Status == UserStatus.Inactive)
             throw new UnauthorizedException("You do not have permission to place a bet.");
         
-        var now = DateTime.UtcNow;
-        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-        var localNow = TimeZoneInfo.ConvertTimeFromUtc(now, timeZone);
-
-        var isSaturdayAfterFive = localNow.DayOfWeek == DayOfWeek.Saturday && localNow.TimeOfDay >= new TimeSpan(17, 0, 0);
-        var isSundayBeforeMidnight = localNow.DayOfWeek == DayOfWeek.Sunday && localNow.TimeOfDay < new TimeSpan(0, 0, 0);
-
-        if (isSaturdayAfterFive || isSundayBeforeMidnight)
-        {
-            throw new UnauthorizedException("You cannot place a bet during this time.");
-        }
-
-        
         if (board.Amount <= 0)
             throw new BadRequestException("You must place bet on atleast 1 board.");
 

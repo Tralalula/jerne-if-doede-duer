@@ -91,7 +91,9 @@ export default function Game() {
                                 })}
                             </Grid>
                             <Separator className="w-full"/>
+                            {canProceed &&
                                 <Text>Credits ialt: {calculatePrice()} DKK</Text>
+                            }   
                             <Button disabled={!canProceed} className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
                         </Flex>
                         </ResizablePanel.Content>
@@ -101,32 +103,29 @@ export default function Game() {
                                         Du har valgt følgende <b>{selectedNumbers.length}</b> numre:
                                     </Text>
                                     <Flex gap='1' className="pt-1">
-                                    {selectedNumbers.map((num, i) => (
-                                        <Fragment key={num}>
-                                            <Badge size="3">{num}</Badge>
-                                            {i < selectedNumbers.length - 1 && <Text>-</Text>}
-                                        </Fragment>
-                                    ))}
-
-                                        </Flex>
+                                        {selectedNumbers.map((num, i) => (
+                                            <Fragment key={num}>
+                                                <Badge size="3">{num}</Badge>
+                                                {i < selectedNumbers.length - 1 && <Text>-</Text>}
+                                            </Fragment>
+                                        ))}
+                                    </Flex>
                                     <Separator className="w-full"/>
                                     <Text>
                                         Dette valg gøre sig gældende for uge:
                                     </Text>
-                                    <Badge className="text-white" size='3'>
+                                    <Badge className="dark:text-white text-black" size='3'>
                                         46
                                     </Badge>
-                                    <LoadingButton isLoading={false}>
-                                        <Text>
-                                            Bekræft valg
-                                        </Text>
-                                    </LoadingButton>
-                                    <WeekPicker/>
-                                    <LoadingButton isLoading={false}>
-                                        <Text>
-                                            Bekræft valg
-                                        </Text>
-                                    </LoadingButton>
+                                    <Grid className="w-full" columns={{ initial: "2" }} gap="2">
+                                        <Button variant="outline" className="cursor-pointer" onClick={() => setState("select")}>
+                                            Tilbage
+                                        </Button>
+                                        <LoadingButton isLoading={false}>
+                                            <Text>Bekræft valg</Text>
+                                        </LoadingButton>
+                                    </Grid>
+
                                 </Flex>
                             </ResizablePanel.Content>
                         </ResizablePanel.Root>

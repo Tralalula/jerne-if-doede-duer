@@ -53,13 +53,42 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         };
     }
     
+    private bool IsWithinRestrictedTime(TimeProvider timeProvider)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(now, timeZone);
+
+        // tidspunkt imellem: lørdag 17:00 til mandag 00:00
+        var isSaturdayAfterFive = localNow.DayOfWeek == DayOfWeek.Saturday && localNow.TimeOfDay >= new TimeSpan(17, 0, 0);
+        var isSunday = localNow.DayOfWeek == DayOfWeek.Sunday;
+        var isMondayBeforeMidnight = localNow.DayOfWeek == DayOfWeek.Monday && localNow.TimeOfDay < new TimeSpan(0, 0, 0);
+
+        return isSaturdayAfterFive || isSunday || isMondayBeforeMidnight;
+    }
     
-    //TODO: husk at tjekke lørdag kl 17:00 (se disc) - bruger kun kan spille hvis aktiveret
     public async Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
+        if (IsWithinRestrictedTime(timeProvider))
+            throw new UnauthorizedException("You cannot place a bet during this time.");
+        
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
         
-        if (user.)
+        if (user.Status == UserStatus.Inactive)
+            throw new UnauthorizedException("You do not have permission to place a bet.");
+        
+        var now = DateTime.UtcNow;
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(now, timeZone);
+
+        var isSaturdayAfterFive = localNow.DayOfWeek == DayOfWeek.Saturday && localNow.TimeOfDay >= new TimeSpan(17, 0, 0);
+        var isSundayBeforeMidnight = localNow.DayOfWeek == DayOfWeek.Sunday && localNow.TimeOfDay < new TimeSpan(0, 0, 0);
+
+        if (isSaturdayAfterFive || isSundayBeforeMidnight)
+        {
+            throw new UnauthorizedException("You cannot place a bet during this time.");
+        }
+
         
         if (board.Amount <= 0)
             throw new BadRequestException("You must place bet on atleast 1 board.");

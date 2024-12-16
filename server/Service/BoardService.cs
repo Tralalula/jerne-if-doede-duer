@@ -66,6 +66,16 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         return isSaturdayAfterFive || isSunday || isMondayBeforeMidnight;
     }
     
+    private DateTime GetNextMondayAtMidnight(TimeProvider timeProvider)
+    {
+        var today = timeProvider.GetUtcNow().UtcDateTime;
+        var daysUntilMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
+        if (daysUntilMonday == 0)
+            daysUntilMonday = 7;
+        
+        return today.AddDays(daysUntilMonday).AddHours(-today.Hour).AddMinutes(-today.Minute).AddSeconds(-today.Second);
+    }
+    
     public async Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         if (IsWithinRestrictedTime(timeProvider))
@@ -145,7 +155,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                            && user.Status == UserStatus.Active,
             StartTime = game?.StartTime != null
                 ? new DateTimeOffset(game.StartTime).ToUnixTimeSeconds()
-                : null,
+                : new DateTimeOffset(GetNextMondayAtMidnight(timeProvider)).ToUnixTimeSeconds(),
             EndTime = game?.EndTime != null
                 ? new DateTimeOffset(game.EndTime).ToUnixTimeSeconds()
                 : null,

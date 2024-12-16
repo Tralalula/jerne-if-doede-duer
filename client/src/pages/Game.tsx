@@ -1,18 +1,40 @@
 import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Skeleton, Text, TextField } from "@radix-ui/themes";
 import { GameButton, Countdown, Page, ResizablePanel, LoadingButton } from "../components";
 import { Fragment, useEffect, useState } from "react";
-import { boolean } from "yup";
-import { api } from "../http";
-import { useBoard } from "../hooks";
+import { useBoard, useToast } from "../hooks";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { BoardPickRequest } from "../Api";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const schema: yup.ObjectSchema<BoardPickRequest> = yup
+    .object({
+        amount: yup
+            .number()
+            .min(1, "Minimum 1 board skal være valgt")
+            .required("Mængde er påkrævet"),
+        selectedNumbers: yup
+            .array()
+            .of(
+                yup
+                    .number()
+                    .typeError("Hvert valgt nummer skal være et tal")
+                    .required("Numre kan ikke være tomme")
+                    .min(1, "Numre skal være mindst 1")
+                    .max(16, "Numre må ikke være større end 16")
+            )
+            .min(5, "Du skal vælge mindst 5 numre")
+            .max(8, "Du må højst vælge 8 numre")
+            .required("Valgte numre er påkrævet"),
+    })
+    .required();
 
 export default function Game() {
-    const {
-        boardStatus,
-        loading,
-        error,
-    } = useBoard();
+    const {boardStatus, loading, placeBoardPick, isPlacingBoardPick, error} = useBoard();
 
-    let [state, setState] = useState<"select" | "confirm">("select");
+    const { showToast } = useToast();
+
+    let [state, setState] = useState<"select" | "confirm" | "bought">("bought");
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
     const maxNumbers = 8;
     const minNumbers = 5;
@@ -24,7 +46,7 @@ export default function Game() {
             if (prev.includes(num)) {
                 return prev.filter((n) => n !== num);
             } else if (prev.length < maxNumbers) {
-                return [...prev, num];
+                return [...prev, num].sort((a, b) => a - b);
             }
             return prev;
         });
@@ -43,27 +65,75 @@ export default function Game() {
         if (value === "") return "";
         const parsedValue = parseInt(value, 10);
         return isNaN(parsedValue) ? 1 : parsedValue;
-      };
+    };
 
-    const canProceed = selectedNumbers.length >= minNumbers;
+    const onSubmit: SubmitHandler<BoardPickRequest> = async (data) => {
+        console.log("Form Data Submitted:", data);
+    
+        try {
+            await placeBoardPick(data.amount, data.selectedNumbers);
+            showToast("Bræt registreret", "Dit bræt blev købt!", "success");
+
+            setState("bought")
+        } catch (err: any) {
+            const errorMessage = 
+                err?.detail ||
+                (err instanceof Error ? err.message : "Der skete en ukendt fejl");
+    
+            showToast("Ups! En fejl skete", errorMessage, "error");
+        }
+    };
+
+    const { 
+        register,
+        handleSubmit,
+        setValue,
+        formState: { errors }
+    } = useForm({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            amount: boardAmount,
+            selectedNumbers: [],
+        },
+    });
+
+    useEffect(() => {
+        console.log("Validation Errors:", errors);
+    }, [errors]);
+
+    useEffect(() => {
+        setValue("selectedNumbers", selectedNumbers);
+    }, [selectedNumbers, setValue]);
+
+    const canProceed = selectedNumbers.length >= minNumbers && boardStatus?.isGameActive;
 
     return (
         <Page>
             <Flex direction='column' className=" w-full h-full pl-4 pr-4 md:pl-0 md:pr-0">
                 <Flex justify="center" direction="column" className="w-full md:py-2 md:items-center">
                     <Flex direction="column" className="text-center">
-                        <Heading className="transition-all duration-200 text-2xl sm:text-2xl md:text-3xl">
-                            Velkommen til denne uges spil!
-                        </Heading>
+                        <Skeleton loading={loading}>
+                            <Heading className="transition-all duration-200 text-2xl sm:text-2xl md:text-3xl">
+                                Velkommen til denne uges spil!
+                            </Heading>
+                        </Skeleton>
                         <Skeleton loading={loading}>
                             <Text color="gray" className="transition-all duration-200 text-md">
-                                Spillet er igang for uge: {boardStatus?.isGameActive ? 'Ja' : 'nej'} 
+                                Spillet er igang for uge: {boardStatus?.currentWeek}
                             </Text>
                         </Skeleton>
                     </Flex>
                 </Flex>
                 <Flex justify="center" align="center" direction="column" className="w-full h-full py-4 -mt-2 min-h-[50px]">
-                    <Heading className="pb-2">{state === "select" ? 'Vælg dine tal' : 'Bekræft valg'}</Heading>
+                    <Skeleton loading={loading}>
+                    <Heading className="pb-2">
+                        {state === "select" 
+                            ? "Vælg dine tal" 
+                            : state === "confirm" 
+                            ? "Bekræft valg" 
+                            : "Tak for dit køb!"}
+                    </Heading>                    
+                </Skeleton>
                     <Flex gap='3' justify='center' align="center" direction="column" className="p-2 rounded-lg backdrop-blur-md bg-whiteA5 dark:bg-gray1/75" style={{ boxShadow: "var(--shadow-5)" }}>
                     <ResizablePanel.Root value={state}>
                         <ResizablePanel.Content value="select">
@@ -75,27 +145,32 @@ export default function Game() {
                                     const isDisabled = !isSelected && selectedNumbers.length >= maxNumbers;
 
                                     return (
-                                    <GameButton
-                                        key={i}
-                                        className="md:p-12 p-8 w-full cursor-pointer"
-                                        isSelected={isSelected}
-                                        selectable={!isDisabled}
-                                        disabled={isDisabled}
-                                        onClick={() => toggleNumber(num)}
-                                    >
-                                        {num}
-                                    </GameButton>
+                                    <Skeleton key={i} loading={loading}>
+                                        <GameButton
+                                            key={i}
+                                            className="md:p-12 p-8 w-full cursor-pointer"
+                                            isSelected={isSelected}
+                                            selectable={!isDisabled}
+                                            disabled={isDisabled}
+                                            onClick={() => toggleNumber(num)}
+                                        >
+                                            {num}
+                                        </GameButton>
+                                    </Skeleton>
                                     );
                                 })}
                             </Grid>
                             <Separator className="w-full"/>
                             {canProceed &&
                                 <Text>Credits ialt: {calculatePrice()} Credits</Text>
-                            }   
-                            <Button disabled={!canProceed} className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
+                            }  
+                            <Skeleton loading={loading}>
+                                <Button disabled={!canProceed} className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
+                            </Skeleton>
                         </Flex>
                         </ResizablePanel.Content>
                             <ResizablePanel.Content value="confirm">
+                            <form method="post" onSubmit={handleSubmit(onSubmit)}>
                                 <Flex className="w-full" justify='center' align='center' direction='column' gap='3'>
                                     <Text>
                                         Du har valgt følgende <b>{selectedNumbers.length}</b> numre:
@@ -108,32 +183,56 @@ export default function Game() {
                                             </Fragment>
                                         ))}
                                     </Flex>
+
                                     <Separator className="w-full"/>
                                     <Text>
                                         Dette valg gøre sig gældende for uge:
                                     </Text>
                                     <Badge className="dark:text-white text-black" size='3'>
-                                        46
+                                        {boardStatus?.currentWeek}
                                     </Badge>
+
                                     <Separator className="w-full"/>
                                     <Flex gap='2'>
                                         <Text>Antal:</Text>
-                                        <TextField.Root type="number" size="1" min='1' placeholder="1" value={boardAmount} onChange={(e) => setBoardAmount(parseToInt(e.target.value))}/>
+                                        <TextField.Root {...register("amount", { value: boardAmount, required: true })} type="number" size="1" min='1' placeholder="1" value={boardAmount} onChange={(e) => setBoardAmount(parseToInt(e.target.value))}/>
                                     </Flex>
+
                                     <Separator className="w-full"/>
                                     <Flex gap='1'>
                                         Total: <Text className="underline">{calculatePrice() * boardAmount}</Text> Credits
                                     </Flex>
+                                    <input
+                                        type="hidden"
+                                        {...register("selectedNumbers", {
+                                            required: "Du skal vælge mindst 5 numre",
+                                            validate: () => {
+                                                if (selectedNumbers.length < minNumbers) {
+                                                    return `Du skal vælge mindst ${minNumbers} numre`;
+                                                }
+                                                if (selectedNumbers.length > maxNumbers) {
+                                                    return `Du må højst vælge ${maxNumbers} numre`;
+                                                }
+                                                return true;
+                                            },
+                                        })}
+                                    />
 
                                     <Grid className="w-full" columns={{ initial: "2" }} gap="2">
-                                        <Button variant="outline" className="cursor-pointer" onClick={() => setState("select")}>
+                                        <Button variant="outline" className="transition-colors duration-200 cursor-pointer" onClick={() => setState("select")}>
                                             Tilbage
                                         </Button>
-                                        <LoadingButton disabled={boardAmount <= 0} isLoading={false}>
+                                        <LoadingButton type="submit" disabled={boardAmount <= 0} isLoading={isPlacingBoardPick}>
                                             <Text>Bekræft valg</Text>
                                         </LoadingButton>
                                     </Grid>
 
+                                </Flex>
+                                </form>
+                            </ResizablePanel.Content>
+                            <ResizablePanel.Content value="bought">
+                                <Flex className="w-full" justify='center' align='center' direction='column' gap='3'>
+                                            hejsa
                                 </Flex>
                             </ResizablePanel.Content>
                         </ResizablePanel.Root>

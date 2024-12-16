@@ -2,15 +2,18 @@
 import { useAtom } from 'jotai';
 import {
     api,
-    boardErrorAtom,
+    gameStatusFetchError,
     boardLoadingAtom,
+    BoardPickRequest,
     gameStatusAtom,
+    boardPlacingBetAtom
 } from './import';
 
 export function useBoard() {
     const [boardStatus, setBoardStatus] = useAtom(gameStatusAtom);
     const [loading, setLoading] = useAtom(boardLoadingAtom);
-    const [error, setError] = useAtom(boardErrorAtom);
+    const [error, setError] = useAtom(gameStatusFetchError);
+    const [isPlacingBoardPick, setIsPlacingBoardPick] = useAtom(boardPlacingBetAtom);
 
     const fetchGameStatus = async () => {
         setLoading(true);
@@ -36,12 +39,36 @@ export function useBoard() {
         }
     };
 
+    const placeBoardPick = async (amount: number, selectedNumbers: number[]) => {
+        setIsPlacingBoardPick(true);
+
+        try {
+            const request: BoardPickRequest = {
+                amount,
+                selectedNumbers,
+            };
+    
+            const response = await api.board.pickBoard(request);
+            return response;
+        } catch (err: any) {
+            if (err.response && err.response.data)
+                throw err.response.data;
+    
+            throw new Error("An unexpected error occurred.");
+        } finally {
+            setIsPlacingBoardPick(false);
+        }
+    };
+
+
     useEffect(() => {
         fetchGameStatus();
     }, []);
 
     return {
         boardStatus,
+        placeBoardPick,
+        isPlacingBoardPick,
         loading,
         error,
     };

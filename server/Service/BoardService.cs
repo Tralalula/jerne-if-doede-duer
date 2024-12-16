@@ -10,7 +10,7 @@ namespace Service;
 
 public interface IBoardService
 {
-    public Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
+    public Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
     public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
 }
 
@@ -66,7 +66,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         return isSaturdayAfterFive || isSunday || isMondayBeforeMidnight;
     }
     
-    public async Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
+    public async Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         if (IsWithinRestrictedTime(timeProvider))
             throw new UnauthorizedException("You cannot place a bet during this time.");
@@ -122,7 +122,8 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 throw new BadRequestException($"Failed to place bet.");
             }
         }
-        return new Board();
+        
+        return BoardPickResponse.FromEntity(newBoards);
     }
     
     public async Task<GameStatusResponse> GetGameStatusAsync(Guid userId)

@@ -122,8 +122,10 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 throw new BadRequestException($"Failed to place bet.");
             }
         }
+        if (!newBoards.Any())
+            throw new Exception("No boards were created.");
         
-        return BoardPickResponse.FromEntity(newBoards);
+        return BoardPickResponse.FromEntity(purchase, newBoards.First(), newBoards.Count);
     }
     
     public async Task<GameStatusResponse> GetGameStatusAsync(Guid userId)

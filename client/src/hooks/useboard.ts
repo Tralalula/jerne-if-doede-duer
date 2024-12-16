@@ -39,17 +39,12 @@ export function useBoard() {
         }
     };
 
-    const placeBoardPick = async (amount: number, selectedNumbers: number[]) => {
+    const placeBoardPick = async (request: BoardPickRequest) => {
         setIsPlacingBoardPick(true);
 
         try {
-            const request: BoardPickRequest = {
-                amount,
-                selectedNumbers,
-            };
-    
             const response = await api.board.pickBoard(request);
-            return response;
+            return response.data;
         } catch (err: any) {
             if (err.response && err.response.data)
                 throw err.response.data;

@@ -3,7 +3,7 @@ import { GameButton, Countdown, Page, ResizablePanel, LoadingButton } from "../c
 import { Fragment, useEffect, useState } from "react";
 import { useBoard, useToast } from "../hooks";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { BoardPickRequest } from "../Api";
+import { Board, BoardPickRequest, BoardPickResponse } from "../Api";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
@@ -34,12 +34,21 @@ export default function Game() {
 
     const { showToast } = useToast();
 
-    let [state, setState] = useState<"select" | "confirm" | "bought">("bought");
+    const [boughtBoard, setBoughtBoard] = useState<BoardPickResponse>();
+
+    let [state, setState] = useState<"select" | "confirm" | "bought">("select");
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
     const maxNumbers = 8;
     const minNumbers = 5;
 
     const [boardAmount, setBoardAmount] = useState<number>(1);
+
+    const handleBackFromPurchase = () => {
+        setBoardAmount(1);
+        setBoughtBoard(undefined);
+        setSelectedNumbers([]);
+        setState("select")
+    }
 
     const toggleNumber = (num: number) => {
         setSelectedNumbers((prev) => {
@@ -71,9 +80,10 @@ export default function Game() {
         console.log("Form Data Submitted:", data);
     
         try {
-            await placeBoardPick(data.amount, data.selectedNumbers);
+            const boards = await placeBoardPick(data);
             showToast("Bræt registreret", "Dit bræt blev købt!", "success");
 
+            setBoughtBoard(boards);
             setState("bought")
         } catch (err: any) {
             const errorMessage = 
@@ -232,8 +242,37 @@ export default function Game() {
                             </ResizablePanel.Content>
                             <ResizablePanel.Content value="bought">
                                 <Flex className="w-full" justify='center' align='center' direction='column' gap='3'>
-                                            hejsa
+                                {boughtBoard && 
+                                    <>
+                                    <Text>
+                                        Vi har registreret {boughtBoard.amount === 1 ? 'dit' : 'dine'} bræt!
+                                    </Text>
+                                    <Separator className="w-full"/>
+                                    <Text>
+                                        Du har købt <b className="underline">{boughtBoard.amount}</b> af dette bræt:
+                                    </Text>
+                                    <Flex gap='1' className="pt-1">
+                                        {boughtBoard.selectedNumbers.map((num, i) => (
+                                            <Fragment key={i}>
+                                                <Badge size="3">{num}</Badge>
+                                                {i < selectedNumbers.length - 1 && <Text>-</Text>}
+                                            </Fragment>
+                                        ))}
+                                        </Flex>
+                                        <Separator className="w-full"/>
+
+                                        <Text>
+                                            Credits trukket ialt: {boughtBoard.total}
+                                        </Text>
+
+                                        <Button variant="outline" className="transition-colors duration-200 cursor-pointer w-full" onClick={() => handleBackFromPurchase()}>
+                                            Tilbage
+                                        </Button>
+
+                                    </>
+                                }
                                 </Flex>
+
                             </ResizablePanel.Content>
                         </ResizablePanel.Root>
                     </Flex>

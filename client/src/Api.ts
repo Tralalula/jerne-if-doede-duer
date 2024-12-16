@@ -278,7 +278,16 @@ export interface IdentityUserOfGuid {
 }
 
 export interface BoardPickResponse {
-  board: Board;
+  /**
+   * @format guid
+   * @minLength 1
+   */
+  purchaseId: string;
+  selectedNumbers: number[];
+  /** @format int32 */
+  amount: number;
+  /** @format int32 */
+  total: number;
 }
 
 /** @example {"amount":1,"selectedNumbers":[1,2,3,4,5]} */

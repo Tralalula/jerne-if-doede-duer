@@ -6,13 +6,25 @@ namespace Service.Models.Responses;
 public class BoardPickResponse
 {
     [Required]
-    public List<Board> Board { get; set; }
+    public Guid PurchaseId { get; set; }
     
-    public static BoardPickResponse FromEntity(List<Board> board)
+    [Required]
+    public List<int> SelectedNumbers { get; set; }
+    
+    [Required]
+    public int Amount { get; set; }
+    
+    [Required]
+    public int Total { get; set; }
+    
+    public static BoardPickResponse FromEntity(Purchase purchase, Board board, int amount)
     {
         return new BoardPickResponse
         {
-            Board = board
+            PurchaseId = purchase.Id,
+            SelectedNumbers = board.Configuration,
+            Amount = amount,
+            Total = purchase.Price
         };
     }
 }

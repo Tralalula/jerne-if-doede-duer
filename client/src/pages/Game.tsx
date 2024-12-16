@@ -1,7 +1,6 @@
-import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Text } from "@radix-ui/themes";
+import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Text, TextField } from "@radix-ui/themes";
 import { GameButton, Countdown, Page, ResizablePanel, LoadingButton } from "../components";
 import { Fragment, useEffect, useState } from "react";
-import WeekPicker from "../components/Feedback/WeekPicker";
 
 export default function Game() {
     let [state, setState] = useState<"select" | "confirm">("select");
@@ -9,6 +8,7 @@ export default function Game() {
     const maxNumbers = 8;
     const minNumbers = 5;
 
+    const [boardAmount, setBoardAmount] = useState<number>(1);
 
     const [time, setTime] = useState({
         hours: new Date().getHours(),
@@ -48,6 +48,12 @@ export default function Game() {
         if (count === 8) return 160;
         return 0;
     };
+
+    const parseToInt = (value: string): number | string => {
+        if (value === "") return "";
+        const parsedValue = parseInt(value, 10);
+        return isNaN(parsedValue) ? 1 : parsedValue;
+      };
 
     const canProceed = selectedNumbers.length >= minNumbers;
 
@@ -92,7 +98,7 @@ export default function Game() {
                             </Grid>
                             <Separator className="w-full"/>
                             {canProceed &&
-                                <Text>Credits ialt: {calculatePrice()} DKK</Text>
+                                <Text>Credits ialt: {calculatePrice()} Credits</Text>
                             }   
                             <Button disabled={!canProceed} className="w-full cursor-pointer transition-colors duration-200" onClick={() => setState("confirm")}>Næste</Button>
                         </Flex>
@@ -117,11 +123,21 @@ export default function Game() {
                                     <Badge className="dark:text-white text-black" size='3'>
                                         46
                                     </Badge>
+                                    <Separator className="w-full"/>
+                                    <Flex gap='2'>
+                                        <Text>Antal:</Text>
+                                        <TextField.Root type="number" size="1" min='1' placeholder="1" value={boardAmount} onChange={(e) => setBoardAmount(parseToInt(e.target.value))}/>
+                                    </Flex>
+                                    <Separator className="w-full"/>
+                                    <Flex gap='1'>
+                                        Total: <Text className="underline">{calculatePrice() * boardAmount}</Text> Credits
+                                    </Flex>
+
                                     <Grid className="w-full" columns={{ initial: "2" }} gap="2">
                                         <Button variant="outline" className="cursor-pointer" onClick={() => setState("select")}>
                                             Tilbage
                                         </Button>
-                                        <LoadingButton isLoading={false}>
+                                        <LoadingButton disabled={boardAmount <= 0} isLoading={false}>
                                             <Text>Bekræft valg</Text>
                                         </LoadingButton>
                                     </Grid>

@@ -7,6 +7,7 @@ import { BoardPickRequest, BoardPickResponse } from "../../Api";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { GameStatus } from "../../types"; // fix
+import { useNavigate } from "react-router-dom";
 
 const schema: yup.ObjectSchema<BoardPickRequest> = yup
     .object({
@@ -38,6 +39,7 @@ interface ActiveGameProps {
 }
 
 export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardPick, loading}: ActiveGameProps) {
+    const navigate = useNavigate();
     const { showToast } = useToast();
 
     const [boughtBoard, setBoughtBoard] = useState<BoardPickResponse>();
@@ -50,6 +52,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
     const [boardAmount, setBoardAmount] = useState<number>(1);
 
     const handleBackFromPurchase = () => {
+        setValue("amount", 1);
         setBoardAmount(1);
         setBoughtBoard(undefined);
         setSelectedNumbers([]);
@@ -210,7 +213,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
                         <Separator className="w-full"/>
                         <Flex gap='2'>
                             <Text>Antal:</Text>
-                            <TextField.Root {...register("amount", { value: boardAmount, required: true })} type="number" size="1" min='1' placeholder="1" value={boardAmount} onChange={(e) => setBoardAmount(parseToInt(e.target.value))}/>
+                            <TextField.Root {...register("amount", { value: boardAmount, required: true })} type="number" size="1" min='1' placeholder="1"/>
                         </Flex>
 
                         <Separator className="w-full"/>

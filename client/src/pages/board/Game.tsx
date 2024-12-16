@@ -10,7 +10,7 @@ export default function Game() {
     return (
         <Page>
             <Flex direction='column' className=" w-full h-full pl-4 pr-4 md:pl-0 md:pr-0">
-            {boardStatus ? (
+            {boardStatus && (
                 boardStatus.isGameActive ? (
                     <ActiveGame
                         boardStatus={boardStatus}
@@ -24,8 +24,6 @@ export default function Game() {
                         loading={loading}
                     />
                 )
-            ) : (
-                <Text>En fejl skete</Text>
             )}
             </Flex>
         </Page>

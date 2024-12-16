@@ -159,7 +159,7 @@ p {
 	line-height: 1;
 }
 .ListItemLink:focus {
-	box-shadow: 0 0 0 2px var(--red-4);
+	box-shadow: 0 0 0 2px var(--red-2);
 }
 .ListItemLink:hover {
 	background-color: var(--mauve-3);

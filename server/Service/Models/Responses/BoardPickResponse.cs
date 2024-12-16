@@ -6,7 +6,7 @@ namespace Service.Models.Responses;
 public class BoardPickResponse
 {
     [Required]
-    public <List<Board> Board { get; set; }
+    public List<Board> Board { get; set; }
     
     public static BoardPickResponse FromEntity(List<Board> board)
     {

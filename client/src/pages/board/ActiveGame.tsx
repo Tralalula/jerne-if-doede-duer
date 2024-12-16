@@ -234,7 +234,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
                         />
 
                         <Grid className="w-full" columns={{ initial: "2" }} gap="2">
-                            <Button variant="outline" className="transition-colors duration-200 cursor-pointer" onClick={() => setState("select")}>
+                            <Button type="button" variant="outline" className="transition-colors duration-200 cursor-pointer" onClick={() => setState("select")}>
                                 Tilbage
                             </Button>
                             <LoadingButton type="submit" disabled={boardAmount <= 0} isLoading={isPlacingBoardPick}>
@@ -270,10 +270,9 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
                                 Credits trukket ialt: {boughtBoard.total}
                             </Text>
 
-                            <Button variant="outline" className="transition-colors duration-200 cursor-pointer w-full" onClick={() => handleBackFromPurchase()}>
+                            <Button type="button" variant="outline" className="transition-colors duration-200 cursor-pointer w-full" onClick={() => handleBackFromPurchase()}>
                                 Tilbage
                             </Button>
-
                         </>
                     }
                     </Flex>

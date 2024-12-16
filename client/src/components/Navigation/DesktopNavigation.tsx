@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tab } from "./types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightFromBracket, faBank, faCaretDown, faGamepad, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket, faBan, faBank, faCaretDown, faGamepad, faGear, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ListItem } from "./ListItem";
 import { CaretDownIcon } from "@radix-ui/react-icons";
@@ -118,14 +118,14 @@ const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
                 </NavigationMenu.Trigger>
                 <NavigationMenu.Content className="NavigationMenuContent">
                     <ul className="List three">
-                        <ListItem href="https://stitches.dev/" title="Indstillinger">
+                        <ListItem href="https://stitches.dev/" title="Indstillinger" icon={faGear}>
                             Mail, kode mm.
                         </ListItem>
-                        <ListItem href="/colors" title="Transaktion">
-                            Se dine tidligere bræt.
+                        <ListItem href="/colors" title="Transaktion" icon={faBank}>
+                            Opret en ny betaling.
                         </ListItem>
-                        <ListItem href="https://icons.radix-ui.com/" title="Logud">
-                            Logger ud af din nuværende konto
+                        <ListItem href="https://icons.radix-ui.com/" title="Log ud" icon={faArrowRightFromBracket}>
+                            Logger ud af din konto.
                         </ListItem>
                     </ul>
                 </NavigationMenu.Content>

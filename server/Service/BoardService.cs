@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Service.Models.Requests;
+using Service.Models.Responses;
 
 namespace Service;
 
 public interface IBoardService
 {
     public Task<Board> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
+    public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
 }
 
 public class BoardService(AppDbContext context, UserManager<User> userManager, TimeProvider timeProvider) : IBoardService
@@ -34,10 +36,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var game = await context.Games
             .Where(game => game.StartTime <= currentTime && currentTime <= game.EndTime)
             .FirstOrDefaultAsync();
-
-        if (game == null)
-            throw new NotFoundException("No active game found at this time.");
-
+        
         return game;
     }
     
@@ -89,6 +88,10 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         ValidateBoard(board.SelectedNumbers);
 
         var game = await GetActiveGameAsync();
+        
+        if (game == null)
+            throw new NotFoundException("No active game found at this time.");
+
         var purchase = board.ToPurchase(timeProvider, totalPrice);
 
         var newBoards = new List<Board>();
@@ -120,5 +123,34 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             }
         }
         return new Board();
+    }
+    
+    public async Task<GameStatusResponse> GetGameStatusAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+        var game = await GetActiveGameAsync();
+        
+        var currentTime = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var status = new GameStatusResponse
+        {
+            GameWeek = game?.FieldCount != null
+                ? game.FieldCount
+                : 0,
+            IsGameActive = game != null 
+                           && !IsWithinRestrictedTime(timeProvider) 
+                           && user.Status == UserStatus.Active,
+            StartTime = game?.StartTime != null
+                ? new DateTimeOffset(game.StartTime).ToUnixTimeSeconds()
+                : null,
+            EndTime = game?.EndTime != null
+                ? new DateTimeOffset(game.EndTime).ToUnixTimeSeconds()
+                : null,
+            TimeLeft = game != null && game.EndTime > currentTime
+                ? (int)(game.EndTime - currentTime).TotalSeconds
+                : 0
+        };
+        
+        return status;
     }
 }

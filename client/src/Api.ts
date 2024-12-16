@@ -288,6 +288,18 @@ export interface BoardPickRequest {
   selectedNumbers: number[];
 }
 
+export interface GameStatusResponse {
+  /** @format int32 */
+  gameWeek: number;
+  isGameActive: boolean;
+  /** @format int64 */
+  startTime: number | null;
+  /** @format int64 */
+  endTime: number | null;
+  /** @format int32 */
+  timeLeft: number;
+}
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
 import axios from "axios";
 
@@ -645,6 +657,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name GetStatus
+     * @request GET:/api/board/status
+     * @secure
+     */
+    getStatus: (params: RequestParams = {}) =>
+      this.request<GameStatusResponse, any>({
+        path: `/api/board/status`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),

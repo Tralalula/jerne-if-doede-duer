@@ -17,4 +17,11 @@ public class BoardController(IBoardService service): ControllerBase
 
         return Ok(await service.PlaceBoardBetAsync(request, userId));
     }
+    
+    [HttpGet("status")]
+    public async Task<ActionResult<GameStatusResponse>> GetStatus()
+    {
+        var userId = User.GetUserId();
+        return Ok(await service.GetGameStatusAsync(userId));
+    }  
 }

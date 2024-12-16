@@ -1,8 +1,17 @@
-import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Text, TextField } from "@radix-ui/themes";
+import { Badge, Box, Button, Card, Container, Flex, Grid, Heading, Separator, Skeleton, Text, TextField } from "@radix-ui/themes";
 import { GameButton, Countdown, Page, ResizablePanel, LoadingButton } from "../components";
 import { Fragment, useEffect, useState } from "react";
+import { boolean } from "yup";
+import { api } from "../http";
+import { useBoard } from "../hooks";
 
 export default function Game() {
+    const {
+        boardStatus,
+        loading,
+        error,
+    } = useBoard();
+
     let [state, setState] = useState<"select" | "confirm">("select");
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
     const maxNumbers = 8;
@@ -10,26 +19,7 @@ export default function Game() {
 
     const [boardAmount, setBoardAmount] = useState<number>(1);
 
-    const [time, setTime] = useState({
-        hours: new Date().getHours(),
-        minutes: new Date().getMinutes(),
-        seconds: new Date().getSeconds(),
-      });
-    
-      useEffect(() => {
-        const interval = setInterval(() => {
-          const now = new Date();
-          setTime({
-            hours: now.getHours(),
-            minutes: now.getMinutes(),
-            seconds: now.getSeconds(),
-          });
-        }, 1000);
-    
-        return () => clearInterval(interval);
-      }, []);
-
-      const toggleNumber = (num: number) => {
+    const toggleNumber = (num: number) => {
         setSelectedNumbers((prev) => {
             if (prev.includes(num)) {
                 return prev.filter((n) => n !== num);
@@ -65,9 +55,11 @@ export default function Game() {
                         <Heading className="transition-all duration-200 text-2xl sm:text-2xl md:text-3xl">
                             Velkommen til denne uges spil!
                         </Heading>
-                        <Text color="gray" className="transition-all duration-200 text-md">
-                            Spillet er igang for uge: 46
-                        </Text>
+                        <Skeleton loading={loading}>
+                            <Text color="gray" className="transition-all duration-200 text-md">
+                                Spillet er igang for uge: {boardStatus?.isGameActive ? 'Ja' : 'nej'} 
+                            </Text>
+                        </Skeleton>
                     </Flex>
                 </Flex>
                 <Flex justify="center" align="center" direction="column" className="w-full h-full py-4 -mt-2 min-h-[50px]">

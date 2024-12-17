@@ -6,11 +6,16 @@ import './ForgotPassword.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faEye, faEyeSlash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
-import { Page } from '../import';
+import { Page, api, useToast } from '../import';
 
 const AnimatedCard = animated(Card);
 
 export default function ForgotPassword() {
+  const [email, setEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
@@ -27,6 +32,8 @@ export default function ForgotPassword() {
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
 
   const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const { showToast } = useToast();
 
   // evt custom logik?
   useEffect(() => {
@@ -68,11 +75,11 @@ export default function ForgotPassword() {
         setCardHeight(contentRef.current.clientHeight);
       }
     });
-  
+
     if (contentRef.current) {
       observer.observe(contentRef.current);
     }
-  
+
     return () => {
       observer.disconnect();
     };
@@ -96,200 +103,255 @@ export default function ForgotPassword() {
     setDirection('next');
     setStep((prev) => prev + 1);
   };
-  
+
   const handlePreviousStep = () => {
     setDirection('prev');
     setStep((prev) => prev - 1);
   };
 
+  const handleRequestCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      await api.auth.initiatePasswordReset({ email });
+      handleNextStep();
+    } catch (error) {
+      showToast("Ups! En fejl skete", "Problemer med at sende koden", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const code = values.join('');
+      await api.auth.verifyResetCode({ email, code });
+      handleNextStep();
+    } catch (error) {
+      showToast("Ups! En fejl skete", "Problemer med at verificere koden", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const code = values.join('');
+      await api.auth.completePasswordReset({
+        email,
+        code,
+        newPassword
+      });
+      navigate('/login');
+    } catch (error) {
+      showToast("Ups! En fejl skete", "Problemer med nulstille adgangskoden", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <Page align="center" justify="center">
-      <Flex justify='center'>
-        <AnimatedCard
-          asChild
-          variant="ghost"
-          className={`${cardHeight !== 0 ? 'transition-all duration-200' : ''} bg-whiteA5 dark:bg-gray1/75 backdrop-blur-md`}
-          style={{
-            boxShadow: 'var(--shadow-5)',
-            height: `${cardHeight + 30}px`,
-            minWidth: '350px',
-            maxWidth: '400px'
-          }}>
-          <div>
-          <Flex gap="3" position="absolute" className='z-10' top="0" right="0" m="3">
-            {step > 1 &&
-            <>
-              <Skeleton loading={isLoading}>
-                <Tooltip content="Tilbage">
-                  <IconButton
-                    tabIndex={step}
-                    variant="ghost"
-                    color="gray"
-                    highContrast
-                    onClick={() => handlePreviousStep()}>
-                    <FontAwesomeIcon icon={faArrowLeft}/>
-                  </IconButton>
-                  </Tooltip>
-              </Skeleton>
-            </>
-            }
-            <Skeleton loading={isLoading}>
-              <Tooltip content="Til forsiden">
-                <IconButton
-                  tabIndex={step}
-                  variant="ghost"
-                  color="gray"
-                  highContrast
-                  onClick={() => navigate("/login")}>
-                  <FontAwesomeIcon icon={faXmark}/>
-                </IconButton>
-              </Tooltip>
-            </Skeleton>
-					</Flex>
-          <form onSubmit={(e) => {
-              e.preventDefault();
-              handleNextStep();
-            }}>
-            {transitions((style, currentStep) => (
-              <animated.div
-                ref={contentRef}
-                className="w-full pr-8 pl-2 pt-2"
-                style={{
-                  ...style,
-                  position: 'absolute'
-                }}>
-                {currentStep === 1 && (
-                  <Box>
-                    <Heading mb="1">
-                      <Skeleton loading={isLoading}>Nulstil din adgangskode</Skeleton>
-                    </Heading>
-                    <Text color="gray" size="2">
-                      <Skeleton loading={isLoading}> 
-                        Indtast email adressen som er associeret med din konto og vi vil sende dig
-                        bekræftelse på email.
-                      </Skeleton>
-                    </Text>
-                    <Flex mt="5" direction="column">
-                      <Text as="label" size="2" weight="medium" mb="2" htmlFor="password">
-                        <Skeleton loading={isLoading}>Email</Skeleton>
-                      </Text>
+      <Page align="center" justify="center">
+        <Flex justify='center'>
+          <AnimatedCard
+              asChild
+              variant="ghost"
+              className={`${cardHeight !== 0 ? 'transition-all duration-200' : ''} bg-whiteA5 dark:bg-gray1/75 backdrop-blur-md`}
+              style={{
+                boxShadow: 'var(--shadow-5)',
+                height: `${cardHeight + 30}px`,
+                minWidth: '350px',
+                maxWidth: '400px'
+              }}>
+            <div>
+              <Flex gap="3" position="absolute" className='z-10' top="0" right="0" m="3">
+                {step > 1 &&
+                    <>
                       <Skeleton loading={isLoading}>
-                        <TextField.Root
-                          id="password"
-                          variant="soft"
-                          type="email"
-                          color="gray"
-                          placeholder="Din email adresse"/>
+                        <Tooltip content="Tilbage">
+                          <IconButton
+                              tabIndex={step}
+                              variant="ghost"
+                              color="gray"
+                              highContrast
+                              onClick={() => handlePreviousStep()}>
+                            <FontAwesomeIcon icon={faArrowLeft}/>
+                          </IconButton>
+                        </Tooltip>
                       </Skeleton>
-                      <Flex mt="1rem" width="100%" justify="center" gap="3">
-                        <Skeleton loading={isLoading}>
-                          <Button
-                            className="w-full cursor-pointer"
-                            variant="solid"
-                            type="submit">
-                            Send kode
-                          </Button>
-                        </Skeleton>
-                      </Flex>
-                    </Flex>
-                  </Box>
-                )}
-
-                {currentStep === 2 && (
-                  <Box>
-                    <Heading mb='1'>Kode afsendt!</Heading>
-                      <Text color="gray" size="2">
-                        Skriv den 6 cifret kode som du har modtaget på den angivet email adresse!
-                      </Text>
-                    <Flex mt="5" direction="row" gap="2" justify="center">
-                      {values.map((value, index) => (
-                        <TextField.Root
-                          key={index}
-                          className='email-code-txt text-center border dark:border-gray5'
-                          variant="soft"
-                          color='gray'
-                          size="3"
-                          style={{
-                            width: "50px"
-                          }}
-                          ref={(el) => (inputRefs.current[index] = el)}
-                          value={value}
-                          onChange={(e) => handleChange(index, e.target.value)}
-                          onKeyDown={(e) => handleKeyDown(index, e)}
-                          maxLength={1}
-                          inputMode="numeric"
-                          type="text">
-                      </TextField.Root>
-                      ))}
-                  </Flex>
-                    <Flex justify="end" mt="4">
-                      <Button
-                          className="w-full cursor-pointer transition-colors duration-200"
-                          variant="solid"
-                          type="submit"
-                          disabled={!values.every((value) => value.trim() !== "")}>
-                            Bekræft
-                        </Button>
-                    </Flex>
-                  </Box>
-                )}
-
-                {currentStep === 3 && (
-                  <Box>
-                    <Heading mb='1'>Du er der næsten!</Heading>
-                      <Text color="gray" size="2">
-                        Opret en ny adgangskode, sørg for at du kan huske den.
-                      </Text>
-                    <Flex mt="5" direction="column">
-                      <TextField.Root
-                        id="new-password"
-                        type={showNewPassword ? "text" : "password"}
-                        placeholder="Ny adgangskode"
-                        variant="soft"
+                    </>
+                }
+                <Skeleton loading={isLoading}>
+                  <Tooltip content="Til forsiden">
+                    <IconButton
+                        tabIndex={step}
+                        variant="ghost"
                         color="gray"
-                        className="mt-2">
-                        <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
-                          <TextField.Slot side='right'>
-                            <IconButton type="button" size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
-                              <FontAwesomeIcon width={16} icon={showNewPassword ? faEyeSlash : faEye}/>
-                            </IconButton>
-                          </TextField.Slot>
-                        </Tooltip>
-                      </TextField.Root>
-                      <TextField.Root
-                        id="confirm-password"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Bekræft ny adgangskode"
-                        variant="soft"
-                        color="gray"
-                        className="mt-2">
-                        <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
-                          <TextField.Slot side='right'>
-                            <IconButton type="button" size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                              <FontAwesomeIcon width={16} icon={showConfirmPassword ? faEyeSlash : faEye}/>
-                            </IconButton>
-                          </TextField.Slot>
-                        </Tooltip>
-                      </TextField.Root>
-                    </Flex>
-                    <Flex justify="end" mt="4">
-                      <Button
-                          className="w-full cursor-pointer"
-                          variant="solid"
-                          type="submit">
-                            Bekræft
-                        </Button>
-                    </Flex>
-                  </Box>
-                )}
-              </animated.div>
-            ))}
-            </form>
-          </div>
-        </AnimatedCard>
-      </Flex>
-    </Page>
+                        highContrast
+                        onClick={() => navigate("/login")}>
+                      <FontAwesomeIcon icon={faXmark}/>
+                    </IconButton>
+                  </Tooltip>
+                </Skeleton>
+              </Flex>
+              <form onSubmit={(e) => {
+                if (step === 1) handleRequestCode(e);
+                else if (step === 2) handleVerifyCode(e);
+                else if (step === 3) handleResetPassword(e);
+              }}>
+                {transitions((style, currentStep) => (
+                    <animated.div
+                        ref={contentRef}
+                        className="w-full pr-8 pl-2 pt-2"
+                        style={{
+                          ...style,
+                          position: 'absolute'
+                        }}>
+                      {currentStep === 1 && (
+                          <Box>
+                            <Heading mb="1">
+                              <Skeleton loading={isLoading}>Nulstil din adgangskode</Skeleton>
+                            </Heading>
+                            <Text color="gray" size="2">
+                              <Skeleton loading={isLoading}>
+                                Indtast email adressen som er associeret med din konto og vi vil sende dig
+                                bekræftelse på email.
+                              </Skeleton>
+                            </Text>
+                            <Flex mt="5" direction="column">
+                              <Text as="label" size="2" weight="medium" mb="2" htmlFor="password">
+                                <Skeleton loading={isLoading}>Email</Skeleton>
+                              </Text>
+                              <Skeleton loading={isLoading}>
+                                <TextField.Root
+                                    id="password"
+                                    variant="soft"
+                                    type="email"
+                                    color="gray"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Din email adresse"/>
+                              </Skeleton>
+                              <Flex mt="1rem" width="100%" justify="center" gap="3">
+                                <Skeleton loading={isLoading}>
+                                  <Button
+                                      className="w-full cursor-pointer"
+                                      variant="solid"
+                                      type="submit"
+                                      disabled={isSubmitting}>
+                                    {isSubmitting ? 'Sender...' : 'Send kode'}
+                                  </Button>
+                                </Skeleton>
+                              </Flex>
+                            </Flex>
+                          </Box>
+                      )}
+
+                      {currentStep === 2 && (
+                          <Box>
+                            <Heading mb='1'>Kode afsendt!</Heading>
+                            <Text color="gray" size="2">
+                              Skriv den 6 cifret kode som du har modtaget på den angivet email adresse!
+                            </Text>
+                            <Flex mt="5" direction="row" gap="2" justify="center">
+                              {values.map((value, index) => (
+                                  <TextField.Root
+                                      key={index}
+                                      className='email-code-txt text-center border dark:border-gray5'
+                                      variant="soft"
+                                      color='gray'
+                                      size="3"
+                                      style={{
+                                        width: "50px"
+                                      }}
+                                      ref={(el) => (inputRefs.current[index] = el)}
+                                      value={value}
+                                      onChange={(e) => handleChange(index, e.target.value)}
+                                      onKeyDown={(e) => handleKeyDown(index, e)}
+                                      maxLength={1}
+                                      inputMode="numeric"
+                                      type="text">
+                                  </TextField.Root>
+                              ))}
+                            </Flex>
+                            <Flex justify="end" mt="4">
+                              <Button
+                                  className="w-full cursor-pointer transition-colors duration-200"
+                                  variant="solid"
+                                  type="submit"
+                                  disabled={!values.every((value) => value.trim() !== "")}>
+                                Bekræft
+                              </Button>
+                            </Flex>
+                          </Box>
+                      )}
+
+                      {currentStep === 3 && (
+                          <Box>
+                            <Heading mb='1'>Du er der næsten!</Heading>
+                            <Text color="gray" size="2">
+                              Opret en ny adgangskode, sørg for at du kan huske den.
+                            </Text>
+                            <Flex mt="5" direction="column">
+                              <TextField.Root
+                                  id="new-password"
+                                  type={showNewPassword ? "text" : "password"}
+                                  value={newPassword}
+                                  onChange={(e) => setNewPassword(e.target.value)}
+                                  placeholder="Ny adgangskode"
+                                  variant="soft"
+                                  color="gray"
+                                  className="mt-2">
+                                <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
+                                  <TextField.Slot side='right'>
+                                    <IconButton type="button" size="1" variant="ghost" onClick={() => setShowNewPassword(!showNewPassword)}>
+                                      <FontAwesomeIcon width={16} icon={showNewPassword ? faEyeSlash : faEye}/>
+                                    </IconButton>
+                                  </TextField.Slot>
+                                </Tooltip>
+                              </TextField.Root>
+                              <TextField.Root
+                                  id="confirm-password"
+                                  type={showConfirmPassword ? "text" : "password"}
+                                  value={confirmPassword}
+                                  onChange={(e) => setConfirmPassword(e.target.value)}
+                                  placeholder="Bekræft ny adgangskode"
+                                  variant="soft"
+                                  color="gray"
+                                  className="mt-2">
+                                <Tooltip content={`${showConfirmPassword ? 'Skjul adgangskode' : 'Vis adgangskode'}`}>
+                                  <TextField.Slot side='right'>
+                                    <IconButton type="button" size="1" variant="ghost" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                      <FontAwesomeIcon width={16} icon={showConfirmPassword ? faEyeSlash : faEye}/>
+                                    </IconButton>
+                                  </TextField.Slot>
+                                </Tooltip>
+                              </TextField.Root>
+                            </Flex>
+                            <Flex justify="end" mt="4">
+                              <Button
+                                  className="w-full cursor-pointer"
+                                  variant="solid"
+                                  type="submit">
+                                Bekræft
+                              </Button>
+                            </Flex>
+                          </Box>
+                      )}
+                    </animated.div>
+                ))}
+              </form>
+            </div>
+          </AnimatedCard>
+        </Flex>
+      </Page>
   );
 }

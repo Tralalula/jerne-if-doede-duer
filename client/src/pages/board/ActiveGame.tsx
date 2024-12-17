@@ -7,7 +7,6 @@ import { BoardPickRequest, BoardPickResponse } from "../../Api";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { GameStatus } from "../../types"; // fix
-import { useNavigate } from "react-router-dom";
 
 const schema: yup.ObjectSchema<BoardPickRequest> = yup
     .object({
@@ -39,7 +38,6 @@ interface ActiveGameProps {
 }
 
 export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardPick, loading}: ActiveGameProps) {
-    const navigate = useNavigate();
     const { showToast } = useToast();
 
     const [boughtBoard, setBoughtBoard] = useState<BoardPickResponse>();
@@ -85,9 +83,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
         return isNaN(parsedValue) ? 1 : parsedValue;
     };
 
-    const onSubmit: SubmitHandler<BoardPickRequest> = async (data) => {
-        console.log("Form Data Submitted:", data);
-    
+    const onSubmit: SubmitHandler<BoardPickRequest> = async (data) => {    
         try {
             const boards = await placeBoardPick(data);
             showToast("Bræt registreret", "Dit bræt blev købt!", "success");

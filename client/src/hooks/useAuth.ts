@@ -50,6 +50,7 @@ export const useAuth = (): AuthHook => {
     const login = async (loginRequest: LoginRequest) => {
         const response = await api.auth.login(loginRequest);
         const token = response.data.accessToken;
+        tokenStorage.setItem(TOKEN_KEY, token);
         setJwt(token);
 
         const userResponse = await api.auth.userInfo({

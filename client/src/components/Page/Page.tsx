@@ -17,11 +17,10 @@ export default function Page({ children, background = true, align = "start", jus
   return (
     <Flex className={clsx(
       className,
-      "h-[calc(100vh-var(--navbar-height)*2.95)] md:h-[100vh]"
+        "h-[calc(100vh-var(--navbar-height)*2.95)] md:min-h-[100vh] overflow-y-auto pb-20 md:overflow-y-visible"
     )} 
       align={align} justify={justify}
-      style={{ paddingTop: "var(--navbar-height)" }}
-      width="100vw">
+      style={{ paddingTop: "var(--navbar-height)" }}>
       {background && <Background />}
       {children}
     </Flex>

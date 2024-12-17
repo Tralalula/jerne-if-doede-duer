@@ -19,6 +19,11 @@ public class MakeAllPropertiesRequiredProcessor : IDocumentProcessor
         {
             foreach (var property in schema.Properties)
             {
+                if (property.Key.Equals("phoneNumber", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                
                 schema.RequiredProperties.Add(property.Key);
             }
         }
@@ -30,7 +35,7 @@ public class ExampleSchemaProcessor : ISchemaProcessor
     private readonly Dictionary<Type, object> _examples = new()
     {
         { typeof(LoginRequest), new { email = "admin@example.com", password = "Kakao1234!" } },
-        { typeof(RegisterRequest), new { email = "børge@example.com", password = "SecurePass123!" } },
+        { typeof(RegisterRequest), new { email = "børge@example.com", firstName = "Børge", lastName = "Steensen", phoneNumber = "12345678"  } },
         { typeof(BoardPickRequest), new { amount = 1, selectedNumbers = new List<int> { 1, 2, 3, 4, 5 } } }
     };
 

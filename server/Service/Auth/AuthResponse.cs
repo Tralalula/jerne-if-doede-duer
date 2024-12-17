@@ -2,7 +2,7 @@
 
 public record LoginResponse(string AccessToken);
 
-public record RegisterResponse(string Email);
+public record RegisterResponse(Guid Id, string Email, string FullName);
 
 public record UserInfoResponse(string Email, bool IsAdmin);
 

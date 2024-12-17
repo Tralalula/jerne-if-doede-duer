@@ -105,4 +105,44 @@ public class AuthController(IAuthService authService, IDeviceService deviceServi
         await deviceService.RevokeDeviceAsync(userId, deviceId);
         return Ok();
     }
+    
+    [HttpPut("profile")]
+    public async Task<ActionResult<UserInfoResponse>> UpdateProfile([FromServices] IValidator<UpdateProfileRequest> validator, 
+                                                                    [FromBody] UpdateProfileRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var userId = User.GetUserId();
+        return Ok(await authService.UpdateProfileAsync(userId, request));
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromServices] IValidator<ChangePasswordRequest> validator, 
+                                                    [FromBody] ChangePasswordRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var userId = User.GetUserId();
+        await authService.ChangePasswordAsync(userId, request);
+        return Ok();
+    }
+    
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [HttpPost("change-email")]
+    public async Task<IActionResult> InitiateEmailChange([FromServices] IValidator<ChangeEmailRequest> validator, 
+                                                         [FromBody] ChangeEmailRequest request)
+    {
+        await validator.ValidateAndThrowAsync(request);
+        var userId = User.GetUserId();
+        await authService.InitiateEmailChangeAsync(userId, request);
+        return Ok();
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("verify-email-change")]
+    public async Task<IActionResult> VerifyEmailChange([FromServices] IValidator<VerifyEmailChangeQuery> validator,
+                                                       [FromQuery] VerifyEmailChangeQuery query)
+    {
+        await validator.ValidateAndThrowAsync(query);
+        var success = await authService.ConfirmEmailChangeAsync(query.OldEmail, query.NewEmail, query.Token);
+        return success ? Ok("Email changed successfully!") : BadRequest("Email change confirmation failed.");
+    }
 }

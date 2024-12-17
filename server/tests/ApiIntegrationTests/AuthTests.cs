@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using ApiIntegrationTests.Auth;
 using ApiIntegrationTests.Common;
 using Generated;
 using Microsoft.AspNetCore.Http;
@@ -17,8 +16,8 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
 #pragma warning restore CS9113
 {
     // Kommer i forbindelse med Identity
-    private const string RfcUnauthorized = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
-    private const string RfcForbidden = "https://tools.ietf.org/html/rfc9110#section-15.5.4";
+    public static readonly string RfcUnauthorized = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly string RfcForbidden = "https://tools.ietf.org/html/rfc9110#section-15.5.4";
     
     #region Checks
     private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login(LoginRequest user)
@@ -586,6 +585,56 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             () => client.RefreshAsync(),
             StatusCodes.Status401Unauthorized,
             nameof(UnauthorizedException)
+        );
+    }
+    
+    [Fact]
+    public async Task Update_Profile_Happy_And_Sad_Paths()
+    {
+        // Login som player 
+        var (accessToken, cookieHeaders, authClient) = await Check_Login(AuthTestHelper.Users.Player);
+        SetAccessToken(accessToken);
+
+        // Opdater profil
+        var updateRequest = new UpdateProfileRequest
+        {
+            FirstName = "PlayerNewFirst",
+            LastName = "PlayerNewLast",
+            PhoneNumber = "+11234567890"
+        };
+
+        var updateProfileResponse = await authClient.UpdateProfileAsync(updateRequest);
+        Assert.Equal(StatusCodes.Status200OK, updateProfileResponse.StatusCode);
+        
+        var updatedUserInfo = updateProfileResponse.Result;
+        Assert.NotNull(updatedUserInfo);
+        Assert.Equal(AuthTestHelper.Users.Player.Email, updatedUserInfo.Email);
+        Assert.False(updatedUserInfo.IsAdmin, "Player should not be admin");
+
+        // Opdater med ugyldig info 
+        var invalidUpdateRequest = new UpdateProfileRequest
+        {
+            FirstName = "", // må ikke være tom 
+            LastName = "Last",
+            PhoneNumber = "invalid-phone"
+        };
+
+        await WebAssert.ThrowsValidationAsync(
+            () => authClient.UpdateProfileAsync(invalidUpdateRequest)
+        );
+
+        // Opdater uden at være logget ind 
+        var anonymousClient = new AuthClient(CreateNewClient()); 
+        await WebAssert.ThrowsProblemAsync<ApiException>(
+            () => anonymousClient.UpdateProfileAsync(updateRequest),
+            StatusCodes.Status401Unauthorized, RfcUnauthorized 
+        );
+
+        // Opdater med ugyldig token
+        SetAccessToken("invalid.token.here");
+        await WebAssert.ThrowsProblemAsync<ApiException>(
+            () => authClient.UpdateProfileAsync(updateRequest),
+            StatusCodes.Status401Unauthorized, RfcUnauthorized
         );
     }
 }

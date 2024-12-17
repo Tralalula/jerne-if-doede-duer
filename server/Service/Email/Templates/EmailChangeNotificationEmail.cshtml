@@ -1,0 +1,51 @@
+﻿@model SharedDependencies.Email.EmailChangeNotificationEmailModel
+
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Emailadresse ændret</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 20px 0; text-align: center; background-color: #ffffff;">
+                <h1 style="color: #333333; margin: 0; font-size: 28px;">Jerne IF døde duer</h1>
+            </td>
+        </tr>
+    </table>
+
+    <table role="presentation" style="width: 100%; max-width: 600px; margin: 20px auto 0; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <tr>
+            <td style="padding: 40px;">
+                <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">Emailadresse ændret</h2>
+                
+                <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                    Din emailadresse tilknyttet Jerne IF døde duer-kontoen er blevet ændret fra <strong>@Model.OldEmail</strong> til <strong>@Model.NewEmail</strong>.
+                </p>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; padding: 15px; margin: 20px 0;">
+                    <p style="color: #856404; font-size: 14px; line-height: 1.5; margin: 0;">
+                        Hvis du ikke selv har foretaget denne ændring, bedes du straks kontakte vores support.
+                    </p>
+                </div>
+
+                <p style="color: #999999; font-size: 14px; line-height: 1.5; margin: 0;">
+                    Tak fordi du bruger Jerne IF døde duer.
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto;">
+        <tr>
+            <td style="padding: 20px; text-align: center;">
+                <p style="color: #999999; font-size: 14px; margin: 0;">
+                    © 2024 Jerne IF døde duer. Alle rettigheder forbeholdes.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -8,8 +8,10 @@ namespace Service.Email;
 
 public interface IEmailService
 {
-    Task SendVerificationEmailAsync(string email, string verificationLink);
+    Task SendWelcomeEmailAsync(string email, string verificationLink, string password);
     Task SendPasswordResetCodeAsync(string email, string code, TimeSpan expiresIn);
+    Task SendEmailChangeVerificationAsync(string oldEmail, string newEmail, string verificationLink);
+    Task SendEmailChangeNotificationAsync(string oldEmail, string newEmail);
 }
 
 public class EmailService : IEmailService
@@ -18,13 +20,17 @@ public class EmailService : IEmailService
     private readonly ILogger<EmailService> _logger;
     private readonly RazorLightEngine _razorEngine;
     
-    private const string VerificationEmailTemplate = "VerificationEmail.cshtml";
+    private const string VerificationEmailTemplate = "WelcomeEmail.cshtml";
     private const string PasswordResetEmailTemplate = "PasswordResetEmail.cshtml";
+    private const string EmailChangeVerificationTemplate = "EmailChangeVerificationEmail.cshtml";
+    private const string EmailChangeNotificationTemplate = "EmailChangeNotificationEmail.cshtml";
     
     // Tags er vigtig - en mail kan ikke sendes uden en såkaldt kategori
     private const string VerificationTag = "verification";
     private const string PasswordResetTag = "password-reset";
-    
+    private const string EmailChangeVerificationTag = "email-change-verification";
+    private const string EmailChangeNotificationTag = "email-change-notification";
+
     public EmailService(IFluentEmail fluentEmail, ILogger<EmailService> logger)
     {
         _fluentEmail = fluentEmail;
@@ -60,11 +66,11 @@ public class EmailService : IEmailService
         return templatePath;
     }
 
-    public async Task SendVerificationEmailAsync(string email, string verificationLink)
+    public async Task SendWelcomeEmailAsync(string email, string verificationLink, string password)
     {
         try
         {
-            var template = await _razorEngine.CompileRenderAsync(VerificationEmailTemplate, new VerificationEmailModel(verificationLink));
+            var template = await _razorEngine.CompileRenderAsync(VerificationEmailTemplate, new VerificationEmailModel(verificationLink, password));
             
             await _fluentEmail.To(email)
                              .Subject("Velkommen til Jerne IF døde duer")
@@ -98,6 +104,59 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send password reset code email [TraceId: {TraceId}, Email: {MaskedEmail}]", email.GetUserTraceId(), email.MaskEmail());
+            throw;
+        }
+    }
+
+    public async Task SendEmailChangeVerificationAsync(string oldEmail, string newEmail, string verificationLink)
+    {
+        try
+        {
+            var model = new EmailChangeVerificationEmailModel(oldEmail, newEmail, verificationLink);
+            var template = await _razorEngine.CompileRenderAsync(EmailChangeVerificationTemplate, model);
+            
+            await _fluentEmail.To(newEmail)
+                              .Subject("Bekræft ændring af email")
+                              .Body(template, isHtml: true)
+                              .Tag(EmailChangeVerificationTag)
+                              .SendAsync();
+
+            _logger.LogInformation("Email change verification email sent successfully [TraceId: {TraceId}, OldEmail: {MaskedOldEmail}, NewEmail: {MaskedNewEmail}]", 
+                oldEmail.GetUserTraceId(),
+                oldEmail.MaskEmail(),
+                newEmail.MaskEmail());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email change verification email [TraceId: {TraceId}, OldEmail: {MaskedOldEmail}, NewEmail: {MaskedNewEmail}]",
+                oldEmail.GetUserTraceId(),
+                oldEmail.MaskEmail(),
+                newEmail.MaskEmail());
+            throw;
+        }
+    }
+
+    public async Task SendEmailChangeNotificationAsync(string oldEmail, string newEmail)
+    {
+        try
+        {
+            var model = new EmailChangeNotificationEmailModel(oldEmail, newEmail);
+            var template = await _razorEngine.CompileRenderAsync(EmailChangeNotificationTemplate, model);
+
+            // Notify the old email
+            await _fluentEmail.To(oldEmail)
+                              .Subject("Din email er blevet ændret")
+                              .Body(template, isHtml: true)
+                              .Tag(EmailChangeNotificationTag)
+                              .SendAsync();
+
+            _logger.LogInformation("Email change notification sent successfully [OldEmail: {MaskedOldEmail}, NewEmail: {MaskedNewEmail}]",
+                oldEmail.MaskEmail(), newEmail.MaskEmail());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email change notification [OldEmail: {MaskedOldEmail}, NewEmail: {MaskedNewEmail}]",
+                oldEmail.MaskEmail(), newEmail.MaskEmail());
             throw;
         }
     }

@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Service.Models.Requests;
 using Service.Models.Responses;
-using ApiIntegrationTests.Auth;
 using Generated;
 using GameModel = DataAccess.Models.Game;
 

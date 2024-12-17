@@ -133,9 +133,14 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
             entity.HasKey(e => e.Id).HasName("transactions_pkey");
 
             entity.Property(e => e.Id).HasDefaultValueSql("uuid_generate_v4()");
+            entity.Property(e => e.Status).HasDefaultValueSql("'pending'::character varying");
             entity.Property(e => e.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Transactions).HasConstraintName("transactions_user_id_fkey");
+            entity.HasOne(d => d.ReviewedByUser).WithMany(p => p.TransactionReviewedByUsers)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("transactions_reviewed_by_user_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TransactionUsers).HasConstraintName("transactions_user_id_fkey");
         });
 
         modelBuilder.Entity<UserDevice>(entity =>

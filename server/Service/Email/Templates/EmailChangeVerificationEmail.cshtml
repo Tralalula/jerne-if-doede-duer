@@ -1,11 +1,11 @@
-﻿@model SharedDependencies.Email.VerificationEmailModel
+﻿@model SharedDependencies.Email.EmailChangeVerificationEmailModel
 
 <!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificer din email</title>
+    <title>Bekræft ændring af email</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
     <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -19,19 +19,22 @@
     <table role="presentation" style="width: 100%; max-width: 600px; margin: 20px auto 0; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
         <tr>
             <td style="padding: 40px;">
-                <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">Velkommen!</h2>
+                <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">Bekræft ændring af email</h2>
                 
                 <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
-                    Tak for din tilmelding. For at komme i gang skal du verificere din email adresse.
+                    Du har anmodet om at ændre din emailadresse fra <strong>@Model.OldEmail</strong> til <strong>@Model.NewEmail</strong>.
                 </p>
-
+                
+                <p style="color: #666666; font-size: 16px; line-height: 1.5; margin: 20px 0;">
+                    For at bekræfte denne ændring, klik på knappen nedenfor:
+                </p>
 
                 <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0;">
                     <tr>
                         <td style="text-align: center;">
                             <a href="@Model.VerificationLink" 
                                style="display: inline-block; padding: 14px 30px; background-color: #F23838; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
-                                Verificer email
+                                Bekræft emailændring
                             </a>
                         </td>
                     </tr>
@@ -49,8 +52,7 @@
                 <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
 
                 <p style="color: #999999; font-size: 14px; line-height: 1.5; margin: 0;">
-                    Denne email blev sendt fra Jerne IF døde duer. Hvis du ikke har oprettet denne konto, 
-                    kan du ignorere denne email.
+                    Hvis du ikke har anmodet om en ændring af email, kan du ignorere denne besked eller kontakte support.
                 </p>
             </td>
         </tr>

@@ -21,13 +21,18 @@ export interface LoginRequest {
 }
 
 export interface RegisterResponse {
+  /** @format guid */
+  id: string;
   email: string;
+  fullName: string;
 }
 
-/** @example {"email":"børge@example.com","password":"SecurePass123!"} */
+/** @example {"email":"børge@example.com","firstName":"Børge","lastName":"Steensen","phoneNumber":"12345678"} */
 export interface RegisterRequest {
   email: string;
-  password: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string | null;
 }
 
 export interface UserInfoResponse {
@@ -111,10 +116,22 @@ export type User = IdentityUserOfGuid & {
   balanceHistories?: BalanceHistory[];
   boards?: Board[];
   refreshTokens?: RefreshToken[];
-  transactions?: Transaction[];
+  transactionReviewedByUsers?: Transaction[];
+  transactionUsers?: Transaction[];
   userDevices?: UserDevice[];
   userHistoryAffectedUsers?: UserHistory[];
   userHistoryChangeMadeByUsers?: UserHistory[];
+  fullName?: string;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  firstName?: string;
+  /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  lastName?: string;
   /** @format int32 */
   credits?: number;
   status?: UserStatus;
@@ -222,7 +239,17 @@ export interface Transaction {
    * @minLength 0
    * @maxLength 50
    */
-  mobilepayTransactionNumber: string | null;
+  mobilepayTransactionNumber: string;
+  /**
+   * @minLength 0
+   * @maxLength 20
+   */
+  status: string;
+  /** @format guid */
+  reviewedByUserId: string | null;
+  /** @format date-time */
+  reviewedAt: string | null;
+  reviewedByUser: User | null;
   user: User;
 }
 
@@ -241,7 +268,7 @@ export interface UserHistory {
    */
   email: string;
   passwordHash: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   /**
    * @minLength 0
    * @maxLength 50
@@ -267,7 +294,7 @@ export interface IdentityUserOfGuid {
   passwordHash: string | null;
   securityStamp: string | null;
   concurrencyStamp: string | null;
-  phoneNumber: string | null;
+  phoneNumber?: string | null;
   phoneNumberConfirmed: boolean;
   twoFactorEnabled: boolean;
   /** @format date-time */
@@ -275,6 +302,63 @@ export interface IdentityUserOfGuid {
   lockoutEnabled: boolean;
   /** @format int32 */
   accessFailedCount: number;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string | null;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangeEmailRequest {
+  newEmail: string;
+  password: string;
+}
+
+export interface PagedBalanceHistoryResponse {
+  items: BalanceHistoryEntryResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export interface BalanceHistoryEntryResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format guid */
+  userId: string;
+  /** @format int32 */
+  amount: number;
+  action: BalanceAction;
+}
+
+export enum BalanceAction {
+  UserBought = "UserBought",
+  UserUsed = "UserUsed",
+  AdminAssigned = "AdminAssigned",
+  AdminRevoked = "AdminRevoked",
+  WonPrize = "WonPrize",
+}
+
+export interface PagingInfo {
+  /** @format int32 */
+  totalItems: number;
+  /** @format int32 */
+  itemsPerPage: number;
+  /** @format int32 */
+  currentPage: number;
+  /** @format int32 */
+  totalPages: number;
+}
+
+export enum SortOrder {
+  Asc = "Asc",
+  Desc = "Desc",
 }
 
 export interface BoardPickResponse {
@@ -307,6 +391,99 @@ export interface GameStatusResponse {
   endTime: number | null;
   /** @format int32 */
   timeLeft: number;
+}
+
+export interface BalanceResponse {
+  /** @format int32 */
+  currentBalance: number;
+  /** @format int32 */
+  pendingCredits: number;
+}
+
+export interface TransactionResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+  status: TransactionStatus;
+}
+
+export enum TransactionStatus {
+  Pending = "Pending",
+  Accepted = "Accepted",
+  Denied = "Denied",
+}
+
+export interface CreateTransactionRequest {
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+}
+
+export interface PagedTransactionResponse {
+  items: TransactionDetailsResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export interface TransactionDetailsResponse {
+  /** @format guid */
+  id: string;
+  /** @format date-time */
+  timestamp: string;
+  /** @format int32 */
+  credits: number;
+  mobilePayTransactionNumber: string;
+  status: TransactionStatus;
+  /** @format guid */
+  reviewedByUserId: string | null;
+  /** @format date-time */
+  reviewedAt: string | null;
+}
+
+export enum TransactionOrderBy {
+  Timestamp = "Timestamp",
+  Credits = "Credits",
+  Status = "Status",
+}
+
+export interface UserDetailsResponse {
+  /** @format guid */
+  id: string;
+  email: string;
+  phoneNumber?: string;
+  status: UserStatus;
+  /** @format int32 */
+  credits: number;
+  /** @format date-time */
+  timestamp: string;
+  roles: string[];
+}
+
+export interface PagedUserResponse {
+  items: UserDetailsResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export enum RoleType {
+  Admin = "Admin",
+  Player = "Player",
+}
+
+export enum UserOrderBy {
+  Timestamp = "Timestamp",
+  Email = "Email",
+  Credits = "Credits",
+  Status = "Status",
+}
+
+export interface UpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  email: string | null;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -649,6 +826,183 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         secure: true,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name UpdateProfile
+     * @request PUT:/api/auth/profile
+     * @secure
+     */
+    updateProfile: (data: UpdateProfileRequest, params: RequestParams = {}) =>
+      this.request<UserInfoResponse, any>({
+        path: `/api/auth/profile`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name ChangePassword
+     * @request POST:/api/auth/change-password
+     * @secure
+     */
+    changePassword: (data: ChangePasswordRequest, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/auth/change-password`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name InitiateEmailChange
+     * @request POST:/api/auth/change-email
+     * @secure
+     */
+    initiateEmailChange: (data: ChangeEmailRequest, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/auth/change-email`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name VerifyEmailChange
+     * @request GET:/api/auth/verify-email-change
+     * @secure
+     */
+    verifyEmailChange: (
+      query?: {
+        OldEmail?: string;
+        NewEmail?: string;
+        Token?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<File, any>({
+        path: `/api/auth/verify-email-change`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+  };
+  balancehistory = {
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetMyBalanceHistory
+     * @request GET:/api/balancehistory/my
+     * @secure
+     */
+    getMyBalanceHistory: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/my`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetUserBalanceHistory
+     * @request GET:/api/balancehistory/users/{userId}
+     * @secure
+     */
+    getUserBalanceHistory: (
+      userId: string,
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/users/${userId}`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags BalanceHistory
+     * @name GetAllBalanceHistory
+     * @request GET:/api/balancehistory/all
+     * @secure
+     */
+    getAllBalanceHistory: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Action?: BalanceAction | null;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedBalanceHistoryResponse, any>({
+        path: `/api/balancehistory/all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
   };
   board = {
     /**
@@ -682,6 +1036,252 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<GameStatusResponse, any>({
         path: `/api/board/status`,
         method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  transaction = {
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetBalance
+     * @request GET:/api/transaction/balance
+     * @secure
+     */
+    getBalance: (params: RequestParams = {}) =>
+      this.request<BalanceResponse, any>({
+        path: `/api/transaction/balance`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name CreateTransaction
+     * @request POST:/api/transaction
+     * @secure
+     */
+    createTransaction: (data: CreateTransactionRequest, params: RequestParams = {}) =>
+      this.request<TransactionResponse, any>({
+        path: `/api/transaction`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetMyTransactions
+     * @request GET:/api/transaction/my
+     * @secure
+     */
+    getMyTransactions: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: TransactionStatus | null;
+        OrderBy?: TransactionOrderBy;
+        Sort?: SortOrder;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        /** @format int32 */
+        MinCredits?: number | null;
+        /** @format int32 */
+        MaxCredits?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedTransactionResponse, any>({
+        path: `/api/transaction/my`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name GetAllTransactions
+     * @request GET:/api/transaction/all
+     * @secure
+     */
+    getAllTransactions: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: TransactionStatus | null;
+        OrderBy?: TransactionOrderBy;
+        Sort?: SortOrder;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        /** @format int32 */
+        MinCredits?: number | null;
+        /** @format int32 */
+        MaxCredits?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedTransactionResponse, any>({
+        path: `/api/transaction/all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name AcceptTransaction
+     * @request POST:/api/transaction/{id}/accept
+     * @secure
+     */
+    acceptTransaction: (id: string, params: RequestParams = {}) =>
+      this.request<TransactionDetailsResponse, any>({
+        path: `/api/transaction/${id}/accept`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Transaction
+     * @name DenyTransaction
+     * @request POST:/api/transaction/{id}/deny
+     * @secure
+     */
+    denyTransaction: (id: string, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/transaction/${id}/deny`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+  };
+  user = {
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GetUser
+     * @request GET:/api/user/{id}
+     * @secure
+     */
+    getUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name UpdateUser
+     * @request PUT:/api/user/{id}
+     * @secure
+     */
+    updateUser: (id: string, data: UpdateUserRequest, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GetUsers
+     * @request GET:/api/user
+     * @secure
+     */
+    getUsers: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        Status?: UserStatus | null;
+        Search?: string | null;
+        Role?: RoleType | null;
+        OrderBy?: UserOrderBy;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PagedUserResponse, any>({
+        path: `/api/user`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ActivateUser
+     * @request POST:/api/user/{id}/activate
+     * @secure
+     */
+    activateUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}/activate`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name DeactivateUser
+     * @request POST:/api/user/{id}/deactivate
+     * @secure
+     */
+    deactivateUser: (id: string, params: RequestParams = {}) =>
+      this.request<UserDetailsResponse, any>({
+        path: `/api/user/${id}/deactivate`,
+        method: "POST",
         secure: true,
         format: "json",
         ...params,

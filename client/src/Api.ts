@@ -308,7 +308,7 @@ export interface IdentityUserOfGuid {
 export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
 }
 
 export interface ChangePasswordRequest {

@@ -10,7 +10,7 @@ public record VerifyResetCodeRequest(string Email, string Code);
 
 public record CompletePasswordResetRequest(string Email, string Code, string NewPassword);
 
-public record UpdateProfileRequest(string FirstName, string LastName, string PhoneNumber);
+public record UpdateProfileRequest(string FirstName, string LastName, string? PhoneNumber = null);
 
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 

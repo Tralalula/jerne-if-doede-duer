@@ -113,7 +113,7 @@ public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequ
 
         RuleFor(x => x.PhoneNumber).MaximumLength(20)
                                    .Matches(@"^\+?[0-9\s-]+$")
-                                   .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+                                   .When(x => x != null)
                                    .WithMessage("Invalid phone number format");
     }
 }

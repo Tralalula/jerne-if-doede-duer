@@ -17,6 +17,9 @@ export { default as AdminBalanceHistoryPage } from './balancehistory/AdminBalanc
 export { default as AdminUserBalanceHistoryPage } from './balancehistory/AdminUserBalanceHistoryPage';
 export { default as MyBalanceHistoryPage } from './balancehistory/MyBalanceHistoryPage';
 
+//------- Profile -------//
+export { default as ProfilePage } from './ProfilePage';
+
 //------- Error -------//
 export { default as ForbiddenPage } from "./error/ForbiddenPage";
 export { default as NotFoundPage } from "./error/NotFoundPage";

@@ -27,6 +27,11 @@ export { default as AddCreditsDialog } from './Transaction/AddCreditsDialog';
 export { default as UserListView } from './User/UserListView';
 export { default as RegisterUserDialog } from './User/RegisterUserDialog';
 
+// Profile
+export { default as ChangeEmailForm } from './Profile/forms/ChangeEmailForm';
+export { default as ChangePasswordForm } from './Profile/forms/ChangePasswordForm';
+export { default as UpdateProfileForm } from './Profile/forms/UpdateProfileForm';
+
 // Balancehistory
 export { default as BalanceHistoryListView } from './BalanceHistory/BalanceHistoryListView';
 

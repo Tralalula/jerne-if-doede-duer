@@ -11,4 +11,5 @@ export const AppRoutes = {
     MyBalanceHistory: '/balance-history',
     AdminBalanceHistory: '/admin/balance-history',
     AdminUserBalanceHistory: '/admin/balance-history/:userId',
+    Profile: '/me',
 } as const;

@@ -129,6 +129,8 @@ try {
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IEmailService, EmailService>();
     builder.Services.AddScoped<IDeviceService, DeviceService>();
+    builder.Services.AddScoped<IBoardService, BoardService>();
+
   
     if (builder.Environment.IsProduction())
     { 

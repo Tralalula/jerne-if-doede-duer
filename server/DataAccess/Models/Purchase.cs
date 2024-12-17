@@ -16,9 +16,6 @@ public partial class Purchase
     [Column("timestamp")]
     public DateTime Timestamp { get; set; }
 
-    [Column("fields")]
-    public List<int> Fields { get; set; } = null!;
-
     [Column("price")]
     public int Price { get; set; }
 

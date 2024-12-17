@@ -46,10 +46,9 @@ api.instance.interceptors.request.use((config) => {
     }
 
     const jwt = tokenStorage.getItem(TOKEN_KEY, null);
-    if (jwt && config.url?.startsWith(baseUrl)) {
+    if (jwt) {
         config.headers.Authorization = `Bearer ${jwt}`;
     }
-
     return config;
 });
 

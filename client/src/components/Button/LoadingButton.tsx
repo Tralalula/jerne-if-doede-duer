@@ -11,7 +11,7 @@ interface LoadingButtonProps {
     children: React.ReactNode;
 }
 
-export default function LoadingButton({isLoading, onClick, type = "button", disabled = false, skeleton = false, children,}: LoadingButtonProps) {
+export default function LoadingButton({isLoading, onClick, type = "button", disabled = false, skeleton = false, children }: LoadingButtonProps) {
     const [hasInteracted, setHasInteracted] = useState(false);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {

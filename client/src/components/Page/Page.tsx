@@ -17,7 +17,7 @@ export default function Page({ children, background = true, align = "start", jus
   return (
     <Flex className={clsx(
       className,
-        "h-[calc(100vh-var(--navbar-height)*2.95)] md:min-h-[100vh] overflow-y-auto pb-20 md:overflow-y-visible"
+        "md:min-h-[100vh] overflow-y-auto pb-20 md:overflow-y-visible"
     )} 
       align={align} justify={justify}
       style={{ paddingTop: "var(--navbar-height)" }}>

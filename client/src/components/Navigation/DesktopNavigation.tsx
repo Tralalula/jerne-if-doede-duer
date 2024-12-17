@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tab } from "./types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightFromBracket, faBan, faBank, faCaretDown, faGamepad, faGear, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightFromBracket, faBan, faBank, faCaretDown, faGamepad, faGear, faMoneyBill, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ListItem } from "./ListItem";
 import { CaretDownIcon } from "@radix-ui/react-icons";
@@ -12,6 +12,7 @@ import { Flex, Text } from "@radix-ui/themes";
 import ThemeSwitcher from "./ThemeSwitcher";
 import AnimatedIconButton from "../Button/AnimatedIconButton";
 import { Link } from "react-router-dom";
+import { AppRoutes } from "../import";
 
 interface DesktopNavigationProps {
   tabs: Tab[];
@@ -54,7 +55,7 @@ const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
                         <ListItem href="https://stitches.dev/" title="Autoplay">
                             Rediger i din autoplay konfiguration.
                         </ListItem>
-                        <ListItem href="/colors" title="Historik">
+                        <ListItem href={AppRoutes.AdminUsers} title="Historik">
                             Se dine tidligere bræt.
                         </ListItem>
                         <ListItem href="https://icons.radix-ui.com/" title="Regler">
@@ -73,34 +74,31 @@ const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
 							<ListItem
 								title="Vindersekvens"
 								href="/primitives/docs/overview/introduction"
-                                icon={faGamepad}
-							>
+                                icon={faGamepad}>
 								Find vindere for nuværende uge.
 							</ListItem>
 							<ListItem
 								title="Brugere"
-								href="/primitives/docs/overview/getting-started"
-                                icon={faUser}
-							>
+								href={AppRoutes.AdminUsers}
+                                icon={faUser}>
 								Rediger kontoer eller opret nye.
-							</ListItem>
-							<ListItem title="Transaktioner" 
-                                href="/primitives/docs/guides/styling"
-                                icon={faBank}>
-								Bekræft eller afkræft mobilepay køb.
 							</ListItem>
 							<ListItem
 								title="Spil"
 								href="/primitives/docs/guides/animation"
-                                icon={faBank}
-							>
+                                icon={faBank}>
 								Få en visning af tidligere spil.
 							</ListItem>
+							<ListItem title="Transaktioner" 
+                                href={AppRoutes.AdminTransactions}
+                                icon={faBank}>
+								Bekræft eller afkræft mobilepay køb.
+							</ListItem>
 							<ListItem
-								title="Accessibility"
-								href="/primitives/docs/overview/accessibility"
-							>
-								Tested in a range of browsers and assistive technologies.
+								title="Balance historik"
+								href={AppRoutes.AdminBalanceHistory}
+                                icon={faMoneyBill}>
+								Se brugernes balance historik.
 							</ListItem>
 							<ListItem
 								title="Releases"
@@ -118,13 +116,16 @@ const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
                 </NavigationMenu.Trigger>
                 <NavigationMenu.Content className="NavigationMenuContent">
                     <ul className="List three">
-                        <ListItem href="https://stitches.dev/" title="Indstillinger" icon={faGear}>
+                        <ListItem href={AppRoutes.Profile} title="Indstillinger" icon={faGear}>
                             Mail, kode mm.
                         </ListItem>
-                        <ListItem href="/colors" title="Transaktion" icon={faBank}>
+                        <ListItem href={AppRoutes.MyTransactions} title="Transaktion" icon={faBank}>
                             Opret en ny betaling.
                         </ListItem>
-                        <ListItem href="https://icons.radix-ui.com/" title="Log ud" icon={faArrowRightFromBracket}>
+                        <ListItem href={AppRoutes.MyBalanceHistory} title="Balance historik" icon={faBank}>
+                            Se din balance historik.
+                        </ListItem>
+                        <ListItem href={AppRoutes.AdminTransactions} title="Log ud" icon={faArrowRightFromBracket}>
                             Logger ud af din konto.
                         </ListItem>
                     </ul>

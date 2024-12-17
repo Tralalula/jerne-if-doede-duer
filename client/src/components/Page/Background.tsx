@@ -5,11 +5,12 @@ export default function Background() {
         <Flex align='start' justify='center' className="absolute overflow-hidden inset-0 -z-10 bg-gray11 dark:bg-transparent">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
                 width='2560'
-                preserveAspectRatio="xMidYMid slice"
                 height='1920'
                 viewBox="0 0 2560 1920"
-                className="relative w-full inset-0 opacity-50"
+                className="relative w-full h-full inset-0 opacity-50"
+
                 style={{
                     "--color-background-image-base": "var(--red-2)",
                     "--color-background-image-accent-1": "var(--crimson-a7)",

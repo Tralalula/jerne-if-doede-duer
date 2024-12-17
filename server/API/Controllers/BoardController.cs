@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DataAccess.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -23,5 +25,21 @@ public class BoardController(IBoardService service): ControllerBase
     {
         var userId = User.GetUserId();
         return Ok(await service.GetGameStatusAsync(userId));
+    } 
+    
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("winner-sequence")]
+    public async Task<IActionResult> GetWinningSequence([FromQuery] string numbers)
+    {
+        if (string.IsNullOrEmpty(numbers))
+            return BadRequest("Numbers are required.");
+
+        var selectedNumbers = numbers
+            .Split(',')
+            .Select(n => int.Parse(n))
+            .ToList();
+
+        var adminId = User.GetUserId();
+        return Ok(await service.PickWinningSequence(BoardWinningSequenceRequest.FromNumbers(selectedNumbers), adminId));
     }  
 }

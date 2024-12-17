@@ -12,6 +12,7 @@ public interface IBoardService
 {
     public Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
     public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
+    public Task<BoardWinningSequenceResponse> PickWinningSequence(BoardWinningSequenceRequest request, Guid userId);
 }
 
 public class BoardService(AppDbContext context, UserManager<User> userManager, TimeProvider timeProvider) : IBoardService
@@ -74,6 +75,14 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             daysUntilMonday = 7;
         
         return today.AddDays(daysUntilMonday).AddHours(-today.Hour).AddMinutes(-today.Minute).AddSeconds(-today.Second);
+    }
+    
+    private bool AreNumbersMatching(List<int> boardNumbers, List<int> selectedNumbers)
+    {
+        if (boardNumbers == null || selectedNumbers == null || !boardNumbers.Any())
+            return false;
+
+        return selectedNumbers.All(selectedNumber => boardNumbers.Contains(selectedNumber));
     }
     
     public async Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
@@ -166,4 +175,47 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         
         return status;
     }
+    
+    public async Task<BoardWinningSequenceResponse> PickWinningSequence(BoardWinningSequenceRequest request, Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) 
+                   ?? throw new NotFoundException("User not found");
+        var game = await GetActiveGameAsync();
+        
+        if (game == null)
+            throw new NotFoundException("No active game found at this time.");
+        
+        var matchingBoards = await context.Boards
+            .Where(board => board.GameId == game.Id)
+            .ToListAsync();
+        
+        foreach (var board in matchingBoards)
+            Console.WriteLine(board.Id);
+
+        var matchedBoards = matchingBoards
+            .Where(board => AreNumbersMatching(board.Configuration, request.SelectedNumbers))
+            .ToList();
+
+        var boardResponses = matchedBoards
+            .Select(board => new BoardResponse
+            {
+                BoardId = board.Id,
+                Configuration = board.Configuration.OrderBy(n => n).ToList(),
+                PlacedOn = board.Timestamp,
+                User = user
+            })
+            .ToList();
+        
+        Console.WriteLine(boardResponses.Count);
+
+        if (!boardResponses.Any())
+            throw new BadRequestException("No boards with those numbers found.");
+        
+        var response = new BoardWinningSequenceResponse
+        {
+            Boards = boardResponses
+        };
+
+        return response;
+    }    
 }

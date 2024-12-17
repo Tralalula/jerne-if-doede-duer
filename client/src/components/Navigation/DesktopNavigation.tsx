@@ -73,7 +73,7 @@ const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
 						<ul className="List two">
 							<ListItem
 								title="Vindersekvens"
-								href="/primitives/docs/overview/introduction"
+								href={AppRoutes.PickWinnerSequence}
                                 icon={faGamepad}>
 								Find vindere for nuværende uge.
 							</ListItem>

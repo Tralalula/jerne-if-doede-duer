@@ -31,6 +31,7 @@ public class DbSeeder(
         Debug.Assert(admin != null, nameof(admin) + " != null");
         
         await SeedTransactionsAsync(player.Id, admin.Id);
+        await SeedGameAsync();
     }
     
     private async Task CreateRoles(params string[] roles)
@@ -150,6 +151,21 @@ public class DbSeeder(
         
         await context.Transactions.AddRangeAsync(transactions);
         await context.BalanceHistories.AddRangeAsync(balanceHistories);
+    }
+
+    private async Task SeedGameAsync()
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var testGame = new Game
+        {
+            StartTime = now - TimeSpan.FromDays(1),
+            EndTime = now + TimeSpan.FromDays(1),
+            Id = Guid.NewGuid(),
+            FieldCount = 47
+        };
+        
+        await context.Games.AddAsync(testGame);
         await context.SaveChangesAsync();
     }
 }

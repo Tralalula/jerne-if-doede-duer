@@ -1,8 +1,9 @@
 import { faGamepad, faCircleUser, faGear, faSignOut } from '@fortawesome/free-solid-svg-icons';
-import DesktopNavigation from "./DesktopNavigation";
+import OldDesktopNavigation from "./OldDesktopNavigation";
 import MobileNavigation from "./MobileNavigation";
 import { Tab } from './types';
 import { AccessLevel } from '../import';
+import DesktopNavigation from './DesktopNavigation';
 
 const tabs: Tab[] = [
   { name: "Spil", path: "/game", icon: faGamepad, access: AccessLevel.Protected },

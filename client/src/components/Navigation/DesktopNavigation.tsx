@@ -1,77 +1,145 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tab } from "./types";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import ThemeSwitcher from "./ThemeSwitcher";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import { Flex, IconButton, Tooltip } from "@radix-ui/themes";
+import { faArrowRightFromBracket, faBan, faBank, faCaretDown, faGamepad, faGear, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import { ListItem } from "./ListItem";
+import { CaretDownIcon } from "@radix-ui/react-icons";
+
+import './DesktopNavigation.css'
+import { Flex, Text } from "@radix-ui/themes";
+import ThemeSwitcher from "./ThemeSwitcher";
 import AnimatedIconButton from "../Button/AnimatedIconButton";
-import { useAuthContext } from "../../AuthContext";
-import { canAccess } from "../import";
+import { Link } from "react-router-dom";
 
 interface DesktopNavigationProps {
   tabs: Tab[];
 }
 
-export default function DesktopNavigation({ tabs }: DesktopNavigationProps) {
-  let [activeTab, setActiveTab] = useState(tabs[0].path);
+const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
+  const [activeTab, setActiveTab] = useState(tabs[0].path);
   const navigate = useNavigate();
-  const { logout, user } = useAuthContext();
 
-  const visibleTabs = tabs.filter(tab => canAccess(tab.access, user))
-  
-  const changeTab = (tab: Tab) => {
-    setActiveTab(tab.path);
-    navigate(tab.path);
+  const handleTabChange = (path: string) => {
+    setActiveTab(path);
+    navigate(path);
   };
 
   return (
-    <div style={{height: '60px'}} className="hidden flex-no-wrap fixed top-0 w-full backdrop-blur-md z-30 bg-whiteA5 dark:bg-gray1/90 md:flex py-2 border-b dark:border-b-gray5 desktop-header">
-      <div className="flex items-center justify-between w-full px-4">
-        <div className="flex items-center h-10 w-10">
-          <div
-            className="h-14 w-14 max-w-full cursor-pointer logo bg-contain"
-            onClick={() => navigate("/")}
-          />
-        </div>
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex space-x-1">
-          {visibleTabs.map((tab) => (
-            <button
-              key={tab.name}
-              onClick={() => changeTab(tab)}
-              className={`relative rounded-full px-3 z-10 py-1.5 text-sm font-medium transition duration-300 focus-visible:outline-2 ${
-                activeTab === tab.path
-                  ? "text-white"
-                  : "dark:text-white text-black dark:hover:text-white/60 hover:text-gray-600"
-              }`}
-              style={{
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              {activeTab === tab.path && (
-                <motion.span
-                  layoutId="bubble"
-                  className={`absolute inset-0 z-20 mix-blend-difference ${
-                    activeTab === tab.path ? "dark:bg-white bg-black" : ""
-                  }`}
-                  style={{ borderRadius: 9999 }}
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {tab.name}
-            </button>
-          ))}
-        </div>
-        <Flex className="ml-auto" align='center' gap='2'>
-          <ThemeSwitcher />
-          { user && (
-          <AnimatedIconButton tooltipContent='Log ud' onClick={logout}>
-              <FontAwesomeIcon className="text-gray5 dark:text-gray11" icon={faArrowRightFromBracket}/>
-          </AnimatedIconButton>
-          )}
-        </Flex>
-      </div>
-    </div>
+    <NavigationMenu.Root className="NavigationMenuRoot justify-between bg-whiteA5 dark:bg-gray1/90 py-2 border-b dark:border-b-gray5 fixed hidden md:block">
+      <NavigationMenu.List className="NavigationMenuList w-100">
+        <NavigationMenu.Item>
+                <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
+                    Spil <CaretDownIcon className="CaretDown" aria-hidden />
+                </NavigationMenu.Trigger>
+                <NavigationMenu.Content className="NavigationMenuContent">
+                    <ul className="List one">
+                        <li style={{ gridRow: "span 3" }}>
+                            <NavigationMenu.Link asChild className="group">
+                                <Link className="Callout" to={'game'}>
+                                <svg className="fill-white" xmlns="http://www.w3.org/2000/svg" version="1.1" x="10px" y="0px" viewBox="20 0 200 100">
+                                    <path d="M29.121,51.993c1.435,1.249,2.986,2.372,4.636,3.342c0.418,0.253,0.847,0.489,1.284,0.711  c-0.23,0.002-0.457-0.005-0.69,0.004c-0.599,0.038-1.192,0.089-1.818,0.186c-0.321,0.054-0.627,0.098-1.032,0.237  c-0.133,0.059-0.21,0.077-0.383,0.183c-0.091,0.06-0.18,0.127-0.261,0.199c-0.118,0.109-0.277,0.365-0.33,0.573  c-0.06,0.219-0.023,0.553,0.086,0.787c0.062,0.128,0.052,0.097,0.081,0.153l0.121,0.213c1.344,2.279,3.678,3.614,5.875,4.468  c1.54,0.597,3.145,1.004,4.775,1.214c-0.48,0.193-0.964,0.378-1.463,0.521c-0.302,0.087-0.607,0.164-0.915,0.231l-0.463,0.094  c-0.182,0.07-0.34-0.013-0.699,0.32c-0.094,0.09-0.134,0.285-0.086,0.463c0.041,0.107,0.099,0.18,0.155,0.246  c0.091,0.084,0.185,0.155,0.264,0.199c0.166,0.103,0.322,0.171,0.479,0.242c0.314,0.135,0.626,0.244,0.941,0.347  c1.273,0.419,2.596,0.552,3.894,0.607l3.889,0.072c-2.56-0.315-5.223-0.32-7.565-1.282c-0.293-0.119-0.585-0.245-0.856-0.386  c-0.03-0.016-0.054-0.034-0.084-0.05l0.283-0.037c0.329-0.047,0.658-0.106,0.984-0.175c1.305-0.276,2.58-0.717,3.786-1.315  c0.18-0.09,0.31-0.269,0.326-0.484c0.025-0.325-0.219-0.609-0.544-0.634l-0.045-0.003c-2.214-0.169-4.394-0.793-6.389-1.736  c-1.75-0.802-3.265-1.918-4.336-3.312c0.466-0.067,0.959-0.113,1.452-0.144c1.1-0.041,2.253,0.016,3.376,0.018  c1.128-0.015,2.265,0.079,3.403,0.175l1.126,0.088c0.756,0.088,1.517,0.147,2.277,0.177l0.007,0.001v0  c0.037,0.001,0.074,0.005,0.11,0.006c0.532,0.017,0.993-0.389,1.033-0.924c0.041-0.55-0.372-1.029-0.922-1.069l-2.36-0.184  c-0.987-0.118-1.966-0.299-2.92-0.607c-1.673-0.522-3.318-1.196-4.839-2.119c-1.53-0.9-2.981-1.949-4.329-3.122  c-0.205-0.179-0.406-0.368-0.608-0.553c0.842,0.259,1.693,0.485,2.556,0.65c1.2,0.237,2.416,0.385,3.637,0.446  c1.233,0.06,2.417,0.055,3.716-0.096c0.463-0.054,0.839-0.427,0.878-0.909c0.045-0.549-0.363-1.03-0.912-1.075l-0.059-0.005  c-1.482-0.121-2.954-0.434-4.362-0.998c-1.397-0.587-2.737-1.337-3.994-2.23c-1.237-0.904-2.403-1.918-3.488-3.019  c0.547,0.183,1.095,0.351,1.645,0.501c2.091,0.576,4.173,1.015,6.316,1.36c0.448,0.072,0.903-0.17,1.082-0.608  c0.208-0.51-0.036-1.092-0.546-1.301l-0.076-0.031c-0.742-0.303-1.513-0.543-2.232-0.892c-0.709-0.367-1.446-0.688-2.099-1.148  c-1.37-0.819-2.575-1.882-3.654-3.046c-1.084-1.165-1.99-2.496-2.714-3.918c-0.14-0.271-0.269-0.553-0.396-0.835  c0.633,0.477,1.28,0.925,1.939,1.344c0.89,0.563,1.805,1.071,2.731,1.553c0.933,0.481,1.855,0.928,2.845,1.347  c0.478,0.201,1.04,0.003,1.28-0.466c0.251-0.492,0.056-1.094-0.435-1.345l-0.014-0.007c-1.389-0.71-2.542-1.801-3.328-3.177  c-0.807-1.362-1.268-2.958-1.526-4.59c-0.248-1.625-0.294-3.3-0.198-4.974c0.88,2.437,2.118,4.741,3.635,6.82  c2.531,3.492,5.899,6.51,9.624,8.542c3.685,2.09,7.405,3.92,10.507,6.667c1.553,1.35,2.978,2.874,4.052,4.632  c1.099,1.733,1.766,3.791,1.587,5.897c0.365-2.079-0.127-4.273-1.11-6.163c-0.97-1.911-2.342-3.588-3.843-5.099  c-3.001-3.069-6.749-5.259-10.19-7.552c-1.706-1.18-3.419-2.29-4.944-3.61c-1.507-1.319-2.874-2.861-4.065-4.489  c-2.383-3.268-4.025-7.078-4.538-11.063l-0.002-0.021c-0.053-0.402-0.349-0.747-0.767-0.842c-0.537-0.122-1.071,0.214-1.193,0.751  c-0.412,1.809-0.637,3.561-0.748,5.371c-0.104,1.799-0.06,3.622,0.217,5.439c0.252,1.585,0.697,3.179,1.454,4.664  c-1.651-1.04-3.245-2.238-4.321-3.666l-0.038-0.051c-0.22-0.291-0.592-0.448-0.974-0.376c-0.537,0.102-0.89,0.62-0.788,1.157  c0.351,1.853,0.96,3.461,1.767,5.054c0.803,1.574,1.809,3.052,3.015,4.352c0.694,0.75,1.443,1.453,2.24,2.096  c-0.651-0.203-1.294-0.419-1.915-0.665c-0.922-0.365-1.841-0.819-2.443-1.358l-0.028-0.026c-0.338-0.303-0.851-0.345-1.238-0.073  c-0.451,0.316-0.56,0.938-0.243,1.389c0.99,1.411,2.055,2.636,3.22,3.833c1.164,1.183,2.422,2.279,3.775,3.266  c0.523,0.372,1.068,0.717,1.623,1.046c-0.758-0.18-1.51-0.385-2.24-0.65c-1.068-0.356-2.079-0.847-3.075-1.36l-0.047-0.025  c-0.335-0.172-0.753-0.145-1.068,0.102c-0.432,0.339-0.507,0.964-0.168,1.395C26.369,49.407,27.683,50.728,29.121,51.993z" />
+                                    <path d="M77.043,53.025l-0.027,0c-0.46-0.002-1.355-0.46-1.898-0.967c-0.14-0.127-0.27-0.263-0.353-0.378l-0.314-0.545  c-0.289-0.499-0.637-0.959-1.048-1.36c-0.824-0.795-1.923-1.344-3.111-1.473c-1.201-0.088-2.235,0.172-3.232,0.563  c-1.956,0.835-3.474,2.228-4.737,3.735c-1.276,1.506-2.314,3.176-3.175,4.912c1.088-1.602,2.359-3.07,3.747-4.366  c1.382-1.293,2.974-2.375,4.66-2.886c0.419-0.126,0.849-0.188,1.266-0.234c0.419,0.01,0.854-0.041,1.199,0.056  c0.732,0.158,1.394,0.618,1.952,1.163c0.28,0.275,0.535,0.58,0.741,0.912l0.433,0.698c0.175,0.239,0.357,0.426,0.543,0.602  c-0.76,0.246-1.495,0.62-2.121,1.101c-1.6,1.184-2.538,2.944-3.257,4.489c-0.75,1.559-1.428,3.187-1.998,4.835  c-0.583,1.653-1.003,3.358-1.48,4.947c-0.481,1.593-1.057,3.111-1.94,4.382c-0.871,1.278-2.063,2.27-3.477,2.953  c-1.407,0.693-2.974,1.063-4.599,1.263c-1.616,0.197-3.263,0.211-4.864,0.009c-0.26-0.032-0.54,0.038-0.758,0.217l-6.448,5.285  c-1.06,0.893-2.102,1.775-3.184,2.563c-0.541,0.395-1.091,0.766-1.655,1.105c-0.187,0.113-0.379,0.216-0.569,0.32  c-0.104-0.473-0.28-0.991-0.573-1.451c-0.29-0.46-0.684-0.912-1.254-1.227c-0.147-0.078-0.279-0.145-0.466-0.198  c-0.189-0.045-0.428-0.102-0.586-0.094c-0.35-0.005-0.627,0.048-0.89,0.106c-0.984,0.263-1.742,0.646-2.495,0.941  c-0.376,0.157-0.731,0.276-1.064,0.369c-0.016,0.004-0.03,0.006-0.046,0.01c0.103-0.147,0.213-0.297,0.326-0.444  c0.488-0.632,1.027-1.26,1.576-1.878c1.102-1.235,2.261-2.45,3.428-3.629c0.161-0.163,0.269-0.383,0.287-0.63  c0.041-0.552-0.373-1.032-0.924-1.074l-0.034-0.003l-1.169-0.087c-0.38-0.065-0.767-0.108-1.142-0.188  c-0.744-0.172-1.479-0.381-2.146-0.708c-0.641-0.309-1.234-0.695-1.744-1.16c1.034,0.136,2.072,0.222,3.118,0.14  c1.851-0.074,3.678-0.413,5.447-0.877c1.773-0.462,3.476-1.143,5.089-1.963c1.612-0.821,3.129-1.828,4.462-3.021  c-1.477,1.009-3.102,1.753-4.749,2.374c-1.651,0.612-3.352,1.073-5.078,1.314c-1.722,0.243-3.457,0.362-5.175,0.23  c-0.859-0.03-1.711-0.118-2.569-0.156c-0.857-0.056-1.7-0.247-2.552-0.361l-0.111-0.015c-0.157-0.021-0.322-0.003-0.48,0.059  c-0.5,0.196-0.747,0.76-0.551,1.26c0.229,0.586,0.466,0.939,0.757,1.351c0.284,0.392,0.608,0.746,0.955,1.07  c0.693,0.65,1.49,1.161,2.323,1.561c0.834,0.406,1.713,0.658,2.592,0.859c0.18,0.038,0.36,0.067,0.54,0.096  c-0.699,0.731-1.39,1.469-2.069,2.229c-0.569,0.641-1.129,1.29-1.669,1.991c-0.27,0.357-0.534,0.712-0.792,1.161  c-0.065,0.128-0.128,0.23-0.193,0.398c-0.031,0.074-0.063,0.149-0.093,0.275l-0.039,0.17c-0.012,0.065-0.017,0.188-0.014,0.28  c0.007,0.103-0.001,0.174,0.069,0.365c0.047,0.146,0.187,0.359,0.233,0.398c0.076,0.074,0.157,0.145,0.241,0.214  c0.165,0.149,0.345,0.245,0.537,0.309c0.77,0.268,1.358,0.125,1.846,0.02c0.478-0.13,0.921-0.287,1.322-0.453  c0.809-0.326,1.575-0.685,2.221-0.853c0.149-0.031,0.286-0.053,0.359-0.05c0.053-0.007,0.018,0.016,0.036,0  c0.017-0.003,0.077,0.026,0.114,0.047c0.171,0.091,0.364,0.283,0.518,0.533c0.153,0.24,0.252,0.514,0.325,0.852l0.026,0.127  l0.011,0.078l0.02,0.278c0.03,0.232,0.001,0.521,0.246,1.024l0.011,0.023c0.208,0.424,0.709,0.627,1.159,0.455  c0.482-0.184,0.79-0.346,1.113-0.513c0.325-0.171,0.645-0.35,0.957-0.539c0.625-0.376,1.225-0.781,1.804-1.204  c1.159-0.845,2.236-1.759,3.296-2.651l6.106-5.005c1.643,0.17,3.289,0.148,4.917-0.049c1.76-0.216,3.568-0.631,5.235-1.452  c1.666-0.796,3.19-2.058,4.242-3.611c1.07-1.545,1.704-3.274,2.21-4.942c0.504-1.683,0.901-3.301,1.456-4.872  c0.547-1.581,1.184-3.113,1.915-4.633c0.711-1.528,1.472-2.878,2.656-3.75c1.15-0.906,2.59-1.143,4.242-1.127l0.032,0  c0.552-0.001,0.999-0.45,0.998-1.003C78.044,53.471,77.595,53.024,77.043,53.025z M29.562,86.052L29.562,86.052  C29.556,86.066,29.558,86.062,29.562,86.052z" />
+                                    <path d="M47.121,34.013c0.308,0.868,0.745,1.69,1.258,2.44c0.517,0.754,1.185,1.381,1.872,1.935c-0.569-0.684-1.076-1.4-1.416-2.199  c-0.346-0.79-0.627-1.598-0.771-2.441c-0.14-0.768-0.203-1.546-0.209-2.321c0.354,0.347,0.714,0.676,1.09,0.969  c0.543,0.428,1.1,0.822,1.673,1.183c0.578,0.365,1.142,0.697,1.774,1.022c0.333,0.17,0.749,0.146,1.064-0.097  c0.436-0.336,0.517-0.962,0.181-1.398l-0.033-0.043c-0.591-0.768-1.158-1.565-1.547-2.47c-0.403-0.893-0.732-1.83-0.927-2.81  c-0.144-0.678-0.23-1.371-0.289-2.068c0.297,0.343,0.593,0.686,0.912,0.996c0.439,0.425,0.869,0.813,1.37,1.211  c0.231,0.182,0.544,0.263,0.851,0.189c0.534-0.128,0.864-0.665,0.736-1.199l-0.015-0.061c-0.154-0.641-0.329-1.279-0.469-1.922  c-0.087-0.649-0.244-1.294-0.278-1.945c-0.137-1.302-0.084-2.605,0.075-3.886c0.207-1.273,0.56-2.518,1.095-3.68  c0.038-0.083,0.085-0.165,0.125-0.248c0.113,1.983,0.618,3.931,1.365,5.709c0.614,1.475,1.343,2.846,2.226,4.188  c0.881,1.314,1.849,2.498,2.698,3.699c0.87,1.198,1.537,2.413,2.044,3.766c0.261,0.67,0.417,1.375,0.638,2.065  c0.221,0.691,0.444,1.391,0.607,2.11c0.689,2.873,0.936,5.903,0.964,8.951c0.611-2.986,0.931-6.077,0.679-9.208  c-0.055-0.783-0.153-1.568-0.296-2.35c-0.15-0.782-0.447-1.527-0.721-2.277c-0.553-1.493-1.363-2.957-2.282-4.213  c-0.904-1.276-1.86-2.447-2.668-3.656c-0.787-1.191-1.492-2.513-2.041-3.84c-1.114-2.66-1.593-5.568-0.959-8.296l0.012-0.052  c0.071-0.316-0.015-0.659-0.259-0.907c-0.381-0.388-1.005-0.393-1.393-0.012c-1.174,1.155-1.915,2.374-2.556,3.731  c-0.62,1.344-1.025,2.774-1.258,4.224c-0.185,1.454-0.239,2.923-0.089,4.367c0.018,0.315,0.065,0.625,0.114,0.934  c-0.332-0.404-0.617-0.828-0.824-1.245c-0.209-0.414-0.326-0.83-0.3-1.121l0.002-0.024c0.045-0.519-0.32-0.991-0.842-1.072  c-0.545-0.085-1.056,0.289-1.141,0.834c-0.005,0.034-0.005,0.064-0.01,0.097l-0.003,0c-0.001,0.008,0.001,0.015,0,0.023  c-0.167,1.134-0.209,2.178-0.182,3.269c0.035,1.118,0.168,2.236,0.402,3.339c0.161,0.803,0.404,1.594,0.705,2.366  c-0.358-0.299-0.698-0.609-0.97-0.948c-0.343-0.437-0.676-0.849-0.845-1.237l-0.093-0.214c-0.135-0.309-0.438-0.53-0.798-0.543  c-0.5-0.018-0.921,0.372-0.939,0.873c-0.037,1.01,0.048,1.901,0.19,2.83C46.575,32.247,46.806,33.147,47.121,34.013z" />
+                                </svg>
+                                <div className="CalloutHeading transition-all duration-200">Døde duer</div>
+                                    <Text size='1' color="gray">
+                                        Tryk her for at spille!
+                                    </Text>
+                                </Link>
+                            </NavigationMenu.Link>
+                        </li>
+
+                        <ListItem href="https://stitches.dev/" title="Autoplay">
+                            Rediger i din autoplay konfiguration.
+                        </ListItem>
+                        <ListItem href="/colors" title="Historik">
+                            Se dine tidligere bræt.
+                        </ListItem>
+                        <ListItem href="https://icons.radix-ui.com/" title="Regler">
+                            Er du i tvivl om reglerne? Læs mere her.
+                        </ListItem>
+                    </ul>
+                </NavigationMenu.Content>
+            </NavigationMenu.Item>
+
+				<NavigationMenu.Item>
+					<NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
+						Panel <CaretDownIcon className="CaretDown" aria-hidden />
+					</NavigationMenu.Trigger>
+					<NavigationMenu.Content className="NavigationMenuContent">
+						<ul className="List two">
+							<ListItem
+								title="Vindersekvens"
+								href="/primitives/docs/overview/introduction"
+                                icon={faGamepad}
+							>
+								Find vindere for nuværende uge.
+							</ListItem>
+							<ListItem
+								title="Brugere"
+								href="/primitives/docs/overview/getting-started"
+                                icon={faUser}
+							>
+								Rediger kontoer eller opret nye.
+							</ListItem>
+							<ListItem title="Transaktioner" 
+                                href="/primitives/docs/guides/styling"
+                                icon={faBank}>
+								Bekræft eller afkræft mobilepay køb.
+							</ListItem>
+							<ListItem
+								title="Spil"
+								href="/primitives/docs/guides/animation"
+                                icon={faBank}
+							>
+								Få en visning af tidligere spil.
+							</ListItem>
+							<ListItem
+								title="Accessibility"
+								href="/primitives/docs/overview/accessibility"
+							>
+								Tested in a range of browsers and assistive technologies.
+							</ListItem>
+							<ListItem
+								title="Releases"
+								href="/primitives/docs/overview/releases"
+							>
+								Radix Primitives releases and their changelogs.
+							</ListItem>
+						</ul>
+					</NavigationMenu.Content>
+				</NavigationMenu.Item>
+
+                <NavigationMenu.Item>
+                <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
+                    Konto <CaretDownIcon className="CaretDown" aria-hidden />
+                </NavigationMenu.Trigger>
+                <NavigationMenu.Content className="NavigationMenuContent">
+                    <ul className="List three">
+                        <ListItem href="https://stitches.dev/" title="Indstillinger" icon={faGear}>
+                            Mail, kode mm.
+                        </ListItem>
+                        <ListItem href="/colors" title="Transaktion" icon={faBank}>
+                            Opret en ny betaling.
+                        </ListItem>
+                        <ListItem href="https://icons.radix-ui.com/" title="Log ud" icon={faArrowRightFromBracket}>
+                            Logger ud af din konto.
+                        </ListItem>
+                    </ul>
+                </NavigationMenu.Content>
+            </NavigationMenu.Item>
+
+				<NavigationMenu.Indicator className="NavigationMenuIndicator mt-2">
+					<div className="Arrow bg-whiteA5 dark:bg-gray1/90 backdrop-blur-md" />
+				</NavigationMenu.Indicator>
+			</NavigationMenu.List>
+			<div className="ViewportPosition">
+				<NavigationMenu.Viewport className="NavigationMenuViewport bg-whiteA5 dark:bg-gray1/90 backdrop-blur-md" />
+			</div>
+		</NavigationMenu.Root>
   );
-}
+};
+
+export default DesktopNavigation;

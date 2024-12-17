@@ -158,7 +158,6 @@ export interface Purchase {
   id: string;
   /** @format date-time */
   timestamp: string;
-  fields: number[];
   /** @format int32 */
   price: number;
   autoplayBoards: AutoplayBoard[];
@@ -360,6 +359,38 @@ export interface PagingInfo {
 export enum SortOrder {
   Asc = "Asc",
   Desc = "Desc",
+}
+
+export interface BoardPickResponse {
+  /**
+   * @format guid
+   * @minLength 1
+   */
+  purchaseId: string;
+  selectedNumbers: number[];
+  /** @format int32 */
+  amount: number;
+  /** @format int32 */
+  total: number;
+}
+
+/** @example {"amount":1,"selectedNumbers":[1,2,3,4,5]} */
+export interface BoardPickRequest {
+  /** @format int32 */
+  amount: number;
+  selectedNumbers: number[];
+}
+
+export interface GameStatusResponse {
+  /** @format int32 */
+  gameWeek: number;
+  isGameActive: boolean;
+  /** @format int64 */
+  startTime: number | null;
+  /** @format int64 */
+  endTime: number | null;
+  /** @format int32 */
+  timeLeft: number;
 }
 
 export interface BalanceResponse {
@@ -968,6 +999,43 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/api/balancehistory/all`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  board = {
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name PickBoard
+     * @request POST:/api/board/pick
+     * @secure
+     */
+    pickBoard: (data: BoardPickRequest, params: RequestParams = {}) =>
+      this.request<BoardPickResponse, any>({
+        path: `/api/board/pick`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name GetStatus
+     * @request GET:/api/board/status
+     * @secure
+     */
+    getStatus: (params: RequestParams = {}) =>
+      this.request<GameStatusResponse, any>({
+        path: `/api/board/status`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

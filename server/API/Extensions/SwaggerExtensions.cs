@@ -2,6 +2,7 @@
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
 using Service.Auth;
+using Service.Models.Requests;
 
 namespace API.Extensions;
 
@@ -35,6 +36,7 @@ public class ExampleSchemaProcessor : ISchemaProcessor
     {
         { typeof(LoginRequest), new { email = "admin@example.com", password = "Kakao1234!" } },
         { typeof(RegisterRequest), new { email = "børge@example.com", firstName = "Børge", lastName = "Steensen", phoneNumber = "12345678"  } },
+        { typeof(BoardPickRequest), new { amount = 1, selectedNumbers = new List<int> { 1, 2, 3, 4, 5 } } }
     };
 
     public void Process(SchemaProcessorContext context)

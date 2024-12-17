@@ -27,7 +27,11 @@ export default function Countdown({value, type, fontSize = 50, padding = 15, cla
 
 function Digit({ place, value, height,}: { place: number; value: number; height: number;}) {
   let valueRoundedToPlace = Math.floor(value / place);
-  let animatedValue = useSpring(valueRoundedToPlace);
+  const animatedValue = useSpring(valueRoundedToPlace, {
+      stiffness: 200,
+      damping: 25,
+      mass: 1,
+  });
 
   useEffect(() => {
     animatedValue.set(valueRoundedToPlace);

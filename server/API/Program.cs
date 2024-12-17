@@ -154,6 +154,8 @@ try {
     builder.Services.AddScoped<ITransactionService, TransactionService>();
     builder.Services.AddScoped<IUsersService, UsersService>();
     builder.Services.AddScoped<IBalanceHistoryService, BalanceHistoryService>();
+    builder.Services.AddScoped<IBoardService, BoardService>();
+
   
     if (builder.Environment.IsProduction())
     { 

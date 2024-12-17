@@ -21,13 +21,6 @@ CREATE TABLE games (
     field_count INT NOT NULL DEFAULT 16
 );
 
-CREATE TABLE purchases (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-    fields INTEGER[] NOT NULL,
-    price INTEGER NOT NULL
-);
-
 CREATE TABLE transactions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
@@ -40,6 +33,12 @@ CREATE TABLE transactions (
     CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE CASCADE,
     CONSTRAINT transactions_reviewed_by_user_id_fkey FOREIGN KEY (reviewed_by_user_id) REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL,
     CONSTRAINT transactions_status_check CHECK (status IN ('pending', 'accepted', 'denied'))
+);
+
+CREATE TABLE purchases (
+       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+       timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+       price INTEGER NOT NULL
 );
 
 CREATE TABLE boards (

@@ -7,7 +7,7 @@ public class BoardResponse
     public Guid BoardId { get; set; }
     public List<int> Configuration { get; set; }
     public DateTime PlacedOn { get; set; }
-    public User User { get; set; }
+    public UserResponse User { get; set; }
 
     public BoardResponse ToResponse(Board board, User user)
     {
@@ -16,7 +16,7 @@ public class BoardResponse
             BoardId = board.Id,
             Configuration = board.Configuration,
             PlacedOn = board.Timestamp,
-            User = user
+            User = UserResponse.FromEntity(user)
         };
 
         return newResponse;

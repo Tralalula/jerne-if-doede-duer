@@ -24,6 +24,9 @@ public partial class Game
     [Column("end_time")]
     public DateTime EndTime { get; set; }
 
+    [Column("active")]
+    public bool Active { get; set; }
+
     [Column("field_count")]
     public int FieldCount { get; set; }
 

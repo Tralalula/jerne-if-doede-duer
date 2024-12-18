@@ -103,6 +103,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors }
     } = useForm({
         resolver: yupResolver(schema),
@@ -112,15 +113,14 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
         },
     });
 
-    useEffect(() => {
-        console.log("Validation Errors:", errors);
-    }, [errors]);
 
     useEffect(() => {
         setValue("selectedNumbers", selectedNumbers);
     }, [selectedNumbers, setValue]);
 
     const canProceed = selectedNumbers.length >= minNumbers && boardStatus?.isGameActive;
+
+    const boardAmountWatch = watch("amount", 1);
 
     return (
         <>
@@ -214,7 +214,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
 
                         <Separator className="w-full"/>
                         <Flex gap='1'>
-                            Total: <Text className="underline">{calculatePrice() * boardAmount}</Text> Credits
+                            Total: <Text className="underline">{calculatePrice() * boardAmountWatch}</Text> Credits
                         </Flex>
                         <input
                             type="hidden"

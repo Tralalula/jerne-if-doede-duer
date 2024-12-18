@@ -6,7 +6,12 @@ import {
     boardLoadingAtom,
     BoardPickRequest,
     gameStatusAtom,
-    boardPlacingBetAtom
+    boardPlacingBetAtom,
+    boardPickWinSeqLoadingAtom,
+    boardConfirmWinSeqLoadingAtom,
+    boardPickWinSeqAtom,
+    boardConfirmWinSeqAtom,
+    boardPickWinSeqErrorAtom
 } from './import';
 
 export function useBoard() {
@@ -14,6 +19,42 @@ export function useBoard() {
     const [loading, setLoading] = useAtom(boardLoadingAtom);
     const [error, setError] = useAtom(gameStatusFetchError);
     const [isPlacingBoardPick, setIsPlacingBoardPick] = useAtom(boardPlacingBetAtom);
+
+
+    const [boardPickWinSeqError, setBoardPickWinSeqError] = useAtom(boardPickWinSeqErrorAtom);
+
+
+    const [boardPickWinSeq, setBoardPickWinSeq] = useAtom(boardPickWinSeqAtom);
+    const [boardConfirmWinSeq, setBoardConfirmWinSeq] = useAtom(boardConfirmWinSeqAtom);
+
+    const [isGettingBoardWinSeq, setIsGettingBoardWinSeq] = useAtom(boardPickWinSeqLoadingAtom);
+    const [isConfirmBoardWinSeq, setIsConfirmBoardWinSeq] = useAtom(boardConfirmWinSeqLoadingAtom);
+
+    const fetchPickWinSeq = async (numbers: string) => {
+        setIsGettingBoardWinSeq(true);
+        setBoardPickWinSeqError(null);
+    
+        try {
+            const response = await api.board.pickWinningSequence({ numbers });
+            const data = response.data;
+    
+            const winningSeq = {
+                currentGameField: data.currentGameField,
+                winnerAmounts: data.winnerAmounts,
+                gameId: data.gameId,
+                selectedNumbers: data.selectedNumbers
+            };
+    
+            setBoardPickWinSeq(winningSeq);
+        } catch (err: any) {
+            if (err.response && err.response.data)
+                throw err.response.data;
+    
+            throw new Error("An unexpected error occurred.");
+        } finally {
+            setIsGettingBoardWinSeq(false);
+        }
+    };
 
     const fetchGameStatus = async () => {
         setLoading(true);
@@ -66,5 +107,9 @@ export function useBoard() {
         isPlacingBoardPick,
         loading,
         error,
+        fetchPickWinSeq,
+        isGettingBoardWinSeq,
+        boardPickWinSeq,
+        boardPickWinSeqError
     };
 }

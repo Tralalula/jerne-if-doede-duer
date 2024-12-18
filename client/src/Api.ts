@@ -393,7 +393,37 @@ export interface GameStatusResponse {
   timeLeft: number;
 }
 
+export interface BoardWinningSequenceConfirmedResponse {
+  boards: BoardResponse[];
+}
+
+export interface BoardResponse {
+  /** @format guid */
+  boardId: string;
+  configuration: number[];
+  /** @format date-time */
+  placedOn: string;
+  user: UserResponse;
+}
+
+export interface UserResponse {
+  /** @format guid */
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface BoardWinningSequenceRequest {
+  selectedNumbers: number[];
+}
+
+export interface BoardWinningSequenceResponse {
+  /** @format int32 */
+  winnerAmounts: number;
+  /** @format guid */
+  gameId: string;
+  /** @format int32 */
+  currentGameField: number;
   selectedNumbers: number[];
 }
 
@@ -1054,12 +1084,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     confirmWinningSequence: (data: BoardWinningSequenceRequest, params: RequestParams = {}) =>
-      this.request<File, any>({
+      this.request<BoardWinningSequenceConfirmedResponse, any>({
         path: `/api/board/winner-sequence/confirm`,
         method: "POST",
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -1077,11 +1108,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<File, any>({
+      this.request<BoardWinningSequenceResponse, any>({
         path: `/api/board/winner-sequence`,
         method: "GET",
         query: query,
         secure: true,
+        format: "json",
         ...params,
       }),
   };

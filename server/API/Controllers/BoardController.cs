@@ -29,7 +29,7 @@ public class BoardController(IBoardService service): ControllerBase
     
     [Authorize(Roles = Role.Admin)]
     [HttpPost("winner-sequence/confirm")]
-    public async Task<IActionResult> ConfirmWinningSequence([FromBody] BoardWinningSequenceRequest request)
+    public async Task<ActionResult<BoardWinningSequenceConfirmedResponse>> ConfirmWinningSequence([FromBody] BoardWinningSequenceRequest request)
     {
         var adminId = User.GetUserId();
         return Ok(await service.ConfirmWinningSequence(request, adminId));
@@ -37,7 +37,7 @@ public class BoardController(IBoardService service): ControllerBase
     
     [Authorize(Roles = Role.Admin)]
     [HttpGet("winner-sequence")]
-    public async Task<IActionResult> PickWinningSequenceAsync([FromQuery] string numbers)
+    public async Task<ActionResult<BoardWinningSequenceResponse>> PickWinningSequenceAsync([FromQuery] string numbers)
     {
         if (string.IsNullOrEmpty(numbers))
             return BadRequest("Numbers are required.");

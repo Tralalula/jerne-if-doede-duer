@@ -37,7 +37,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var currentTime = timeProvider.GetUtcNow().UtcDateTime;
 
         var game = await context.Games
-            .Where(game => game.StartTime <= currentTime && currentTime <= game.EndTime)
+            .Where(game => game.StartTime <= currentTime && currentTime <= game.EndTime && game.Active)
             .FirstOrDefaultAsync();
         
         return game;
@@ -208,9 +208,6 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             })
             .ToList();
         
-        if (!boardResponses.Any())
-            throw new BadRequestException("No boards with those numbers found.");
-
         return boardResponses;
     }
 
@@ -223,7 +220,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         
         var game = await GetActiveGameAsync();
 
-        return BoardWinningSequenceResponse.FromEntity(boards.Count, game);
+        return BoardWinningSequenceResponse.FromEntity(boards.Count, request.SelectedNumbers, game);
     }
     
     public async Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId)

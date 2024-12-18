@@ -393,6 +393,10 @@ export interface GameStatusResponse {
   timeLeft: number;
 }
 
+export interface BoardWinningSequenceRequest {
+  selectedNumbers: number[];
+}
+
 export interface BalanceResponse {
   /** @format int32 */
   currentBalance: number;
@@ -1038,6 +1042,46 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "GET",
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name ConfirmWinningSequence
+     * @request POST:/api/board/winner-sequence/confirm
+     * @secure
+     */
+    confirmWinningSequence: (data: BoardWinningSequenceRequest, params: RequestParams = {}) =>
+      this.request<File, any>({
+        path: `/api/board/winner-sequence/confirm`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name PickWinningSequence
+     * @request GET:/api/board/winner-sequence
+     * @secure
+     */
+    pickWinningSequence: (
+      query?: {
+        numbers?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<File, any>({
+        path: `/api/board/winner-sequence`,
+        method: "GET",
+        query: query,
+        secure: true,
         ...params,
       }),
   };

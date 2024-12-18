@@ -12,7 +12,7 @@ public class UserResponse
     {
         var newResponse = new UserResponse
         {
-            Id = Guid.NewGuid(),
+            Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName
         };

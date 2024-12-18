@@ -21,8 +21,8 @@ public class DbSeeder(
         await context.Database.EnsureCreatedAsync();
         
         await CreateRoles(Role.All);
-        await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin);
-        await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player);
+        await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin, "Poul", "Henriksen");
+        await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player, "Jørgen", "Jensen");
         
         var admin = await userManager.FindByEmailAsync("admin@example.com");
         var player = await userManager.FindByEmailAsync("player@example.com");
@@ -47,13 +47,15 @@ public class DbSeeder(
         }
     }
     
-    private async Task CreateUser(string email, string password, string role)
+    private async Task CreateUser(string email, string password, string role, String firstName, String lastName)
     {
         if (await userManager.FindByEmailAsync(email) != null) return;
         
         var user = new User
         {
             UserName = email,
+            FirstName = firstName,
+            LastName = lastName,
             Email = email,
             EmailConfirmed = true
         };

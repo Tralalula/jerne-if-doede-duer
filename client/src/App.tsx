@@ -28,7 +28,10 @@ const App = () => {
           <Routes>
               <Route path={AppRoutes.NotFound} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<NotFoundPage />} />} />
               <Route path={AppRoutes.Forbidden} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<ForbiddenPage />} />} />
-              <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<HomePage />} />} />
+
+              <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<Game />} />} />
+              <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<LoginPage />} />} />
+
               <Route path={AppRoutes.Login} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<LoginPage />} />} />
               <Route path={AppRoutes.Forgot} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<ForgotPassword />} />} />
               <Route path={AppRoutes.Game} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<Game />} />} />

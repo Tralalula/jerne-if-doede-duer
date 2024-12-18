@@ -12,7 +12,9 @@ public interface IBoardService
 {
     public Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
     public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
-    public Task<BoardWinningSequenceResponse> PickWinningSequence(BoardWinningSequenceRequest request, Guid userId);
+    public Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId);
+
+    public Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId);
 }
 
 public class BoardService(AppDbContext context, UserManager<User> userManager, TimeProvider timeProvider) : IBoardService
@@ -175,11 +177,9 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         
         return status;
     }
-    
-    public async Task<BoardWinningSequenceResponse> PickWinningSequence(BoardWinningSequenceRequest request, Guid userId)
+
+    private async Task<List<BoardResponse>> GetWinningBoardsAsync(List<int> selectedNumbers)
     {
-        var user = await userManager.FindByIdAsync(userId.ToString()) 
-                   ?? throw new NotFoundException("User not found");
         var game = await GetActiveGameAsync();
         
         if (game == null)
@@ -188,32 +188,54 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var matchingBoards = await context.Boards
             .Where(board => board.GameId == game.Id)
             .ToListAsync();
-        
-        foreach (var board in matchingBoards)
-            Console.WriteLine(board.Id);
 
         var matchedBoards = matchingBoards
-            .Where(board => AreNumbersMatching(board.Configuration, request.SelectedNumbers))
+            .Where(board => AreNumbersMatching(board.Configuration, selectedNumbers))
             .ToList();
 
         var boardResponses = matchedBoards
-            .Select(board => new BoardResponse
+            .Select(board => new
             {
-                BoardId = board.Id,
-                Configuration = board.Configuration.OrderBy(n => n).ToList(),
-                PlacedOn = board.Timestamp,
-                User = user
+                board,
+                User = context.Users.FirstOrDefault(u => u.Id == board.UserId)
+            })
+            .Select(result => new BoardResponse
+            {
+                BoardId = result.board.Id,
+                Configuration = result.board.Configuration.OrderBy(n => n).ToList(),
+                PlacedOn = result.board.Timestamp,
+                User = UserResponse.FromEntity(result.User)
             })
             .ToList();
         
-        Console.WriteLine(boardResponses.Count);
-
         if (!boardResponses.Any())
             throw new BadRequestException("No boards with those numbers found.");
+
+        return boardResponses;
+    }
+
+    public async Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) 
+                   ?? throw new NotFoundException("User not found");
+
+        var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
-        var response = new BoardWinningSequenceResponse
+        var game = await GetActiveGameAsync();
+
+        return BoardWinningSequenceResponse.FromEntity(boards.Count, game);
+    }
+    
+    public async Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) 
+                   ?? throw new NotFoundException("User not found");
+        
+        var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
+        
+        var response = new BoardWinningSequenceConfirmedResponse
         {
-            Boards = boardResponses
+            Boards = boards
         };
 
         return response;

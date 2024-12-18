@@ -433,6 +433,8 @@ export interface TransactionDetailsResponse {
   id: string;
   /** @format date-time */
   timestamp: string;
+  /** @format guid */
+  userId: string;
   /** @format int32 */
   credits: number;
   mobilePayTransactionNumber: string;

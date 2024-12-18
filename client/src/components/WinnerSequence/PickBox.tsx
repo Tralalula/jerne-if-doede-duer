@@ -14,6 +14,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { LoadingButton, ResizablePanel } from '..';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import GetWinningSeq from './GetWinningSeq';
 
 const schema = yup.object({
     winningNumbers: yup
@@ -37,47 +38,9 @@ type FormValues = {
 };
 
 export default function PickBox() {
-    const { showToast } = useToast();
-
     let [state, setState] = useState<"select" | "confirm" | "success">("select");
-    const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
 
-    const [textNumbers, setTextNumbers] = useState<string>("");
-
-    const {isGettingBoardWinSeq, boardPickWinSeqError, boardPickWinSeq, fetchPickWinSeq} = useBoard();
-
-    const { 
-        register,
-        handleSubmit,
-        formState: { errors }
-    } = useForm({
-        resolver: yupResolver(schema)
-    });
-
-    // Handle form submission
-    const onSubmit: SubmitHandler<FormValues> = async (data) => {
-        try {
-            const parsedNumbers = data.winningNumbers.replace(/-/g, ",");
-    
-            await fetchPickWinSeq(parsedNumbers);
-            setState("confirm");
-        } catch (err: any) {
-            const errorMessage =
-                err?.detail ||
-                (err instanceof Error ? err.message : "Der skete en ukendt fejl");
-    
-            showToast("Ups! En fejl skete", errorMessage, "error");
-        }
-    };
-
-    useEffect(() => {
-        const newNumbers = [1, 2, 3, 4, 5];
-        setSelectedNumbers(newNumbers);
-    }, [])
-
-    const [paging, setPaging] = useAtom(userPagingAtom);
-    const [sort] = useAtom(userSortAtom);
-    const [showFilterDialog, setShowFilterDialog] = useState(false);
+    const { boardPickWinSeq } = useBoard();
 
     return (
         <>
@@ -87,26 +50,7 @@ export default function PickBox() {
                     <Flex direction="column" className='min-w-80'>
                         <ResizablePanel.Root value={state}>
                             <ResizablePanel.Content value="select">
-                                <form onSubmit={handleSubmit(onSubmit)}>
-                                <Text as="label" size="2" weight="medium" mb="2">
-                                    Vindertal
-                                </Text>
-                                <TextField.Root
-                                    variant="soft"
-                                    color="gray"
-                                    placeholder="1-5-8-12-15"
-                                    className={`border dark:border-gray5 ${errors.winningNumbers ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : "mb-2"}`}
-                                    {...register("winningNumbers")}/>
-                                <Flex mt="1" align="center" className={`error-wrapper ${errors.winningNumbers ? 'error-visible' : ''}`}>
-                                    <Text color="red" size="1" className="flex mb-2 gap-1 items-center">
-                                        <FontAwesomeIcon icon={faWarning} />
-                                        {errors.winningNumbers?.message}
-                                    </Text>
-                                </Flex>
-                                <LoadingButton type='submit' isLoading={isGettingBoardWinSeq}>
-                                    Næste
-                                </LoadingButton>
-                                </form>
+                                <GetWinningSeq setState={setState} />
                             </ResizablePanel.Content>
                             <ResizablePanel.Content value="confirm">
                                 <Flex gap='2' direction='column'>
@@ -130,6 +74,7 @@ export default function PickBox() {
                                     ))}
                                     </Flex>
                                     <Separator className="w-full"/>
+
                                 <Button className='mt-2 w-full cursor-pointer transition-colors duration-200'>
                                     Afslut denne uges spil
                                 </Button>

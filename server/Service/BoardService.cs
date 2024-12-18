@@ -1,4 +1,5 @@
-﻿using DataAccess;
+﻿using System.Globalization;
+using DataAccess;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -219,7 +220,27 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
         var game = await GetActiveGameAsync();
+        game.Active = false;
 
+        var startTime = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var calendar = CultureInfo.CurrentCulture.Calendar;
+        var dateTimeFormat = CultureInfo.CurrentCulture.DateTimeFormat;
+
+        var nextWeekDate = startTime.AddDays(5);
+        int nextWeekNumber = calendar.GetWeekOfYear(nextWeekDate, dateTimeFormat.CalendarWeekRule, dateTimeFormat.FirstDayOfWeek);
+
+        var newGame = new Game
+        {
+            Timestamp = startTime,
+            Active = true,
+            EndTime = GetNextMondayAtMidnight(timeProvider),
+            StartTime = startTime,
+            FieldCount = nextWeekNumber
+        };
+        
+        await context.Games.AddAsync(newGame);
+        await context.SaveChangesAsync();
         return BoardWinningSequenceResponse.FromEntity(boards.Count, request.SelectedNumbers, game);
     }
     

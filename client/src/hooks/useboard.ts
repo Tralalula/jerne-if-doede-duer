@@ -11,7 +11,8 @@ import {
     boardConfirmWinSeqLoadingAtom,
     boardPickWinSeqAtom,
     boardConfirmWinSeqAtom,
-    boardPickWinSeqErrorAtom
+    boardPickWinSeqErrorAtom,
+    BoardWinningSequenceRequest
 } from './import';
 
 export function useBoard() {
@@ -53,6 +54,22 @@ export function useBoard() {
             throw new Error("An unexpected error occurred.");
         } finally {
             setIsGettingBoardWinSeq(false);
+        }
+    };
+
+    const confirmWinSeq = async (request: BoardWinningSequenceRequest) => {
+        setIsConfirmBoardWinSeq(true);
+
+        try {
+            const response = await api.board.confirmWinningSequence(request);
+            return response.data;
+        } catch (err: any) {
+            if (err.response && err.response.data)
+                throw err.response.data;
+    
+            throw new Error("An unexpected error occurred.");
+        } finally {
+            setIsConfirmBoardWinSeq(false);
         }
     };
 
@@ -110,6 +127,7 @@ export function useBoard() {
         fetchPickWinSeq,
         isGettingBoardWinSeq,
         boardPickWinSeq,
-        boardPickWinSeqError
+        boardPickWinSeqError,
+        confirmWinSeq
     };
 }

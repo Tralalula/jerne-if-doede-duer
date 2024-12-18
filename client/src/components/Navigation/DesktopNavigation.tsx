@@ -12,20 +12,11 @@ import { Flex, Text } from "@radix-ui/themes";
 import ThemeSwitcher from "./ThemeSwitcher";
 import AnimatedIconButton from "../Button/AnimatedIconButton";
 import { Link } from "react-router-dom";
-import { AppRoutes } from "../import";
+import { AccessLevel, AppRoutes } from "../import";
 
-interface DesktopNavigationProps {
-  tabs: Tab[];
-}
 
-const DesktopNavigation = ({ tabs }: DesktopNavigationProps) => {
-  const [activeTab, setActiveTab] = useState(tabs[0].path);
+const DesktopNavigation = () => {
   const navigate = useNavigate();
-
-  const handleTabChange = (path: string) => {
-    setActiveTab(path);
-    navigate(path);
-  };
 
   return (
     <NavigationMenu.Root className="NavigationMenuRoot justify-between bg-whiteA5 dark:bg-gray1/90 py-2 border-b dark:border-b-gray5 fixed hidden md:block">

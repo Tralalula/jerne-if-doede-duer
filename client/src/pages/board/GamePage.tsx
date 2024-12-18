@@ -4,7 +4,7 @@ import { useBoard } from "../../hooks";
 import ActiveGame from "./ActiveGame";
 import InactiveGame from "./InactiveGame";
 
-export default function Game() {
+export default function GamePage() {
     const {boardStatus, loading, placeBoardPick, isPlacingBoardPick, error} = useBoard();
 
     return (

@@ -36,14 +36,6 @@ export default function PickBox() {
     const [sort] = useAtom(userSortAtom);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
 
-    const {
-        users,
-        loading,
-        error,
-        activateUser,
-        deactivateUser,
-    } = useFetchUsers();
-
     return (
         <>
             {/* Desktop */}

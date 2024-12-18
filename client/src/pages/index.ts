@@ -1,5 +1,5 @@
 export { default as HomePage } from "./Home";
-export { default as Game } from './board/Game'
+export { default as GamePage } from './board/GamePage'
 
 //------- Auth -------//
 export { default as LoginPage } from "./auth/Login";

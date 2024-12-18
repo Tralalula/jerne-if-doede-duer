@@ -14,7 +14,8 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { LoadingButton, ResizablePanel } from '..';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
-import GetWinningSeq from './GetWinningSeq';
+import GetWinningSeq from './forms/GetWinningSeq';
+import ConfirmWinningSeq from './forms/ConfirmWinningSeq';
 
 const schema = yup.object({
     winningNumbers: yup
@@ -44,7 +45,6 @@ export default function PickBox() {
 
     return (
         <>
-            {/* Desktop */}
             <Flex justify='center' gap="4" className="lg:flex">
                     <Card className='w-auto p-5 backdrop-blur-md' asChild variant="ghost" size="1" style={{ boxShadow: 'var(--shadow-5)'}}>
                     <Flex direction="column" className='min-w-80'>
@@ -53,36 +53,8 @@ export default function PickBox() {
                                 <GetWinningSeq setState={setState} />
                             </ResizablePanel.Content>
                             <ResizablePanel.Content value="confirm">
-                                <Flex gap='2' direction='column'>
-                                <Text as="label" size="2" weight="medium">
-                                    {boardPickWinSeq && boardPickWinSeq?.winnerAmounts > 0 ? (
-                                        <Text>
-                                            Der blev fundet <b>{boardPickWinSeq?.winnerAmounts}</b> vindere med nedenstående:
-                                        </Text>
-                                    ) : (
-                                        <Text>
-                                            Der blev fundet ikke fundet nogle vindere
-                                        </Text>
-                                    )}
-                                </Text>
-                                <Flex justify='center' align='center' direction='row'>
-                                    {boardPickWinSeq && boardPickWinSeq?.winnerAmounts > 0 && boardPickWinSeq.selectedNumbers.map((num, i) => (
-                                        <Fragment key={i}>
-                                            <Badge size="3">{num}</Badge>
-                                            {i < boardPickWinSeq.selectedNumbers.length - 1 && <Text>-</Text>}
-                                        </Fragment>
-                                    ))}
-                                    </Flex>
-                                    <Separator className="w-full"/>
-
-                                <Button className='mt-2 w-full cursor-pointer transition-colors duration-200'>
-                                    Afslut denne uges spil
-                                </Button>
-                                                                    
-                                </Flex>
-
+                                <ConfirmWinningSeq setState={setState}/>
                             </ResizablePanel.Content>
-
                         </ResizablePanel.Root>
                     </Flex>
                         

@@ -30,6 +30,8 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
             user.Id,
             user.Email ?? "",
             user.PhoneNumber ?? "",
+            user.FirstName,
+            user.LastName,
             user.Status,
             user.Credits,
             user.Timestamp,
@@ -83,6 +85,8 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
             items.Add(new UserDetailsResponse(user.Id, 
                                               user.Email ?? "", 
                                               user.PhoneNumber ?? "",
+                                              user.FirstName,
+                                              user.LastName,
                                               user.Status, 
                                               user.Credits, 
                                               user.Timestamp, 
@@ -112,6 +116,8 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
         return new UserDetailsResponse(user.Id, 
                                        user.Email ?? "", 
                                        user.PhoneNumber ?? "", 
+                                       user.FirstName,
+                                       user.LastName,
                                        user.Status, 
                                        user.Credits, 
                                        user.Timestamp, 
@@ -122,9 +128,9 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
         
-        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(request.NewEmail) && !request.NewEmail.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
         {
-            var existingUser = await userManager.FindByEmailAsync(request.Email);
+            var existingUser = await userManager.FindByEmailAsync(request.NewEmail);
             if (existingUser != null && existingUser.Id != user.Id)
             {
                 throw new ConflictException("This email is already in use.");
@@ -137,10 +143,10 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
         user.LastName = request.LastName;
         user.PhoneNumber = request.PhoneNumber;
         
-        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(request.NewEmail) && !request.NewEmail.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
         {
-            user.Email = request.Email;
-            user.UserName = request.Email;
+            user.Email = request.NewEmail;
+            user.UserName = request.NewEmail;
             user.EmailConfirmed = true;
         }
         
@@ -154,11 +160,11 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
         
         logger.LogInformation("User updated by Admin. UserId: {UserId}, AdminId: {AdminId}", userId, adminId);
         
-        if (!string.IsNullOrEmpty(request.Email) && !request.Email.Equals(oldEmail, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(request.NewEmail) && !request.NewEmail.Equals(oldEmail, StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                if (!string.IsNullOrEmpty(oldEmail)) await emailService.SendEmailChangeNotificationAsync(oldEmail, request.Email);
+                if (!string.IsNullOrEmpty(oldEmail)) await emailService.SendEmailChangeNotificationAsync(oldEmail, request.NewEmail);
             }
             catch (Exception ex)
             {
@@ -170,6 +176,8 @@ public class UsersService(AppDbContext dbContext, UserManager<User> userManager,
         return new UserDetailsResponse(user.Id, 
                                        user.Email ?? "", 
                                        user.PhoneNumber ?? "", 
+                                       user.FirstName,
+                                       user.LastName,
                                        user.Status, 
                                        user.Credits, 
                                        user.Timestamp, 

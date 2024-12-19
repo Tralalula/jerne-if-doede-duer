@@ -316,7 +316,7 @@ export interface ChangePasswordRequest {
 }
 
 export interface ChangeEmailRequest {
-  newEmail: string;
+  newEmail?: string;
   password: string;
 }
 
@@ -456,6 +456,8 @@ export interface UserDetailsResponse {
   id: string;
   email: string;
   phoneNumber?: string;
+  firstName: string;
+  lastName: string;
   status: UserStatus;
   /** @format int32 */
   credits: number;
@@ -484,8 +486,8 @@ export enum UserOrderBy {
 export interface UpdateUserRequest {
   firstName: string;
   lastName: string;
-  phoneNumber?: string;
-  email: string | null;
+  phoneNumber?: string | null;
+  newEmail?: string | null;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";

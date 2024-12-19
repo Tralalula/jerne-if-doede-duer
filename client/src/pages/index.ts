@@ -10,7 +10,7 @@ export { default as MyTransactionsPage } from './transaction/MyTransactionsPage'
 export { default as AdminTransactionsPage } from './transaction/AdminTransactionsPage';
 
 //------- User -------//
-export { default as AdminUserPage } from './user/AdminUserPage';
+export { default as AdminUsersPage } from './user/AdminUsersPage';
 
 //------- Balance history -------//
 export { default as AdminBalanceHistoryPage } from './balancehistory/AdminBalanceHistoryPage';

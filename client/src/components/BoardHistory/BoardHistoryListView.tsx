@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 import { Card, Text, Flex, Dialog, Button } from '@radix-ui/themes';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { balanceHistoryPagingAtom, useFetchBalanceHistory, balanceHistorySortAtom, useToast, SortOrder } from '../import';
+import { balanceHistoryPagingAtom, useFetchBalanceHistory, balanceHistorySortAtom, useToast, SortOrder, useFetchBoardHistory } from '../import';
 import BoardHistoryTable from './BoardHistoryTable';
 import BoardHistoryCard from './BoardHistoryCard';
 import BoardHistoryFilters from './BoardHistoryFilters';
@@ -12,13 +12,7 @@ import PageInfoDisplay from '../Pagination/PageInfoDisplay';
 import PageSizeSelector from '../Pagination/PageSizeSelector';
 import Pagination from '../Pagination/Pagination';
 
-interface BoardHistoryListViewProps {
-    isAdmin?: boolean;
-    userId?: string;
-    showUserEmail?: boolean; 
-}
-
-export default function BoardHistoryListView({ isAdmin = false, userId, showUserEmail = false }: BoardHistoryListViewProps) {
+export default function BoardHistoryListView() {
     const [paging, setPaging] = useAtom(balanceHistoryPagingAtom);
     const [sort] = useAtom(balanceHistorySortAtom);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
@@ -27,12 +21,12 @@ export default function BoardHistoryListView({ isAdmin = false, userId, showUser
         entries,
         loading,
         error,
-    } = useFetchBalanceHistory({ isAdmin, userId });
+    } = useFetchBoardHistory();
 
     const sortedEntries = useMemo(() =>
             loading ? [] : [...entries].sort((a, b) => {
-                const factor = sort.sortBy === SortOrder.Asc ? 1 : -1;
-                return factor * (new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                const factor = sort.sortBy === SortOrder.Asc ? -1 : 1;
+                return factor * (new Date(b.placedOn).getTime() - new Date(a.placedOn).getTime());
             }),
         [entries, sort.sortBy, loading]
     );
@@ -76,7 +70,7 @@ export default function BoardHistoryListView({ isAdmin = false, userId, showUser
                     <ContentState className="p-4" />
                     {!loading && entries.length > 0 && (
                         sortedEntries.map(entry => (
-                            <BoardHistoryCard key={entry.id} entry={entry} showUserEmail={showUserEmail} />
+                            <BoardHistoryCard key={entry.boardId} entry={entry}/>
                         ))
                     )}
                 </Flex>
@@ -116,7 +110,7 @@ export default function BoardHistoryListView({ isAdmin = false, userId, showUser
                         <ContentState className="p-4" />
                         {!loading && entries.length > 0 && (
                             <div className="w-full min-w-[600px] overflow-x-auto">
-                                <BoardHistoryTable entries={sortedEntries} showUserEmail={showUserEmail} />
+                                <BoardHistoryTable entries={sortedEntries} />
                             </div>
                         )}
 

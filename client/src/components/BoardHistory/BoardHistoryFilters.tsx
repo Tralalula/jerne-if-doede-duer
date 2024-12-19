@@ -2,8 +2,7 @@ import React from 'react';
 import { useAtom } from 'jotai';
 import { Card, Flex, Select, Button, Heading, Text } from '@radix-ui/themes';
 import {
-    BalanceAction,
-    balanceHistoryFilterAtom,
+    boardHistoryFilterAtom,
 } from '../import';
 
 const getDateString = (date: Date) => {
@@ -53,7 +52,7 @@ const dateRanges = [
 ];
 
 export default function BoardHistoryFilters() {
-    const [filter, setFilter] = useAtom(balanceHistoryFilterAtom);
+    const [filter, setFilter] = useAtom(boardHistoryFilterAtom);
 
     const handleDateRangeChange = (value: string) => {
         const range = dateRanges.find(r => r.label === value);
@@ -74,19 +73,11 @@ export default function BoardHistoryFilters() {
 
     const handleReset = () => {
         setFilter({
-            action: null,
             fromDate: null,
             toDate: null,
         });
     };
 
-    const actionText = {
-        [BalanceAction.UserBought]: 'Bruger købte',
-        [BalanceAction.UserUsed]: 'Bruger brugte',
-        [BalanceAction.AdminAssigned]: 'Admin tildelte',
-        [BalanceAction.AdminRevoked]: 'Admin fratog',
-        [BalanceAction.WonPrize]: 'Vandt præmie',
-    };
 
     return (
         <Card>
@@ -95,23 +86,7 @@ export default function BoardHistoryFilters() {
 
                 <Flex direction="column" gap="2">
                     <Text as="label" size="2">Handling</Text>
-                    <Select.Root
-                        value={filter.action ?? 'all'}
-                        onValueChange={(value) => setFilter(prev => ({
-                            ...prev,
-                            action: value === 'all' ? null : value as BalanceAction
-                        }))}
-                    >
-                        <Select.Trigger placeholder="Vælg handling" />
-                        <Select.Content>
-                            <Select.Item value="all">Alle</Select.Item>
-                            {Object.values(BalanceAction).map(action => (
-                                <Select.Item key={action} value={action}>
-                                    {actionText[action]}
-                                </Select.Item>
-                            ))}
-                        </Select.Content>
-                    </Select.Root>
+
                 </Flex>
 
                 <Flex direction="column" gap="2">

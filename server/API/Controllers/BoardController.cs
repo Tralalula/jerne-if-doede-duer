@@ -53,7 +53,7 @@ public class BoardController(IBoardService service): ControllerBase
     }
     
     [HttpGet("history")]
-    public async Task<ActionResult<GameStatusResponse>> GetBoardHistory([FromQuery] BoardHistoryQuery query)
+    public async Task<ActionResult<BoardPagedHistoryResponse>> GetBoardHistory([FromQuery] BoardHistoryQuery query)
     {
         var userId = User.GetUserId();
         return Ok(await service.GetBoardHistory(userId, query));

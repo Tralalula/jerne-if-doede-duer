@@ -2,6 +2,7 @@ import { Flex, Grid, Heading, Skeleton, Text } from "@radix-ui/themes";
 import { GameStatus } from "../../types";
 import { Countdown, Page } from "../import";
 import { useEffect, useState } from "react";
+import BoardHistoryListView from "../../components/BoardHistory/BoardHistoryListView";
 
 export default function MyBoardHistory() {
     return (
@@ -23,6 +24,7 @@ export default function MyBoardHistory() {
                     <Heading size="6">Bræt historik</Heading>
                 </Flex>
 
+                <BoardHistoryListView />
             </Flex>
         </Page>
     )

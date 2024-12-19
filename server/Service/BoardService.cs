@@ -288,6 +288,20 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
 
     public async Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query)
     {
+        
+        if (query.FromDate.HasValue)
+        {
+            var fromDateTime = DateTime.SpecifyKind(query.FromDate.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            query = query.Where(h => h.Timestamp >= fromDateTime);
+        }
+
+        if (query.ToDate.HasValue)
+        {
+            var toDateTime = DateTime.SpecifyKind(query.ToDate.Value.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+            baseQuery = baseQuery.Where(h => h.Timestamp <= toDateTime);
+        }
+
+        
         var user = await context.Users
                        .Include(u => u.Boards)
                        .ThenInclude(b => b.Game)

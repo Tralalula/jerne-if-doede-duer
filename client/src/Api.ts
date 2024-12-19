@@ -395,7 +395,10 @@ export interface GameStatusResponse {
 }
 
 export interface BoardWinningSequenceConfirmedResponse {
-  /** @format guid */
+  /**
+   * @format guid
+   * @minLength 1
+   */
   gameId: string;
   /** @format int32 */
   gameWeek: number;
@@ -405,21 +408,27 @@ export interface BoardWinningSequenceConfirmedResponse {
 }
 
 export interface BoardResponse {
-  /** @format guid */
+  /**
+   * @format guid
+   * @minLength 1
+   */
   boardId: string;
-  configuration: number[];
+  configuration: number[] | null;
   /** @format int32 */
   price: number;
-  /** @format date-time */
+  /**
+   * @format date-time
+   * @minLength 1
+   */
   placedOn: string;
-  user: UserResponse;
+  user: UserResponse | null;
 }
 
 export interface UserResponse {
   /** @format guid */
   id: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
 }
 
 export interface BoardWinningSequenceRequest {
@@ -429,12 +438,29 @@ export interface BoardWinningSequenceRequest {
 export interface BoardWinningSequenceResponse {
   /** @format int32 */
   winnerAmounts: number;
-  /** @format guid */
+  /**
+   * @format guid
+   * @minLength 1
+   */
   gameId: string;
   /** @format int32 */
   currentGameField: number;
   selectedNumbers: number[];
 }
+
+export interface BoardPagedHistoryResponse {
+  boards: BoardHistoryResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export type BoardHistoryResponse = BoardResponse & {
+  /** @format guid */
+  gameId?: string;
+  /** @format int32 */
+  gameWeek?: number;
+  wasWin?: boolean;
+  isActiveGame?: boolean;
+};
 
 export interface BalanceResponse {
   /** @format int32 */
@@ -1119,6 +1145,37 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BoardWinningSequenceResponse, any>({
         path: `/api/board/winner-sequence`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name GetBoardHistory
+     * @request GET:/api/board/history
+     * @secure
+     */
+    getBoardHistory: (
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<BoardPagedHistoryResponse, any>({
+        path: `/api/board/history`,
         method: "GET",
         query: query,
         secure: true,

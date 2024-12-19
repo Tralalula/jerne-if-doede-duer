@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service;
+using Service.Boards;
 using Service.Models.Requests;
 using Service.Models.Responses;
 using Service.Security;
@@ -49,5 +50,12 @@ public class BoardController(IBoardService service): ControllerBase
 
         var adminId = User.GetUserId();
         return Ok(await service.PickWinningSequenceAsync(BoardWinningSequenceRequest.FromNumbers(selectedNumbers), adminId));
-    }  
+    }
+    
+    [HttpGet("history")]
+    public async Task<ActionResult<BoardPagedHistoryResponse>> GetBoardHistory([FromQuery] BoardHistoryQuery query)
+    {
+        var userId = User.GetUserId();
+        return Ok(await service.GetBoardHistory(userId, query));
+    } 
 }

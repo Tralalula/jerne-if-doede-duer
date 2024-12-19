@@ -84,6 +84,20 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         return today.AddDays(daysUntilMonday).AddHours(-today.Hour).AddMinutes(-today.Minute).AddSeconds(-today.Second);
     }
     
+    private DateTime GetNextSaturdayAtFivePM(TimeProvider timeProvider)
+    {
+        var today = timeProvider.GetUtcNow().UtcDateTime;
+        var daysUntilSaturday = ((int)DayOfWeek.Saturday - (int)today.DayOfWeek + 7) % 7;
+
+        if (daysUntilSaturday == 0)
+            daysUntilSaturday = 7;
+
+        var nextSaturday = today.AddDays(daysUntilSaturday);
+
+        return new DateTime(nextSaturday.Year, nextSaturday.Month, nextSaturday.Day, 17, 0, 0, DateTimeKind.Utc);
+    }
+
+    
     private bool AreNumbersMatching(List<int> boardNumbers, List<int> selectedNumbers)
     {
         if (boardNumbers == null || selectedNumbers == null || !boardNumbers.Any())
@@ -259,7 +273,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         {
             Timestamp = startTime,
             Active = true,
-            EndTime = GetNextMondayAtMidnight(timeProvider),
+            EndTime = GetNextSaturdayAtFivePM(timeProvider),
             StartTime = startTime,
             FieldCount = nextWeekNumber
         };

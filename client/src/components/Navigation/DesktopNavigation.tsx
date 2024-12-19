@@ -2,7 +2,21 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tab } from "./types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightFromBracket, faBan, faBank, faCaretDown, faGamepad, faGear, faMoneyBill, faUser, faUserAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+    faArrowRightFromBracket,
+    faBank,
+    faGamepad,
+    faGear,
+    faMoneyBill,
+    faUser,
+    faHistory,
+    faBook,
+    faDice,
+    faTrophy,
+    faUsers,
+    faWallet,
+    faClock
+} from "@fortawesome/free-solid-svg-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ListItem } from "./ListItem";
 import { CaretDownIcon } from "@radix-ui/react-icons";
@@ -13,10 +27,12 @@ import ThemeSwitcher from "./ThemeSwitcher";
 import AnimatedIconButton from "../Button/AnimatedIconButton";
 import { Link } from "react-router-dom";
 import { AccessLevel, AppRoutes } from "../import";
-
+import { useAuthContext } from "../../AuthContext";
 
 const DesktopNavigation = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuthContext();
+  const isAdmin = user !== null && user.isAdmin;
 
   return (
     <NavigationMenu.Root className="NavigationMenuRoot justify-between bg-whiteA5 dark:bg-gray1/90 py-2 border-b dark:border-b-gray5 fixed hidden md:block">
@@ -43,85 +59,94 @@ const DesktopNavigation = () => {
                             </NavigationMenu.Link>
                         </li>
 
-                        <ListItem href="https://stitches.dev/" title="Autoplay">
-                            Rediger i din autoplay konfiguration.
-                        </ListItem>
-                        <ListItem href={AppRoutes.BoardHistory} title="Historik">
-                            Se dine tidligere bræt.
-                        </ListItem>
-                        <ListItem href="https://icons.radix-ui.com/" title="Regler">
+                        <ListItem href={AppRoutes.Rules} title="Regler" icon={faBook}>
                             Er du i tvivl om reglerne? Læs mere her.
                         </ListItem>
-                    </ul>
-                </NavigationMenu.Content>
-            </NavigationMenu.Item>
-
-				<NavigationMenu.Item>
-					<NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
-						Panel <CaretDownIcon className="CaretDown" aria-hidden />
-					</NavigationMenu.Trigger>
-					<NavigationMenu.Content className="NavigationMenuContent">
-						<ul className="List two">
-							<ListItem
-								title="Vindersekvens"
-								href={AppRoutes.PickWinnerSequence}
-                                icon={faGamepad}>
-								Find vindere for nuværende uge.
-							</ListItem>
-							<ListItem
-								title="Brugere"
-								href={AppRoutes.AdminUsers}
-                                icon={faUser}>
-								Rediger kontoer eller opret nye.
-							</ListItem>
-							<ListItem
-								title="Spil"
-								href="/primitives/docs/guides/animation"
-                                icon={faBank}>
-								Få en visning af tidligere spil.
-							</ListItem>
-							<ListItem title="Transaktioner" 
-                                href={AppRoutes.AdminTransactions}
-                                icon={faBank}>
-								Bekræft eller afkræft mobilepay køb.
-							</ListItem>
-							<ListItem
-								title="Balance historik"
-								href={AppRoutes.AdminBalanceHistory}
-                                icon={faMoneyBill}>
-								Se brugernes balance historik.
-							</ListItem>
-							<ListItem
-								title="Releases"
-								href="/primitives/docs/overview/releases"
-							>
-								Radix Primitives releases and their changelogs.
-							</ListItem>
-						</ul>
-					</NavigationMenu.Content>
-				</NavigationMenu.Item>
-
-                <NavigationMenu.Item>
-                <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
-                    Konto <CaretDownIcon className="CaretDown" aria-hidden />
-                </NavigationMenu.Trigger>
-                <NavigationMenu.Content className="NavigationMenuContent">
-                    <ul className="List three">
-                        <ListItem href={AppRoutes.Profile} title="Indstillinger" icon={faGear}>
-                            Mail, kode mm.
-                        </ListItem>
-                        <ListItem href={AppRoutes.MyTransactions} title="Transaktion" icon={faBank}>
-                            Opret en ny betaling.
-                        </ListItem>
-                        <ListItem href={AppRoutes.MyBalanceHistory} title="Balance historik" icon={faBank}>
-                            Se din balance historik.
-                        </ListItem>
-                        <ListItem href={AppRoutes.AdminTransactions} title="Log ud" icon={faArrowRightFromBracket}>
-                            Logger ud af din konto.
+                        <ListItem href={AppRoutes.BoardHistory} title="Historik" icon={faHistory}>
+                            Se dine tidligere bræt.
                         </ListItem>
                     </ul>
                 </NavigationMenu.Content>
             </NavigationMenu.Item>
+
+           {isAdmin && (
+               <NavigationMenu.Item>
+                   <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
+                       Panel <CaretDownIcon className="CaretDown" aria-hidden />
+                   </NavigationMenu.Trigger>
+                   <NavigationMenu.Content className="NavigationMenuContent">
+                       <ul className="List two">
+                           <ListItem
+                               title="Vindersekvens"
+                               href={AppRoutes.PickWinnerSequence}
+                               icon={faTrophy}
+                           >
+                               Find vindere for nuværende uge.
+                           </ListItem>
+                           <ListItem
+                               title="Brugere"
+                               href={AppRoutes.AdminUsers}
+                               icon={faUsers}
+                           >
+                               Rediger kontoer eller opret nye.
+                           </ListItem>
+                           <ListItem
+                               title="Transaktioner"
+                               href={AppRoutes.AdminTransactions}
+                               icon={faBank}
+                           >
+                               Bekræft eller afkræft mobilepay køb.
+                           </ListItem>
+                           <ListItem
+                               title="Balance historik"
+                               href={AppRoutes.AdminBalanceHistory}
+                               icon={faWallet}
+                           >
+                               Se brugernes balance historik.
+                           </ListItem>
+                       </ul>
+                   </NavigationMenu.Content>
+               </NavigationMenu.Item>
+               )}
+
+          <NavigationMenu.Item>
+              <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
+                  Konto <CaretDownIcon className="CaretDown" aria-hidden />
+              </NavigationMenu.Trigger>
+              <NavigationMenu.Content className="NavigationMenuContent">
+                  <ul className="List three">
+                      <ListItem
+                          href={AppRoutes.Profile}
+                          title="Indstillinger"
+                          icon={faGear}
+                      >
+                          Mail, kode mm.
+                      </ListItem>
+                      <ListItem
+                          href={AppRoutes.MyTransactions}
+                          title="Betaling"
+                          icon={faBank}
+                      >
+                          Opret en ny betaling.
+                      </ListItem>
+                      <ListItem
+                          href={AppRoutes.MyBalanceHistory}
+                          title="Balance historik"
+                          icon={faClock}
+                      >
+                          Se din balance historik.
+                      </ListItem>
+                      <ListItem
+                          href={""}
+                          onClick={() => logout()}
+                          title="Log ud"
+                          icon={faArrowRightFromBracket}
+                      >
+                          Logger ud af din konto.
+                      </ListItem>
+                  </ul>
+              </NavigationMenu.Content>
+          </NavigationMenu.Item>
 
 				<NavigationMenu.Indicator className="NavigationMenuIndicator mt-2">
 					<div className="Arrow bg-whiteA5 dark:bg-gray1/90 backdrop-blur-md" />

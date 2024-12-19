@@ -459,6 +459,7 @@ export type BoardHistoryResponse = BoardResponse & {
   /** @format int32 */
   gameWeek?: number;
   wasWin?: boolean;
+  isActiveGame?: boolean;
 };
 
 export interface BalanceResponse {

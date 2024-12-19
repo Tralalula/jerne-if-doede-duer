@@ -288,47 +288,68 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
 
     public async Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query)
     {
+        var user = await context.Users
+            .Include(u => u.Boards)
+                .ThenInclude(b => b.Game)
+            .Include(u => u.Boards)
+                .ThenInclude(b => b.Purchase)
+            .FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new NotFoundException("Bruger ikke fundet");
+
+        var currentGame = await GetActiveGameAsync();
         
+        var boards = user.Boards.AsQueryable();
+
         if (query.FromDate.HasValue)
         {
             var fromDateTime = DateTime.SpecifyKind(query.FromDate.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-            query = query.Where(h => h.Timestamp >= fromDateTime);
+            boards = boards.Where(b => b.Timestamp >= fromDateTime);
         }
 
         if (query.ToDate.HasValue)
         {
             var toDateTime = DateTime.SpecifyKind(query.ToDate.Value.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
-            baseQuery = baseQuery.Where(h => h.Timestamp <= toDateTime);
+            boards = boards.Where(b => b.Timestamp <= toDateTime);
         }
 
-        
-        var user = await context.Users
-                       .Include(u => u.Boards)
-                       .ThenInclude(b => b.Game)
-                       .Include(u => u.Boards)
-                       .ThenInclude(b => b.Purchase)
-                       .FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw new NotFoundException("Bruger ikke fundet");
+        boards = query.Sort == SortOrder.Desc
+            ? boards.OrderByDescending(b => b.Timestamp)
+            : boards.OrderBy(b => b.Timestamp);
 
-        var totalItems = user.Boards.Count;
-
-        var pagedBoards = user.Boards
-            .OrderByDescending(b => b.Timestamp)
+        var totalItems = boards.Count();
+        var pagedBoards = boards
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToList();
 
+        var gameIds = pagedBoards.Select(b => b.GameId).Distinct();
+        var winnerSequences = await context.WinnerSequences
+            .Where(ws => gameIds.Contains(ws.GameId))
+            .ToListAsync();
+
         var boardResponses = pagedBoards
-            .Select(board => new BoardHistoryResponse
+            .Select(board =>
             {
-                BoardId = board.Id,
-                Configuration = board.Configuration.OrderBy(n => n).ToList(),
-                PlacedOn = board.Timestamp,
-                Price = GetBoardPrice(board.Configuration.Count),
-                User = UserResponse.FromEntity(board.User),
-                GameId = board.Game?.Id ?? Guid.Empty,
-                GameWeek = board.Game?.FieldCount ?? 0,
-                WasWin = false
+                var boardWinnerSequences = winnerSequences
+                    .Where(ws => ws.GameId == board.GameId)
+                    .Select(ws => ws.Sequence)
+                    .ToList();
+
+                var wasWin = boardWinnerSequences.Any(sequence =>
+                    AreNumbersMatching(board.Configuration, sequence));
+
+                return new BoardHistoryResponse
+                {
+                    BoardId = board.Id,
+                    Configuration = board.Configuration.OrderBy(n => n).ToList(),
+                    PlacedOn = board.Timestamp,
+                    Price = GetBoardPrice(board.Configuration.Count),
+                    User = UserResponse.FromEntity(board.User),
+                    GameId = board.Game?.Id ?? Guid.Empty,
+                    GameWeek = board.Game?.FieldCount ?? 0,
+                    WasWin = wasWin,
+                    IsActiveGame = currentGame != null && board.GameId == currentGame.Id
+                };
             })
             .ToList();
 
@@ -345,5 +366,4 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             PagingInfo = pagingInfo
         };
     }
-
 }

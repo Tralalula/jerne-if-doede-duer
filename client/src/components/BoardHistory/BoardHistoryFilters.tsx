@@ -1,6 +1,5 @@
-import React from 'react';
 import { useAtom } from 'jotai';
-import { Card, Flex, Select, Button, Heading, Text } from '@radix-ui/themes';
+import { Card, Flex, Select, Button, Heading, Text, Checkbox } from '@radix-ui/themes';
 import {
     boardHistoryFilterAtom,
 } from '../import';
@@ -62,6 +61,10 @@ export default function BoardHistoryFilters() {
         }
     };
 
+    const handleWasWinChange = (value: boolean) => {
+        setFilter(prev => ({ ...prev, wasWin: value }));
+    };
+
     const getCurrentDateRange = () => {
         if (!filter.fromDate && !filter.toDate) return 'Alle';
 
@@ -78,17 +81,10 @@ export default function BoardHistoryFilters() {
         });
     };
 
-
     return (
         <Card>
             <Flex direction="column" gap="4" p="4">
                 <Heading size="3">Filtre</Heading>
-
-                <Flex direction="column" gap="2">
-                    <Text as="label" size="2">Handling</Text>
-
-                </Flex>
-
                 <Flex direction="column" gap="2">
                     <Text as="label" size="2">Datointerval</Text>
                     <Select.Root value={getCurrentDateRange()} onValueChange={handleDateRangeChange}>

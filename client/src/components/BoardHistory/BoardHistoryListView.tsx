@@ -4,7 +4,7 @@ import { useAtom } from 'jotai';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 import { Card, Text, Flex, Dialog, Button } from '@radix-ui/themes';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { balanceHistoryPagingAtom, useFetchBalanceHistory, balanceHistorySortAtom, useToast, SortOrder, useFetchBoardHistory } from '../import';
+import { boardHistoryPagingAtom, boardHistorySortAtom, useToast, SortOrder, useFetchBoardHistory } from '../import';
 import BoardHistoryTable from './BoardHistoryTable';
 import BoardHistoryCard from './BoardHistoryCard';
 import BoardHistoryFilters from './BoardHistoryFilters';
@@ -13,8 +13,8 @@ import PageSizeSelector from '../Pagination/PageSizeSelector';
 import Pagination from '../Pagination/Pagination';
 
 export default function BoardHistoryListView() {
-    const [paging, setPaging] = useAtom(balanceHistoryPagingAtom);
-    const [sort] = useAtom(balanceHistorySortAtom);
+    const [paging, setPaging] = useAtom(boardHistoryPagingAtom);
+    const [sort] = useAtom(boardHistorySortAtom);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
 
     const {

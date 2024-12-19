@@ -1,14 +1,14 @@
 import { useAtom } from 'jotai';
 import { Table, Flex } from '@radix-ui/themes';
 import { ArrowUpIcon, ArrowDownIcon } from '@radix-ui/react-icons';
-import { SortOrder, balanceHistorySortAtom } from '../import';
+import { SortOrder, boardHistorySortAtom } from '../import';
 
 interface SortableColumnHeaderProps {
     children: React.ReactNode;
 }
 
 export default function BoardHistoryTableHeader({ children }: SortableColumnHeaderProps) {
-    const [sort, setSort] = useAtom(balanceHistorySortAtom);
+    const [sort, setSort] = useAtom(boardHistorySortAtom);
 
     const handleClick = () => {
         setSort({

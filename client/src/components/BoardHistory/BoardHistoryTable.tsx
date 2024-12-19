@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, BoardHistoryResponse } from '../import';
 import BoardHistoryTableHeader from './BoardHistoryTableHeader';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faCross, faExclamation, faXmark, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface BoardHistoryTableProps {
     entries: BoardHistoryResponse[];
@@ -24,7 +26,7 @@ export default function BoardHistoryTable({ entries, showUserEmail = false }: Bo
                     <BoardHistoryTableHeader>Dato</BoardHistoryTableHeader>
                     <Table.ColumnHeaderCell>Bræt</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Beløb</Table.ColumnHeaderCell>
-
+                    <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
 
@@ -41,13 +43,21 @@ export default function BoardHistoryTable({ entries, showUserEmail = false }: Bo
                         <Table.Cell>
                         {entry.configuration?.map((num, i) => (
                             <Fragment key={i}>
-                                <Badge size="1">{num}</Badge>
+                                <Badge color={`${entry.isActiveGame ? 'gray' : entry.wasWin ? 'green' : 'red'}`} size="1">{num}</Badge>
                                 {i < (entry.configuration?.length || 0) - 1 && <Text>-</Text>}
                             </Fragment>
                         ))}
                         </Table.Cell>
                         <Table.Cell>
                             {entry.price},-
+                        </Table.Cell>
+                        <Table.Cell>
+                            {!entry.isActiveGame && 
+                                <Badge className='p-1' color={`${entry.wasWin ? 'green' : 'red'}`}>
+                                    <FontAwesomeIcon size="lg" icon={entry.wasWin ? faCheckCircle : faXmarkCircle} />
+                                </Badge>
+                            }
+
                         </Table.Cell>
                     </Table.Row>
                 ))}

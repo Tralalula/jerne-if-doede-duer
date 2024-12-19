@@ -179,21 +179,21 @@ namespace ApiIntegrationTests
             Assert.Equal(AuthTestHelper.Users.Player.Email, playerUser.Email);
 
             // Opdater deres data
-            var updateRequest = new UpdateUserRequest { FirstName = "NewFirstName", LastName = "NewLastName", PhoneNumber = "1234567890", Email = playerUser.Email };
+            var updateRequest = new UpdateUserRequest { FirstName = "NewFirstName", LastName = "NewLastName", PhoneNumber = "1234567890", NewEmail = playerUser.Email };
             var updateResponse = await userClient.UpdateUserAsync(playerUser.Id, updateRequest);
             Assert.Equal(StatusCodes.Status200OK, updateResponse.StatusCode);
 
             var updatedUser = updateResponse.Result;
-            //Assert.Equal("NewFirstName", updatedUser);
-            //Assert.Equal("NewLastName", updatedUser);
+            Assert.Equal("NewFirstName", updatedUser.FirstName);
+            Assert.Equal("NewLastName", updatedUser.LastName);
             Assert.Equal("1234567890", updatedUser.PhoneNumber);
 
             // Prøv at opdater med ugyldig email
-            var invalidEmailRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", Email = "invalid-email" };
+            var invalidEmailRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", NewEmail = "invalid-email" };
             await WebAssert.ThrowsValidationAsync(() => userClient.UpdateUserAsync(playerUser.Id, invalidEmailRequest));
 
             // Prøv at opdater til en allerede eksisterende email
-            var conflictRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", Email = AuthTestHelper.Users.Admin.Email };
+            var conflictRequest = new UpdateUserRequest { FirstName = "Name", LastName = "Last", PhoneNumber = "1234567", NewEmail = AuthTestHelper.Users.Admin.Email };
             await WebAssert.ThrowsProblemAsync<ApiException>(
                 () => userClient.UpdateUserAsync(playerUser.Id, conflictRequest),
                 StatusCodes.Status409Conflict,
@@ -204,7 +204,7 @@ namespace ApiIntegrationTests
             SetAccessToken(playerAccessToken);
             
             var playerClient = new UserClient(TestHttpClient);
-            var forbiddenRequest = new UpdateUserRequest { FirstName = "Hacker", LastName = "Attempt", PhoneNumber = "0000000000", Email = "hacker@example.com" };
+            var forbiddenRequest = new UpdateUserRequest { FirstName = "Hacker", LastName = "Attempt", PhoneNumber = "0000000000", NewEmail = "hacker@example.com" };
             await WebAssert.ThrowsProblemAsync<ApiException>(
                 () => playerClient.UpdateUserAsync(playerUser.Id, forbiddenRequest),
                 StatusCodes.Status403Forbidden,

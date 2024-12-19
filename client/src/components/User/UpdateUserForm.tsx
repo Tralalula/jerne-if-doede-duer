@@ -25,6 +25,8 @@ interface UpdateUserFormData {
     newEmail?: string | null;
 }
 
+const emailPattern = /^[a-zA-ZæøåÆØÅ0-9._%+-]+@[a-zA-ZæøåÆØÅ0-9.-]+\.[a-zA-Z]{2,}$/;
+
 const schema = yup.object({
     firstName: yup
         .string()
@@ -43,7 +45,7 @@ const schema = yup.object({
         .notRequired(),
     newEmail: yup
         .string()
-        .email("Ugyldig email-adresse")
+        .matches(emailPattern, "Ugyldig email-adresse")
         .nullable()
         .notRequired()
 }).required();

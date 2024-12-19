@@ -1,4 +1,6 @@
-﻿namespace Service.Models.Responses;
+﻿using DataAccess.Models;
+
+namespace Service.Models.Responses;
 
 public class GameResponse
 {
@@ -6,4 +8,19 @@ public class GameResponse
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public int Week { get; set; }
+    public bool Active { get; set; }
+    public int Entries { get; set; }
+
+    public static GameResponse FromEntity(Game game)
+    {
+        return new GameResponse
+        {
+            Id = game.Id,
+            StartTime = game.StartTime,
+            EndTime = game.EndTime,
+            Week = game.FieldCount,
+            Active = game.Active,
+            Entries = game.Boards.Count,
+        };
+    }
 }

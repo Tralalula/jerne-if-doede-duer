@@ -11,10 +11,10 @@ namespace API.Controllers;
 public class GameController(IGameService service) : ControllerBase
 {
     [HttpGet("history")]
-    public async Task<ActionResult<GamePagedResponse>> PickBoard([FromQuery] GameHistoryQuery query)
+    public async Task<ActionResult<GameHistoryPagedResponse>> PickBoard([FromQuery] GameHistoryQuery query)
     {
         var userId = User.GetUserId();
-        return Ok(service.GetBoardsHistory(userId, query));
+        return Ok(await service.GetBoardsHistory(userId, query));
     }
 
 }

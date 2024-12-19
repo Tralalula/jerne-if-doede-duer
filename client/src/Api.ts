@@ -479,6 +479,8 @@ export interface GameResponse {
   active: boolean;
   /** @format int32 */
   entries: number;
+  /** @format int32 */
+  totalPool: number;
 }
 
 export interface BalanceResponse {

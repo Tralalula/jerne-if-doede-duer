@@ -10,6 +10,7 @@ public class GameResponse
     public int Week { get; set; }
     public bool Active { get; set; }
     public int Entries { get; set; }
+    public int TotalPool { get; set; }
 
     public static GameResponse FromEntity(Game game)
     {
@@ -21,6 +22,7 @@ public class GameResponse
             Week = game.FieldCount,
             Active = game.Active,
             Entries = game.Boards.Count,
+            TotalPool = game.Boards.Sum(b => b.Purchase.Price)
         };
     }
 }

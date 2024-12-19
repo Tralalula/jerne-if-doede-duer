@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { ForgotPassword, GamePage, WinnerSequence, LoginPage, ForbiddenPage, MyBoardHistory, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage } from "./pages/index";
+import { ForgotPassword, GamePage, WinnerSequence, LoginPage, ForbiddenPage, MyBoardHistory, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage, GameHistoryPage } from "./pages/index";
 import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
@@ -42,6 +42,8 @@ const App = () => {
               <Route path={AppRoutes.AdminUserBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserBalanceHistoryPage />} />} />
               <Route path={AppRoutes.Profile} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<ProfilePage />} />} />
               <Route path={AppRoutes.PickWinnerSequence} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<WinnerSequence />} />} />
+
+              <Route path={AppRoutes.GameHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<GameHistoryPage />} />} />
 
               <Route path={AppRoutes.BoardHistory} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyBoardHistory />} />} />
 

@@ -5,6 +5,9 @@ export { default as GamePage } from './board/GamePage'
 export { default as MyBoardHistory } from './board/MyBoardHistory'
 export { default as WinnerSequence} from './winner-sequence/WinnerSequence'
 
+//------- Games -------//
+export { default as GameHistoryPage } from './gamehistory/GameHistoryPage'
+
 //------- Auth -------//
 export { default as LoginPage } from "./auth/Login";
 export { default as ForgotPassword } from './auth/ForgotPassword';

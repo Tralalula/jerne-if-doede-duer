@@ -76,7 +76,7 @@ const DesktopNavigation = () => {
 							</ListItem>
 							<ListItem
 								title="Spil"
-								href="/primitives/docs/guides/animation"
+								href={AppRoutes.GameHistory}
                                 icon={faBank}>
 								Få en visning af tidligere spil.
 							</ListItem>

@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { Table, Badge, Link, Flex, Text } from '@radix-ui/themes';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, GameHistoryResponse } from '../import';
+import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, GameResponse } from '../import';
 import GameHistoryTableHeader from './GameHistoryTableHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faCross, faExclamation, faXmark, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface GameHistoryTableProps {
-    entries: GameHistoryResponse[];
+    entries: GameResponse[];
     showUserEmail?: boolean;
 }
 
@@ -22,42 +22,32 @@ export default function GameHistoryTable({ entries, showUserEmail = false }: Gam
         <Table.Root variant="surface">
             <Table.Header>
                 <Table.Row>
-                    <GameHistoryTableHeader>Spil uge</GameHistoryTableHeader>
-                    <GameHistoryTableHeader>Dato</GameHistoryTableHeader>
-                    <Table.ColumnHeaderCell>Bræt</Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell>Beløb</Table.ColumnHeaderCell>
+                    <GameHistoryTableHeader>Uge</GameHistoryTableHeader>
+                    <GameHistoryTableHeader>Start</GameHistoryTableHeader>
+                    <Table.ColumnHeaderCell>Slut</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Deltagere</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Pulje</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
 
             <Table.Body>
                 {entries.map((entry) => (
-                    <Table.Row key={entry.GameId}>
+                    <Table.Row key={entry.id}>
                         <Table.Cell>
-                            {entry.gameWeek}
-                        </Table.Cell>
-
-                        <Table.Cell>
-                            {format(new Date(entry.placedOn), 'd. MMMM yyyy HH:mm', { locale: da })}
+                            {entry.week}
                         </Table.Cell>
                         <Table.Cell>
-                        {entry.configuration?.map((num, i) => (
-                            <Fragment key={i}>
-                                <Badge color={`${entry.isActiveGame ? 'gray' : entry.wasWin ? 'green' : 'red'}`} size="1">{num}</Badge>
-                                {i < (entry.configuration?.length || 0) - 1 && <Text>-</Text>}
-                            </Fragment>
-                        ))}
+                            {format(new Date(entry.startTime), 'd. MMMM yyyy HH:mm', { locale: da })}
                         </Table.Cell>
                         <Table.Cell>
-                            {entry.price},-
+                            {format(new Date(entry.endTime), 'd. MMMM yyyy HH:mm', { locale: da })}
                         </Table.Cell>
                         <Table.Cell>
-                            {!entry.isActiveGame && 
-                                <Badge className='p-1' color={`${entry.wasWin ? 'green' : 'red'}`}>
-                                    <FontAwesomeIcon size="lg" icon={entry.wasWin ? faCheckCircle : faXmarkCircle} />
-                                </Badge>
-                            }
-
+                            {entry.entries}
+                        </Table.Cell>
+                        <Table.Cell>
+                            {entry.totalPool},-
                         </Table.Cell>
                     </Table.Row>
                 ))}

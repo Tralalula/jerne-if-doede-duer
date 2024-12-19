@@ -26,7 +26,7 @@ export default function GameHistoryListView() {
     const sortedEntries = useMemo(() =>
             loading ? [] : [...entries].sort((a, b) => {
                 const factor = sort.sortBy === SortOrder.Asc ? -1 : 1;
-                return factor * (new Date(b.placedOn).getTime() - new Date(a.placedOn).getTime());
+                return factor * (new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
             }),
         [entries, sort.sortBy, loading]
     );
@@ -70,7 +70,7 @@ export default function GameHistoryListView() {
                     <ContentState className="p-4" />
                     {!loading && entries.length > 0 && (
                         sortedEntries.map(entry => (
-                            <GameHistoryCard key={entry.GameId} entry={entry}/>
+                            <GameHistoryCard key={entry.id} entry={entry}/>
                         ))
                     )}
                 </Flex>

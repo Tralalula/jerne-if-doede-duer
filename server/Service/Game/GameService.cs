@@ -49,7 +49,9 @@ public class GameService(AppDbContext context, UserManager<User> userManager) : 
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .Include(g => g.Boards)
+                .ThenInclude(b => b.Purchase)
             .ToListAsync();
+
 
         var gameResponses = paginatedGames.Select(GameResponse.FromEntity).ToList();
         

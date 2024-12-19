@@ -24,3 +24,5 @@ export { default as ProfilePage } from './ProfilePage';
 export { default as ForbiddenPage } from "./error/ForbiddenPage";
 export { default as NotFoundPage } from "./error/NotFoundPage";
 
+//------- Rules -------//
+export { default as RulesPage } from "./GameRules";

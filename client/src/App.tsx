@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { ForgotPassword, GamePage, HomePage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUsersPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage } from "./pages/index";
+import { ForgotPassword, GamePage, RulesPage, LoginPage, ForbiddenPage, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUsersPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage } from "./pages/index";
 import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
@@ -23,12 +23,14 @@ const App = () => {
   <AuthContext.Provider value={auth}>
     <Theme appearance={theme} accentColor="red" panelBackground="translucent">
       <ToastProvider>
-      <RequireAuth accessLevel={AccessLevel.Protected} element={<Navigation />} />
+      {auth.user && (<Navigation /> )}
         <DaisyToaster />
           <Routes>
               <Route path={AppRoutes.NotFound} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<NotFoundPage />} />} />
               <Route path={AppRoutes.Forbidden} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<ForbiddenPage />} />} />
-
+              
+              <Route path={AppRoutes.Rules} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<RulesPage />} />} />
+              
               <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<GamePage />} />} />
               <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<LoginPage />} />} />
 

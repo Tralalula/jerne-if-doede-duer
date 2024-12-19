@@ -255,6 +255,14 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             FieldCount = nextWeekNumber
         };
         
+        var winnerSequence = new WinnerSequence
+        {
+            GameId = game.Id,
+            Timestamp = startTime,
+            Sequence = request.SelectedNumbers
+        };
+        
+        await context.WinnerSequences.AddAsync(winnerSequence);
         await context.Games.AddAsync(newGame);
         await context.SaveChangesAsync();
         

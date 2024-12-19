@@ -167,7 +167,8 @@ public class DbSeeder(
             StartTime = now - TimeSpan.FromDays(1),
             EndTime = now + TimeSpan.FromDays(1),
             Id = Guid.NewGuid(),
-            FieldCount = 47
+            FieldCount = 47,
+            Active = true
         };
         
         await context.Games.AddAsync(testGame);

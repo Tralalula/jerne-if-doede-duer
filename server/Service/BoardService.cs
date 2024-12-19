@@ -91,20 +91,20 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     public async Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         if (IsWithinRestrictedTime(timeProvider))
-            throw new UnauthorizedException("You cannot place a bet during this time.");
+            throw new UnauthorizedException("Du kan ikke købe et bræt på nuværende tidspunkt.");
         
-        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("Bruger ikke fundet");
         
         if (user.Status == UserStatus.Inactive)
-            throw new UnauthorizedException("You do not have permission to place a bet.");
+            throw new UnauthorizedException("Du har ikke tilladelse til at købe et bræt.");
         
         if (board.Amount <= 0)
-            throw new BadRequestException("You must place bet on atleast 1 board.");
+            throw new BadRequestException("Du skal mindst købe 1 bræt.");
 
         var totalPrice = GetBoardPrice(board.SelectedNumbers.Count) * board.Amount;
         
         if (user.Credits < totalPrice)
-            throw new BadRequestException("You don't have enough credits for this bet.");
+            throw new BadRequestException("Du har ikke nok credits til at købe dette bræt.");
 
         board.SelectedNumbers = board.SelectedNumbers.OrderBy(n => n).ToList();
         ValidateBoard(board.SelectedNumbers);
@@ -112,7 +112,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var game = await GetActiveGameAsync();
         
         if (game == null)
-            throw new NotFoundException("No active game found at this time.");
+            throw new NotFoundException("Ingen aktiv spil fundet.");
 
         var purchase = board.ToPurchase(timeProvider, totalPrice);
 
@@ -141,18 +141,18 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw new BadRequestException($"Failed to place bet.");
+                throw new BadRequestException($"En fejl skete ved køb af bræt.");
             }
         }
         if (!newBoards.Any())
-            throw new Exception("No boards were created.");
+            throw new Exception("Ingen boards blev oprettet.");
         
         return BoardPickResponse.FromEntity(purchase, newBoards.First(), newBoards.Count);
     }
     
     public async Task<GameStatusResponse> GetGameStatusAsync(Guid userId)
     {
-        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User not found");
+        var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("Bruger ikke fundet");
         var game = await GetActiveGameAsync();
         
         var currentTime = timeProvider.GetUtcNow().UtcDateTime;
@@ -184,7 +184,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var game = await GetActiveGameAsync();
         
         if (game == null)
-            throw new NotFoundException("No active game found at this time.");
+            throw new NotFoundException("Ingen aktive spil fundet.");
         
         var matchingBoards = await context.Boards
             .Where(board => board.GameId == game.Id)
@@ -205,6 +205,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 BoardId = result.board.Id,
                 Configuration = result.board.Configuration.OrderBy(n => n).ToList(),
                 PlacedOn = result.board.Timestamp,
+                Price = GetBoardPrice(result.board.Configuration.Count),
                 User = UserResponse.FromEntity(result.User)
             })
             .ToList();
@@ -215,12 +216,27 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     public async Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) 
-                   ?? throw new NotFoundException("User not found");
+                   ?? throw new NotFoundException("Bruger ikke fundet");
 
         var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
         var game = await GetActiveGameAsync();
+
+        return BoardWinningSequenceResponse.FromEntity(boards.Count, request.SelectedNumbers, game);
+    }
+    
+    public async Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString()) 
+                   ?? throw new NotFoundException("Bruger ikke fundet");
+        
+        var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
+        
+        var game = await GetActiveGameAsync();
         game.Active = false;
+        
+        if (game == null)
+            throw new NotFoundException("Ingen aktiv spil fundet.");
 
         var startTime = timeProvider.GetUtcNow().UtcDateTime;
         
@@ -241,19 +257,13 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         
         await context.Games.AddAsync(newGame);
         await context.SaveChangesAsync();
-        return BoardWinningSequenceResponse.FromEntity(boards.Count, request.SelectedNumbers, game);
-    }
-    
-    public async Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId)
-    {
-        var user = await userManager.FindByIdAsync(userId.ToString()) 
-                   ?? throw new NotFoundException("User not found");
-        
-        var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
         var response = new BoardWinningSequenceConfirmedResponse
         {
-            Boards = boards
+            Boards = boards,
+            GameId = game.Id,
+            GameWeek = game.FieldCount,
+            TotalWinners = boards.Count
         };
 
         return response;

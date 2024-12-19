@@ -190,6 +190,7 @@ export interface Game {
   startTime: string;
   /** @format date-time */
   endTime: string;
+  active: boolean;
   /** @format int32 */
   fieldCount: number;
   boards: Board[];
@@ -394,6 +395,12 @@ export interface GameStatusResponse {
 }
 
 export interface BoardWinningSequenceConfirmedResponse {
+  /** @format guid */
+  gameId: string;
+  /** @format int32 */
+  gameWeek: number;
+  /** @format int32 */
+  totalWinners: number;
   boards: BoardResponse[];
 }
 
@@ -401,6 +408,8 @@ export interface BoardResponse {
   /** @format guid */
   boardId: string;
   configuration: number[];
+  /** @format int32 */
+  price: number;
   /** @format date-time */
   placedOn: string;
   user: UserResponse;

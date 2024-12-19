@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import GetWinningSeq from './forms/GetWinningSeq';
 import ConfirmWinningSeq from './forms/ConfirmWinningSeq';
+import ConfirmedWinSeq from './forms/ConfirmedWinSeq';
 
 const schema = yup.object({
     winningNumbers: yup
@@ -41,8 +42,6 @@ type FormValues = {
 export default function PickBox() {
     let [state, setState] = useState<"select" | "confirm" | "success">("select");
 
-    const { boardPickWinSeq } = useBoard();
-
     return (
         <>
             <Flex justify='center' gap="4" className="lg:flex">
@@ -55,6 +54,10 @@ export default function PickBox() {
                             <ResizablePanel.Content value="confirm">
                                 <ConfirmWinningSeq setState={setState}/>
                             </ResizablePanel.Content>
+                            <ResizablePanel.Content value="success">
+                                <ConfirmedWinSeq setState={setState}/>
+                            </ResizablePanel.Content>
+
                         </ResizablePanel.Root>
                     </Flex>
                         

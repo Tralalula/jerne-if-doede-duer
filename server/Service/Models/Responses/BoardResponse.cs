@@ -6,6 +6,7 @@ public class BoardResponse
 {
     public Guid BoardId { get; set; }
     public List<int> Configuration { get; set; }
+    public int Price { get; set; }
     public DateTime PlacedOn { get; set; }
     public UserResponse User { get; set; }
 

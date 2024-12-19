@@ -21,9 +21,7 @@ export function useBoard() {
     const [error, setError] = useAtom(gameStatusFetchError);
     const [isPlacingBoardPick, setIsPlacingBoardPick] = useAtom(boardPlacingBetAtom);
 
-
     const [boardPickWinSeqError, setBoardPickWinSeqError] = useAtom(boardPickWinSeqErrorAtom);
-
 
     const [boardPickWinSeq, setBoardPickWinSeq] = useAtom(boardPickWinSeqAtom);
     const [boardConfirmWinSeq, setBoardConfirmWinSeq] = useAtom(boardConfirmWinSeqAtom);
@@ -62,7 +60,16 @@ export function useBoard() {
 
         try {
             const response = await api.board.confirmWinningSequence(request);
-            return response.data;
+
+            const confirmedWinningSeq = {
+                boards: response.data.boards,
+                gameId: response.data.gameId,
+                gameWeek: response.data.gameWeek,
+                totalWinners: response.data.totalWinners
+            };
+
+
+            setBoardConfirmWinSeq(confirmedWinningSeq)
         } catch (err: any) {
             if (err.response && err.response.data)
                 throw err.response.data;
@@ -128,6 +135,7 @@ export function useBoard() {
         isGettingBoardWinSeq,
         boardPickWinSeq,
         boardPickWinSeqError,
-        confirmWinSeq
+        confirmWinSeq,
+        boardConfirmWinSeq
     };
 }

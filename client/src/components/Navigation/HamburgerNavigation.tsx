@@ -12,9 +12,16 @@ import {
     faUser,
     faBars,
     faX,
-    faHistory
+    faHistory,
+    faHome,
+    faBook,
+    faDice,
+    faTrophy,
+    faUsers,
+    faWallet,
+    faClock
 } from "@fortawesome/free-solid-svg-icons";
-import { AccessLevel, AppRoutes } from "../import";
+import { AppRoutes } from "../import";
 
 const HamburgerNavigation = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -46,18 +53,11 @@ const HamburgerNavigation = () => {
 
                     <div className="flex space-x-12">
                         <Link
-                            to="game"
+                            to={AppRoutes.Game}
                             className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-red-500"
                         >
                             <FontAwesomeIcon icon={faGamepad} className="h-6 w-6" />
-                            <span className="text-xs mt-1">Døde duer</span>
-                        </Link>
-                        <Link
-                            to={AppRoutes.BoardHistory}
-                            className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-red-500"
-                        >
-                            <FontAwesomeIcon icon={faHistory} className="h-6 w-6" />
-                            <span className="text-xs mt-1">Historik</span>
+                            <span className="text-xs mt-1">Spil</span>
                         </Link>
                         <Link
                             to={AppRoutes.MyTransactions}
@@ -65,6 +65,13 @@ const HamburgerNavigation = () => {
                         >
                             <FontAwesomeIcon icon={faBank} className="h-6 w-6" />
                             <span className="text-xs mt-1">Betaling</span>
+                        </Link>
+                        <Link
+                            to={AppRoutes.BoardHistory}
+                            className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-red-500"
+                        >
+                            <FontAwesomeIcon icon={faHistory} className="h-6 w-6" />
+                            <span className="text-xs mt-1">Historik</span>
                         </Link>
                     </div>
 
@@ -74,29 +81,38 @@ const HamburgerNavigation = () => {
                 {isOpen && (
                     <div className="absolute bottom-full left-0 w-full bg-white dark:bg-gray1 border-t dark:border-gray5 max-h-[80vh] overflow-y-auto shadow-lg">
                         <div className="p-4 space-y-4">
-                            {/* Game Section */}
+                            {/* Spil sektion */}
                             <div className="space-y-2">
                                 <h3 className="font-medium text-gray-900 dark:text-gray-100">Spil</h3>
                                 <nav className="space-y-1">
                                     <Link
-                                        to="game"
+                                        to={AppRoutes.Game}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
                                         <FontAwesomeIcon icon={faGamepad} className="mr-3" />
-                                        <span>Døde duer</span>
+                                        <span>Spil nu</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.BoardHistory}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faGamepad} className="mr-3" />
+                                        <FontAwesomeIcon icon={faHistory} className="mr-3" />
                                         <span>Historik</span>
+                                    </Link>
+                                    <Link
+                                        to={AppRoutes.Rules}
+                                        className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                        onClick={toggleMenu}
+                                    >
+                                        <FontAwesomeIcon icon={faBook} className="mr-3" />
+                                        <span>Regler</span>
                                     </Link>
                                 </nav>
                             </div>
 
+                            {/* Admin sektion */}
                             {isAdmin && (
                                 <div className="space-y-2">
                                     <h3 className="font-medium text-gray-900 dark:text-gray-100">Panel</h3>
@@ -106,7 +122,7 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faGamepad} className="mr-3" />
+                                            <FontAwesomeIcon icon={faTrophy} className="mr-3" />
                                             <span>Vindersekvens</span>
                                         </Link>
                                         <Link
@@ -114,7 +130,7 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faUser} className="mr-3" />
+                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
                                             <span>Brugere</span>
                                         </Link>
                                         <Link
@@ -130,13 +146,14 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faMoneyBill} className="mr-3" />
+                                            <FontAwesomeIcon icon={faWallet} className="mr-3" />
                                             <span>Balance historik</span>
                                         </Link>
                                     </nav>
                                 </div>
                             )}
 
+                            {/* Konto sektion */}
                             <div className="space-y-2">
                                 <h3 className="font-medium text-gray-900 dark:text-gray-100">Konto</h3>
                                 <nav className="space-y-1">
@@ -145,8 +162,8 @@ const HamburgerNavigation = () => {
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faGear} className="mr-3" />
-                                        <span>Indstillinger</span>
+                                        <FontAwesomeIcon icon={faUser} className="mr-3" />
+                                        <span>Profil</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyTransactions}
@@ -154,27 +171,26 @@ const HamburgerNavigation = () => {
                                         onClick={toggleMenu}
                                     >
                                         <FontAwesomeIcon icon={faBank} className="mr-3" />
-                                        <span>Transaktion</span>
+                                        <span>Betalinger</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyBalanceHistory}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faBank} className="mr-3" />
+                                        <FontAwesomeIcon icon={faClock} className="mr-3" />
                                         <span>Balance historik</span>
                                     </Link>
-                                    <Link
+                                    <button
                                         onClick={() => {
                                             logout();
-                                            toggleMenu(); 
+                                            toggleMenu();
                                         }}
-                                        to={AppRoutes.Login}
-                                        className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                        className="flex w-full items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                     >
                                         <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-3" />
                                         <span>Log ud</span>
-                                    </Link>
+                                    </button>
                                 </nav>
                             </div>
                         </div>

@@ -2,13 +2,13 @@ import React, { Fragment } from 'react';
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { useNavigate } from 'react-router-dom';
-import { Table, Badge, Link, Flex, Text } from '@radix-ui/themes';
+import { Table, Badge, Link, Flex, Text, Button, IconButton } from '@radix-ui/themes';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, GameResponse } from '../import';
 import GameHistoryTableHeader from './GameHistoryTableHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faCross, faExclamation, faXmark, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faCross, faExclamation, faEye, faXmark, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface GameHistoryTableProps {
     entries: GameResponse[];
@@ -49,6 +49,13 @@ export default function GameHistoryTable({ entries, showUserEmail = false }: Gam
                         <Table.Cell>
                             {entry.totalPool},-
                         </Table.Cell>
+
+                        <Table.Cell>
+                            <Button size='1' className='cursor-pointer transition-colors duration-200'>
+                                <FontAwesomeIcon icon={faEye}/>
+                            </Button>
+                        </Table.Cell>
+
                     </Table.Row>
                 ))}
             </Table.Body>

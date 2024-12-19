@@ -95,6 +95,7 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         return new TransactionDetailsResponse(
             transaction.Id,
             transaction.Timestamp,
+            transaction.UserId,
             transaction.Credits,
             transaction.MobilepayTransactionNumber,
             transaction.Status.ToTransactionStatus(),
@@ -118,6 +119,7 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         return new TransactionDetailsResponse(
             transaction.Id,
             transaction.Timestamp,
+            transaction.UserId,
             transaction.Credits,
             transaction.MobilepayTransactionNumber,
             transaction.Status.ToTransactionStatus(),
@@ -166,6 +168,7 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
                                    .Select(t => new TransactionDetailsResponse(
                                            t.Id, 
                                            t.Timestamp, 
+                                           t.UserId,
                                            t.Credits, 
                                            t.MobilepayTransactionNumber, 
                                            t.Status.ToTransactionStatus(), 

@@ -19,10 +19,8 @@ public class MakeAllPropertiesRequiredProcessor : IDocumentProcessor
         {
             foreach (var property in schema.Properties)
             {
-                if (property.Key.Equals("phoneNumber", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
+                if (property.Key.Equals("phoneNumber", StringComparison.OrdinalIgnoreCase)) { continue; }
+                if (property.Key.Equals("newEmail", StringComparison.OrdinalIgnoreCase)) { continue; }
                 
                 schema.RequiredProperties.Add(property.Key);
             }

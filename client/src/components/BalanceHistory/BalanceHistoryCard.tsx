@@ -30,17 +30,11 @@ export default function BalanceHistoryCard({ entry, showUserEmail }: BalanceHist
     const actionColors = {
         [BalanceAction.UserBought]: 'green',
         [BalanceAction.UserUsed]: 'red',
-        [BalanceAction.AdminAssigned]: 'blue',
-        [BalanceAction.AdminRevoked]: 'orange',
-        [BalanceAction.WonPrize]: 'purple',
     } as const;
 
     const actionText = {
         [BalanceAction.UserBought]: 'Bruger købte',
         [BalanceAction.UserUsed]: 'Bruger brugte',
-        [BalanceAction.AdminAssigned]: 'Admin tildelte',
-        [BalanceAction.AdminRevoked]: 'Admin fratog',
-        [BalanceAction.WonPrize]: 'Vandt præmie',
     };
 
     return (

@@ -18,7 +18,7 @@ export { default as MyTransactionsPage } from './transaction/MyTransactionsPage'
 export { default as AdminTransactionsPage } from './transaction/AdminTransactionsPage';
 
 //------- User -------//
-export { default as AdminUserPage } from './user/AdminUserPage';
+export { default as AdminUsersPage } from './user/AdminUsersPage';
 
 //------- Balance history -------//
 export { default as AdminBalanceHistoryPage } from './balancehistory/AdminBalanceHistoryPage';
@@ -32,3 +32,5 @@ export { default as ProfilePage } from './ProfilePage';
 export { default as ForbiddenPage } from "./error/ForbiddenPage";
 export { default as NotFoundPage } from "./error/NotFoundPage";
 
+//------- Rules -------//
+export { default as RulesPage } from "./GameRules";

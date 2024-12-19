@@ -16,7 +16,7 @@ export default function AdminTransactionsPage() {
                     <Heading size="6">Transaktionshistorik</Heading>
                 </Flex>
 
-                <TransactionListView isAdmin={true} />
+                <TransactionListView isAdmin={true} showUserEmail={true} />
             </Flex>
         </Page>
     );

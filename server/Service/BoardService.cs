@@ -3,6 +3,7 @@ using DataAccess;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Service.BalanceHistory;
 using Service.Boards;
 using Service.Exceptions;
 using Service.Models;
@@ -16,7 +17,6 @@ public interface IBoardService
     public Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
     public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
     public Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId);
-
     public Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId);
     
     public Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query);
@@ -141,7 +141,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             {
                 user.Credits -= totalPrice;
                 context.Users.Update(user);
-
+                
                 context.Purchases.Add(purchase);
                 await context.SaveChangesAsync();
                 
@@ -152,6 +152,16 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 }
                 
                 await context.Boards.AddRangeAsync(newBoards);
+                
+                await context.BalanceHistories.AddAsync(new DataAccess.Models.BalanceHistory
+                {
+                    UserId = user.Id,
+                    Amount = totalPrice,
+                    Action = BalanceAction.UserUsed.ToDbString(),
+                    Timestamp = timeProvider.GetUtcNow().UtcDateTime,
+                    AdditionalId = purchase.Id
+                });
+                
                 await context.SaveChangesAsync();
                 
                 await transaction.CommitAsync();

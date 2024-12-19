@@ -25,8 +25,9 @@ export function usePrintPdf() {
 
         //indhold rows
         const tableRows = data.boards.map((board) => {
-            const { firstName, lastName } = board.user;
-            const boardConfiguration = board.configuration.join("-");
+            const firstName = board.user?.firstName || "Ukendt";
+            const lastName = board.user?.lastName || "Ukendt";
+            const boardConfiguration = board.configuration?.join("-") || "Ingen konfiguration tilgængelig";
             const totalPrice = `${board.price},-`;
             return [`${firstName} ${lastName}`, boardConfiguration, totalPrice];
         });

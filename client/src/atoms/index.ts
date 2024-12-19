@@ -3,4 +3,5 @@ export { themeAtom } from "./theme";
 export * from "./transactionAtoms";
 export * from "./userAtoms";
 export * from "./balanceHistoryAtoms";
-export * from './boardAtoms.ts'
+export * from './boardAtoms.ts';
+export * from './boardHistoryAtoms.ts';

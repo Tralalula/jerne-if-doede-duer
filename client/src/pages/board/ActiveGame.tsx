@@ -262,7 +262,7 @@ export default function ActiveGame({boardStatus, placeBoardPick, isPlacingBoardP
                                     {i < selectedNumbers.length - 1 && <Text>-</Text>}
                                 </Fragment>
                             ))}
-                            </Flex>
+                        </Flex>
                             <Separator className="w-full"/>
 
                             <Text>

@@ -46,7 +46,7 @@ const DesktopNavigation = () => {
                         <ListItem href="https://stitches.dev/" title="Autoplay">
                             Rediger i din autoplay konfiguration.
                         </ListItem>
-                        <ListItem href={AppRoutes.AdminUsers} title="Historik">
+                        <ListItem href={AppRoutes.BoardHistory} title="Historik">
                             Se dine tidligere bræt.
                         </ListItem>
                         <ListItem href="https://icons.radix-ui.com/" title="Regler">

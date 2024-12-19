@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { Card, Flex, Select, Button, Heading, Text, TextField } from '@radix-ui/themes';
 import {
@@ -7,6 +7,7 @@ import {
     userStatusFilterAtom,
     userRoleFilterAtom,
     userSearchAtom,
+    useDebounce
 } from '../import';
 
 export default function UserFilters() {
@@ -14,10 +15,25 @@ export default function UserFilters() {
     const [role, setRole] = useAtom(userRoleFilterAtom);
     const [search, setSearch] = useAtom(userSearchAtom);
 
+    const [inputValue, setInputValue] = useState(search || '');
+
+    const debounceSearch = useDebounce((searchTerm: string) => {
+        setSearch(searchTerm || null);
+    }, 500);
+
+    useEffect(() => {
+        debounceSearch(inputValue);
+    }, [inputValue]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(e.target.value);
+    };
+    
     const handleReset = () => {
         setStatus(null);
         setRole(null);
         setSearch(null);
+        setInputValue('');
     };
 
     return (
@@ -31,8 +47,8 @@ export default function UserFilters() {
                         variant="soft"
                         color="gray"
                         placeholder="Søg efter email eller tlf. nr."
-                        value={search || ''}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value || null)}
+                        value={inputValue}
+                        onChange={handleSearchChange}
                     />
                 </Flex>
 

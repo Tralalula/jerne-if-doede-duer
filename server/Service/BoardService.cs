@@ -33,7 +33,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             throw new BadRequestException("Selected numbers must be unique.");
     }
 
-    public async Task<Game> GetActiveGameAsync()
+    public async Task<Game?> GetActiveGameAsync()
     {
         var currentTime = timeProvider.GetUtcNow().UtcDateTime;
 
@@ -138,7 +138,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 
                 await transaction.CommitAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw new BadRequestException($"En fejl skete ved køb af bræt.");
@@ -206,7 +206,9 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 Configuration = result.board.Configuration.OrderBy(n => n).ToList(),
                 PlacedOn = result.board.Timestamp,
                 Price = GetBoardPrice(result.board.Configuration.Count),
-                User = UserResponse.FromEntity(result.User)
+                User = result.User != null 
+                    ? UserResponse.FromEntity(result.User) 
+                    : null            
             })
             .ToList();
         
@@ -221,6 +223,8 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
         var game = await GetActiveGameAsync();
+        if (game == null)
+            throw new BadRequestException("Ingen aktiv spil fundet.");
 
         return BoardWinningSequenceResponse.FromEntity(boards.Count, request.SelectedNumbers, game);
     }
@@ -233,10 +237,11 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         var boards = await GetWinningBoardsAsync(request.SelectedNumbers);
         
         var game = await GetActiveGameAsync();
-        game.Active = false;
         
         if (game == null)
             throw new NotFoundException("Ingen aktiv spil fundet.");
+        
+        game.Active = false;
 
         var startTime = timeProvider.GetUtcNow().UtcDateTime;
         

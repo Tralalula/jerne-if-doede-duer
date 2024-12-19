@@ -1,13 +1,21 @@
-﻿using DataAccess.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using DataAccess.Models;
 
 namespace Service.Models.Responses;
 
 public class BoardWinningSequenceResponse
 {
+    [Required]
     public int WinnerAmounts { get; set; }
+    
+    [Required]
     public Guid GameId { get; set; }
+    
+    [Required]
     public int CurrentGameField { get; set; }
-    public List<int> SelectedNumbers { get; set; }
+    
+    [Required]
+    public List<int>? SelectedNumbers { get; set; }
 
     public static BoardWinningSequenceResponse FromEntity(int winnerAmounts, List<int> selectedNumbers, Game game)
     {

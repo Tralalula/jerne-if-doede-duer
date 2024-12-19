@@ -9,7 +9,7 @@ public class BoardPickResponse
     public Guid PurchaseId { get; set; }
     
     [Required]
-    public List<int> SelectedNumbers { get; set; }
+    public List<int>? SelectedNumbers { get; set; }
     
     [Required]
     public int Amount { get; set; }

@@ -17,7 +17,6 @@ public interface IBoardService
     public Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId);
     public Task<GameStatusResponse> GetGameStatusAsync(Guid userId);
     public Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId);
-
     public Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId);
     
     public Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query);

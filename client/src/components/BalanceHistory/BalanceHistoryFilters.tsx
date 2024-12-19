@@ -83,9 +83,6 @@ export default function BalanceHistoryFilters() {
     const actionText = {
         [BalanceAction.UserBought]: 'Bruger købte',
         [BalanceAction.UserUsed]: 'Bruger brugte',
-        [BalanceAction.AdminAssigned]: 'Admin tildelte',
-        [BalanceAction.AdminRevoked]: 'Admin fratog',
-        [BalanceAction.WonPrize]: 'Vandt præmie',
     };
 
     return (

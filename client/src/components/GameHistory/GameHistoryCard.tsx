@@ -30,7 +30,7 @@ export default function GameHistoryCard({ entry }: GameHistoryCardProps) {
 
                 </Text>
             </Flex>
-            <Button className='mt-2 cursor-pointer transition-colors duration-200' variant='outline'  onClick={() => navigate(AppRoutes.GameBoardHistory.replace(':gameId', entry.id))}>
+            <Button className='mt-2 cursor-pointer transition-colors duration-200' variant='outline'  onClick={() => navigate(AppRoutes.AdminGameBoardHistory.replace(':gameId', entry.id))}>
                     Flere oplysninger
             </Button>
         </Card>

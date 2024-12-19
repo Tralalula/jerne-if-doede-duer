@@ -43,10 +43,10 @@ const App = () => {
               <Route path={AppRoutes.AdminBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminBalanceHistoryPage />} />} />
               <Route path={AppRoutes.AdminUserBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserBalanceHistoryPage />} />} />
               <Route path={AppRoutes.Profile} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<ProfilePage />} />} />
-              <Route path={AppRoutes.PickWinnerSequence} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<WinnerSequence />} />} />
+              <Route path={AppRoutes.AdminPickWinnerSequence} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<WinnerSequence />} />} />
 
-              <Route path={AppRoutes.GameHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<GameHistoryPage />} />} />
-              <Route path={AppRoutes.GameBoardHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<GameBoardHistoryPage />} />} />
+              <Route path={AppRoutes.AdminGameHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<GameHistoryPage />} />} />
+              <Route path={AppRoutes.AdminGameBoardHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<GameBoardHistoryPage />} />} />
 
               <Route path={AppRoutes.BoardHistory} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyBoardHistory />} />} />
 

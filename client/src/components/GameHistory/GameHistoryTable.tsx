@@ -54,7 +54,7 @@ export default function GameHistoryTable({ entries}: GameHistoryTableProps) {
                         </Table.Cell>
 
                         <Table.Cell>
-                            <Button size='1' className='cursor-pointer transition-colors duration-200' onClick={() => navigate(AppRoutes.GameBoardHistory.replace(':gameId', entry.id))}>
+                            <Button size='1' className='cursor-pointer transition-colors duration-200' onClick={() => navigate(AppRoutes.AdminGameBoardHistory.replace(':gameId', entry.id))}>
                                 <FontAwesomeIcon icon={faEye}/>
                             </Button>
                         </Table.Cell>

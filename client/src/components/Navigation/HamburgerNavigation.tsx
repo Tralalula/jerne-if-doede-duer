@@ -118,12 +118,20 @@ const HamburgerNavigation = () => {
                                     <h3 className="font-medium text-gray-900 dark:text-gray-100">Panel</h3>
                                     <nav className="space-y-1">
                                         <Link
-                                            to={AppRoutes.PickWinnerSequence}
+                                            to={AppRoutes.AdminPickWinnerSequence}
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
                                             <FontAwesomeIcon icon={faTrophy} className="mr-3" />
                                             <span>Vindersekvens</span>
+                                        </Link>
+                                        <Link
+                                            to={AppRoutes.AdminGameHistory}
+                                            className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                            onClick={toggleMenu}
+                                        >
+                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
+                                            <span>Brugere</span>
                                         </Link>
                                         <Link
                                             to={AppRoutes.AdminUsers}

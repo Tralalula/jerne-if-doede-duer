@@ -76,7 +76,7 @@ const DesktopNavigation = () => {
 						<ul className="List two">
 							<ListItem
 								title="Vindersekvens"
-								href={AppRoutes.PickWinnerSequence}
+								href={AppRoutes.AdminPickWinnerSequence}
                                 icon={faGamepad}>
 								Find vindere for nuværende uge.
 							</ListItem>
@@ -88,7 +88,7 @@ const DesktopNavigation = () => {
 							</ListItem>
 							<ListItem
 								title="Spil"
-								href={AppRoutes.GameHistory}
+								href={AppRoutes.AdminGameHistory}
                                 icon={faBank}>
 								Få en visning af tidligere spil.
 							</ListItem>

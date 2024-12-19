@@ -7,4 +7,7 @@ export { useFetchBalanceHistory } from "./useFetchBalanceHistory";
 export { useBoard } from './useboard';
 export { usePrintPdf } from './usePrintPdf';
 export { useFetchBoardHistory } from './useFetchBoardHistory';
+export { useFetchGameHistory } from './useFetchGameHistory';
+export { useFetchGameBoardHistory } from './useFetchGameBoardHistory';
+
 export { useDebounce } from './useDebounce';

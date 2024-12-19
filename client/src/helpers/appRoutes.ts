@@ -13,7 +13,10 @@ export const AppRoutes = {
     MyBalanceHistory: '/balance-history',
     AdminBalanceHistory: '/admin/balance-history',
     AdminUserBalanceHistory: '/admin/balance-history/:userId',
-    PickWinnerSequence: '/admin/winner-sequence',
+    AdminPickWinnerSequence: '/admin/winner-sequence',
+    AdminGameHistory: '/admin/game/history',
+    AdminGameBoardHistory: '/admin/game/history/:gameId',
+
     BoardHistory: '/board/history',
     Profile: '/me',
 } as const;

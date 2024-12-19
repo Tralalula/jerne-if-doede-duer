@@ -57,5 +57,5 @@ public class BoardController(IBoardService service): ControllerBase
     {
         var userId = User.GetUserId();
         return Ok(await service.GetBoardHistory(userId, query));
-    } 
+    }
 }

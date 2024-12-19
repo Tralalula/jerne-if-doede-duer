@@ -17,15 +17,17 @@ public class BoardResponse
     public DateTime PlacedOn { get; set; }
     
     public UserResponse? User { get; set; }
-
-    public BoardResponse ToResponse(Board board, User user)
+    
+    
+    public static BoardResponse ToResponse(Board board)
     {
         var newResponse = new BoardResponse
         {
             BoardId = board.Id,
             Configuration = board.Configuration,
             PlacedOn = board.Timestamp,
-            User = UserResponse.FromEntity(user)
+            Price = board.Purchase.Price,
+            User = UserResponse.FromEntity(board.User)
         };
 
         return newResponse;

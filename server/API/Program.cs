@@ -155,6 +155,7 @@ try {
     builder.Services.AddScoped<IUsersService, UsersService>();
     builder.Services.AddScoped<IBalanceHistoryService, BalanceHistoryService>();
     builder.Services.AddScoped<IBoardService, BoardService>();
+    builder.Services.AddScoped<IGameService, GameService>();
 
   
     if (builder.Environment.IsProduction())

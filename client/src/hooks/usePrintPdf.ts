@@ -32,7 +32,7 @@ export function usePrintPdf() {
         });
 
         // auto table, andet table drillede med allignment
-        doc.autoTable({
+        (doc as any).autoTable({
             startY: 25,
             head: [tableColumnHeaders],
             body: tableRows,

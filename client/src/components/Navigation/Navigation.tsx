@@ -5,10 +5,10 @@ import { Tab } from './types';
 import { AccessLevel } from '../import';
 
 const tabs: Tab[] = [
-  { name: "Spil", path: "/game", icon: faGamepad },
-  { name: "Konto", path: "/konto", icon: faCircleUser },
-  { name: "Kontakt", path: "/contact", icon: faGear },
-  { name: "Panel", path: "/panel", icon: faGear },
+  { name: "Spil", path: "/game", icon: faGamepad, access: AccessLevel.Protected },
+  { name: "Konto", path: "/konto", icon: faCircleUser, access: AccessLevel.Protected},
+  { name: "Kontakt", path: "/contact", icon: faGear, access: AccessLevel.Protected },
+  { name: "Panel", path: "/panel", icon: faGear, access: AccessLevel.Admin },
 ];
 
 

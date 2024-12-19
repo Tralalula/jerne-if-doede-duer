@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DataAccess.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -10,11 +12,20 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class GameController(IGameService service) : ControllerBase
 {
+    [Authorize(Roles = Role.Admin)]
     [HttpGet("history")]
     public async Task<ActionResult<GameHistoryPagedResponse>> GetHistory([FromQuery] GameHistoryQuery query)
     {
         var userId = User.GetUserId();
         return Ok(await service.GetBoardsHistory(userId, query));
+    }
+    
+    [Authorize(Roles = Role.Admin)]
+    [HttpGet("history/{gameId:guid}")]
+    public async Task<ActionResult<GameHistoryResponse>> GetUserBalanceHistory(Guid gameId, [FromQuery] GameHistoryQuery query)
+    {
+        var userId = User.GetUserId();
+        return Ok(await service.GetGameBoardHistoryAsync(userId, gameId, query));
     }
 
 }

@@ -15,9 +15,10 @@ import AddCreditsForm from './AddCreditsForm';
 
 interface TransactionListViewProps {
     isAdmin?: boolean;
+    showUserEmail?: boolean;
 }
 
-export default function TransactionListView({ isAdmin = false }: TransactionListViewProps) {
+export default function TransactionListView({ isAdmin = false, showUserEmail = false }: TransactionListViewProps) {
     const [paging, setPaging] = useAtom(transactionPagingAtom);
     const [sort] = useAtom(transactionSortAtom);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
@@ -75,6 +76,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
                         <TransactionCard key={transaction.id} 
                                          transaction={transaction} 
                                          isAdmin={isAdmin} 
+                                         showUserEmail={showUserEmail}
                                          onAccept={acceptTransaction} 
                                          onDeny={denyTransaction} />
                     ))
@@ -122,6 +124,7 @@ export default function TransactionListView({ isAdmin = false }: TransactionList
                         <div className="w-full min-w-[600px] overflow-x-auto">
                             <TransactionTable transactions={sortedTransactions} 
                                               isAdmin={isAdmin} 
+                                              showUserEmail={showUserEmail}
                                               onAccept={acceptTransaction} 
                                               onDeny={denyTransaction} />
                         </div>

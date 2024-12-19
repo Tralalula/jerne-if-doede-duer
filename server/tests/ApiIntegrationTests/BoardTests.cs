@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Service.Models.Requests;
-using Service.Models.Responses;
+using ApiIntegrationTests.Common;
 using Generated;
 using GameModel = DataAccess.Models.Game;
 
 using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
+using BoardPickRequest = Service.Models.Requests.BoardPickRequest;
+using BoardPickResponse = Service.Models.Responses.BoardPickResponse;
+using GameStatusResponse = Service.Models.Responses.GameStatusResponse;
 
 namespace ApiIntegrationTests;
 
@@ -22,8 +24,6 @@ public class BoardControllerIntegrationTests : ApiTestBase
         _httpClient = CreateNewClient();
     }
     
-    /*
-
     private async Task<(string AccessToken, IEnumerable<string> CookieHeaders, AuthClient Client)> Check_Login(LoginRequest user, HttpClient httpClient)
     {
         var client = new AuthClient(httpClient);
@@ -52,8 +52,7 @@ public class BoardControllerIntegrationTests : ApiTestBase
 
         user.Credits += amount;
         
-        _testOutputHelper.WriteLine($"User credits: {amount}");
-
+        PgCtxSetup.DbContextInstance.Update(user);
         await PgCtxSetup.DbContextInstance.SaveChangesAsync();
     }
     
@@ -72,7 +71,8 @@ public class BoardControllerIntegrationTests : ApiTestBase
             Id = Guid.NewGuid(),
             StartTime = now.AddDays(-2),
             EndTime = now.AddHours(5),
-            FieldCount = 47
+            FieldCount = 47,
+            Active = true
         };
 
         await PgCtxSetup.DbContextInstance.Games.AddAsync(fakeGame);
@@ -98,8 +98,6 @@ public class BoardControllerIntegrationTests : ApiTestBase
         
         var user = await PgCtxSetup.DbContextInstance.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
-
-        _testOutputHelper.WriteLine($"User Credits After Update: {user.Credits}");
         
         await Create_Active_Game();
         
@@ -111,8 +109,6 @@ public class BoardControllerIntegrationTests : ApiTestBase
 
         var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
         
-        _testOutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
-
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var responseContent = await response.Content.ReadFromJsonAsync<BoardPickResponse>();
@@ -125,18 +121,15 @@ public class BoardControllerIntegrationTests : ApiTestBase
     [Fact]
     public async Task GetStatus_ReturnsGameStatus()
     {
-        // Step 1: Login as a Player using AuthTestHelper
         var client = await AuthenticateClientAsync(AuthTestHelper.Users.Player);
 
-        // Step 2: Send a GET request to /api/board/status
         var response = await client.GetAsync("/api/board/status");
 
-        // Step 3: Validate the response
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
         var responseContent = await response.Content.ReadFromJsonAsync<GameStatusResponse>();
         Assert.NotNull(responseContent);
         Assert.True(responseContent.GameWeek >= 0);
         Assert.True(responseContent.TimeLeft >= 0);
-    }*/
+    }
 }

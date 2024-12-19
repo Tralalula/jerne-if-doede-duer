@@ -11,6 +11,13 @@ interface UserCardProps {
     onDeactivate?: (id: string) => Promise<void>;
 }
 
+const formatFullName = (firstName?: string, lastName?: string): string => {
+    if (!firstName && !lastName) return '-';
+    if (!firstName) return lastName || '-';
+    if (!lastName) return firstName;
+    return `${firstName} ${lastName}`;
+};
+
 export default function UserCard({ user, onActivate, onDeactivate }: UserCardProps) {
     const statusColors = {
         [UserStatus.Active]: 'green',
@@ -26,7 +33,9 @@ export default function UserCard({ user, onActivate, onDeactivate }: UserCardPro
         <Card className="p-4">
             <Flex direction="column" gap="2">
                 <Flex justify="between" align="center">
-                    <Text size="5" weight="bold">{user.email}</Text>
+                    <Flex direction="column" gap="1">
+                        <Text size="5" weight="bold">{user.email}</Text>
+                    </Flex>
                     <Badge color={statusColors[user.status]} variant="soft">
                         {statusText[user.status]}
                     </Badge>
@@ -38,7 +47,11 @@ export default function UserCard({ user, onActivate, onDeactivate }: UserCardPro
                         {format(new Date(user.timestamp), 'd. MMMM yyyy HH:mm', { locale: da })}
                     </Text>
                 </Flex>
-
+                
+                <Text size="2" color="gray">
+                    Navn: {formatFullName(user.firstName, user.lastName)}
+                </Text>
+                
                 {user.phoneNumber && (
                     <Text size="2" color="gray">
                         Tlf. nr.: {user.phoneNumber}

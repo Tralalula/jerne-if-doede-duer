@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
-import { ForgotPassword, GamePage, WinnerSequence, LoginPage, ForbiddenPage, MyBoardHistory, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUserPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage } from "./pages/index";
+import { ForgotPassword, GamePage, WinnerSequence, LoginPage, ForbiddenPage, MyBoardHistory, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUsersPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage, RulesPage } from "./pages/index";
 import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
@@ -22,12 +22,14 @@ const App = () => {
   <AuthContext.Provider value={auth}>
     <Theme appearance={theme} accentColor="red" panelBackground="translucent">
       <ToastProvider>
-      <RequireAuth accessLevel={AccessLevel.Protected} element={<Navigation />} />
+      {auth.user && (<Navigation /> )}
         <DaisyToaster />
           <Routes>
               <Route path={AppRoutes.NotFound} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<NotFoundPage />} />} />
               <Route path={AppRoutes.Forbidden} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<ForbiddenPage />} />} />
-
+              
+              <Route path={AppRoutes.Rules} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<RulesPage />} />} />
+              
               <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<GamePage />} />} />
               <Route path={AppRoutes.Home} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<LoginPage />} />} />
 
@@ -36,7 +38,7 @@ const App = () => {
               <Route path={AppRoutes.Game} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<GamePage />} />} />
               <Route path={AppRoutes.MyTransactions} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyTransactionsPage />} />} />
               <Route path={AppRoutes.AdminTransactions} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminTransactionsPage />} />} />
-              <Route path={AppRoutes.AdminUsers} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserPage />} />} />
+              <Route path={AppRoutes.AdminUsers} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUsersPage />} />} />
               <Route path={AppRoutes.MyBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Protected} element={<MyBalanceHistoryPage />} />} />
               <Route path={AppRoutes.AdminBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminBalanceHistoryPage />} />} />
               <Route path={AppRoutes.AdminUserBalanceHistory} element={<RequireAuth accessLevel={AccessLevel.Admin} element={<AdminUserBalanceHistoryPage />} />} />

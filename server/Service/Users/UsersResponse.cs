@@ -6,6 +6,8 @@ namespace Service.Users;
 public record UserDetailsResponse(Guid Id, 
                                   string Email, 
                                   string PhoneNumber, 
+                                  string FirstName,
+                                  string LastName,
                                   UserStatus Status, 
                                   int Credits, 
                                   DateTime Timestamp,

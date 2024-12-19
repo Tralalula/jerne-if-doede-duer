@@ -48,19 +48,27 @@ export const useAuth = (): AuthHook => {
     }, []);
     
     const login = async (loginRequest: LoginRequest) => {
-        const response = await api.auth.login(loginRequest);
-        const token = response.data.accessToken;
-        tokenStorage.setItem(TOKEN_KEY, token);
-        setJwt(token);
+        try {
+            const response = await api.auth.login(loginRequest);
+            const token = response.data.accessToken;
+            tokenStorage.setItem(TOKEN_KEY, token);
+            setJwt(token);
+            
+            const userResponse = await api.auth.userInfo({
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(userResponse.data);
 
-        const userResponse = await api.auth.userInfo({
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setUser(userResponse.data);
-        
-        const redirectTo = localStorage.getItem(REDIRECT_PATH_KEY) || AppRoutes.Game;
-        localStorage.removeItem(REDIRECT_PATH_KEY);
-        navigate(redirectTo);
+            const redirectTo = localStorage.getItem(REDIRECT_PATH_KEY) || AppRoutes.Home;
+            localStorage.removeItem(REDIRECT_PATH_KEY);
+            navigate(redirectTo);
+        } catch (error) {
+            tokenStorage.removeItem(TOKEN_KEY);
+            setJwt(null);
+            setUser(null);
+
+            throw error;
+        }
     };
     
     const logout = async () => {

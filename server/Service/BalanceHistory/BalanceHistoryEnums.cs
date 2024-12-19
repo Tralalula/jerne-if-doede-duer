@@ -7,9 +7,4 @@ public enum BalanceAction
 {
     UserBought,   
     UserUsed,     
-    
-    // ved ikke lige om vi skal bruge dem her mere? 
-    AdminAssigned, 
-    AdminRevoked,  
-    WonPrize      // skal ikke bruges mere, da det håndteres fysisk
 }

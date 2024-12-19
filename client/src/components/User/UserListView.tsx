@@ -2,9 +2,9 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
-import {Card, Text, Flex, Dialog, Button, Heading} from '@radix-ui/themes';
+import { Card, Text, Flex, Dialog, Button, Heading } from '@radix-ui/themes';
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { userPagingAtom, useFetchUsers, userSortAtom, useToast } from '../import';
+import { userPagingAtom, useFetchUsers, userSortAtom, useToast, UserDetailsResponse } from '../import';
 import UserTable from './UserTable';
 import UserCard from './UserCard';
 import UserFilters from './UserFilters';
@@ -12,12 +12,17 @@ import PageInfoDisplay from '../Pagination/PageInfoDisplay';
 import PageSizeSelector from '../Pagination/PageSizeSelector';
 import Pagination from '../Pagination/Pagination';
 import RegisterUserForm from './RegisterUserForm';
+import UpdateUserDialog from './UpdateUserDialog';
 
 export default function UserListView() {
+    // Tilstandshåndtering
     const [paging, setPaging] = useAtom(userPagingAtom);
     const [sort] = useAtom(userSortAtom);
     const [showFilterDialog, setShowFilterDialog] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<UserDetailsResponse | null>(null);
+    const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
+    // Hent brugerdata og funktioner
     const {
         users,
         loading,
@@ -26,6 +31,7 @@ export default function UserListView() {
         deactivateUser,
     } = useFetchUsers();
 
+    // Sorter brugere baseret på valgte kriterier
     const sortedUsers = useMemo(() =>
             loading ? [] : [...users].sort((a, b) => {
                 const factor = sort.sortBy === 'Asc' ? 1 : -1;
@@ -45,6 +51,7 @@ export default function UserListView() {
         [users, sort.orderBy, sort.sortBy, loading]
     );
 
+    // Indholdskomponent til visning af indlæsning/fejl tilstande
     const ContentState = ({ className }: { className: string }) => {
         const { showToast } = useToast();
 
@@ -63,9 +70,15 @@ export default function UserListView() {
         return null;
     };
 
+    // Håndter klik på brugerkort i mobil/tablet visning
+    const handleCardClick = (user: UserDetailsResponse) => {
+        setSelectedUser(user);
+        setShowUpdateDialog(true);
+    };
+
     return (
         <>
-            {/* Mobile/Tablet */}
+            {/* Mobil/Tablet visning */}
             <Flex direction="column" gap="2" className="lg:hidden">
                 {/* Tablet header */}
                 <Flex className="hidden md:flex lg:hidden justify-between items-center mb-4">
@@ -80,22 +93,23 @@ export default function UserListView() {
                     />
                 </Flex>
 
-                {/* Mobile/Tablet content */}
+                {/* Mobil/Tablet indhold */}
                 <Flex direction="column" gap="2">
                     <ContentState className="p-4" />
                     {!loading && users.length > 0 && (
                         sortedUsers.map(user => (
-                            <UserCard
-                                key={user.id}
-                                user={user}
-                                onActivate={activateUser}
-                                onDeactivate={deactivateUser}
-                            />
+                            <div key={user.id} onClick={() => handleCardClick(user)}>
+                                <UserCard
+                                    user={user}
+                                    onActivate={activateUser}
+                                    onDeactivate={deactivateUser}
+                                />
+                            </div>
                         ))
                     )}
                 </Flex>
 
-                {/* Tablet pagination */}
+                {/* Tablet paginering */}
                 <Flex className="hidden md:flex lg:hidden justify-center mt-4">
                     {paging.totalPages > 1 && (
                         <Pagination
@@ -107,8 +121,9 @@ export default function UserListView() {
                 </Flex>
             </Flex>
 
-            {/* Desktop */}
+            {/* Desktop visning */}
             <Flex gap="4" className="w-full hidden lg:flex">
+                {/* Venstre sidebar */}
                 <Flex direction="column" gap="4" className="w-80">
                     <Card>
                         <Flex direction="column" gap="4" p="4">
@@ -116,13 +131,14 @@ export default function UserListView() {
                             <RegisterUserForm />
                         </Flex>
                     </Card>
-                    
+
                     <UserFilters />
                 </Flex>
 
-                {/* Desktop content */}
+                {/* Hovedindhold */}
                 <Card className="flex-1">
                     <Flex direction="column" gap="4" className="p-4">
+                        {/* Sideinfo og størrelsesvælger */}
                         {!loading && users.length > 0 && (
                             <Flex justify="between" align="center" className="flex-wrap gap-2">
                                 <PageInfoDisplay
@@ -138,16 +154,23 @@ export default function UserListView() {
                         )}
 
                         <ContentState className="p-4" />
+
+                        {/* Brugertabel */}
                         {!loading && users.length > 0 && (
                             <div className="w-full min-w-[600px] overflow-x-auto">
                                 <UserTable
                                     users={sortedUsers}
                                     onActivate={activateUser}
                                     onDeactivate={deactivateUser}
+                                    onUserSelect={(user) => {
+                                        setSelectedUser(user);
+                                        setShowUpdateDialog(true);
+                                    }}
                                 />
                             </div>
                         )}
 
+                        {/* Paginering */}
                         {paging.totalPages > 1 && !loading && users.length > 0 && (
                             <Pagination
                                 currentPage={paging.currentPage}
@@ -159,7 +182,7 @@ export default function UserListView() {
                 </Card>
             </Flex>
 
-            {/* Tablet filter dialog */}
+            {/* Filter dialog */}
             <Dialog.Root open={showFilterDialog} onOpenChange={setShowFilterDialog}>
                 <Dialog.Content
                     className="fixed left-0 top-0 bottom-0 h-full max-w-[400px] translate-x-0 animate-in slide-in-from-left"
@@ -169,11 +192,20 @@ export default function UserListView() {
                         <VisuallyHidden.Root>
                             <Dialog.Title></Dialog.Title>
                         </VisuallyHidden.Root>
-                        <Dialog.Description>{/* Empty to avoid aria warning */}</Dialog.Description>
+                        <Dialog.Description>{/* Tom for at undgå aria warning */}</Dialog.Description>
                         <UserFilters />
                     </Flex>
                 </Dialog.Content>
             </Dialog.Root>
+
+            <UpdateUserDialog
+                open={showUpdateDialog}
+                onOpenChange={(open) => {
+                    setShowUpdateDialog(open);
+                    if (!open) setSelectedUser(null);
+                }}
+                user={selectedUser}
+            />
         </>
     );
 }

@@ -1,3 +1,3 @@
 ﻿namespace Service.Users;
 
-public record UpdateUserRequest(string FirstName, string LastName, string PhoneNumber, string? Email);
+public record UpdateUserRequest(string FirstName, string LastName, string? PhoneNumber = null, string? NewEmail = null);

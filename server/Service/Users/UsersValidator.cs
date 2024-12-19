@@ -39,8 +39,8 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
                                    .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
                                    .WithMessage("Invalid phone number format");
                                    
-        RuleFor(x => x.Email).EmailAddress()
-                             .MaximumLength(256)
-                             .When(x => !string.IsNullOrEmpty(x.Email));
+        RuleFor(x => x.NewEmail).EmailAddress()
+                                .MaximumLength(256)
+                                .When(x => !string.IsNullOrEmpty(x.NewEmail));
     }
 }

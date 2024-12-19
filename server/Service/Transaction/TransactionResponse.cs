@@ -8,6 +8,7 @@ public record BalanceResponse(int CurrentBalance, int PendingCredits);
 
 public record TransactionDetailsResponse(Guid Id, 
                                          DateTime Timestamp,
+                                         Guid UserId,
                                          int Credits,
                                          string MobilePayTransactionNumber,
                                          TransactionStatus Status,

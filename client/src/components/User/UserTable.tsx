@@ -10,6 +10,8 @@ interface UserTableProps {
     users: UserDetailsResponse[];
     onActivate?: (id: string) => Promise<void>;
     onDeactivate?: (id: string) => Promise<void>;
+    onUserSelect?: (user: UserDetailsResponse) => void;
+    selectedUserId?: string;
 }
 
 const UserStatusBadge = ({ status }: { status: UserStatus }) => {
@@ -30,7 +32,14 @@ const UserStatusBadge = ({ status }: { status: UserStatus }) => {
     );
 };
 
-export default function UserTable({ users, onActivate, onDeactivate }: UserTableProps) {
+const formatFullName = (firstName?: string, lastName?: string): string => {
+    if (!firstName && !lastName) return '-';
+    if (!firstName) return lastName || '-';
+    if (!lastName) return firstName;
+    return `${firstName} ${lastName}`;
+};
+
+export default function UserTable({ users, onActivate, onDeactivate, onUserSelect, selectedUserId }: UserTableProps) {
     return (
         <Table.Root variant="surface">
             <Table.Header>
@@ -38,6 +47,7 @@ export default function UserTable({ users, onActivate, onDeactivate }: UserTable
                     <UserTableHeader orderBy={UserOrderBy.Email}>
                         Email
                     </UserTableHeader>
+                    <Table.ColumnHeaderCell>Navn</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Tlf. nr.</Table.ColumnHeaderCell>
                     <UserTableHeader orderBy={UserOrderBy.Credits}>
                         Saldo
@@ -55,8 +65,13 @@ export default function UserTable({ users, onActivate, onDeactivate }: UserTable
 
             <Table.Body>
                 {users.map((user) => (
-                    <Table.Row key={user.id}>
+                    <Table.Row
+                        key={user.id}
+                        className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedUserId === user.id ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                        onClick={() => onUserSelect?.(user)}
+                    >
                         <Table.Cell>{user.email}</Table.Cell>
+                        <Table.Cell>{formatFullName(user.firstName, user.lastName)}</Table.Cell>
                         <Table.Cell>{user.phoneNumber || '-'}</Table.Cell>
                         <Table.Cell>{user.credits} kr</Table.Cell>
                         <Table.Cell>
@@ -68,7 +83,7 @@ export default function UserTable({ users, onActivate, onDeactivate }: UserTable
                         <Table.Cell>
                             {format(new Date(user.timestamp), 'd. MMMM yyyy HH:mm', { locale: da })}
                         </Table.Cell>
-                        <Table.Cell>
+                        <Table.Cell onClick={(e) => e.stopPropagation()}>
                             {user.status === UserStatus.Inactive ? (
                                 <Button onClick={() => onActivate?.(user.id)} color="green" variant="soft" size="1">
                                     <PlayIcon />

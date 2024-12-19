@@ -1,5 +1,9 @@
 export { default as HomePage } from "./Home";
+
+//------- Boards -------//
 export { default as GamePage } from './board/GamePage'
+export { default as MyBoardHistory } from './board/MyBoardHistory'
+export { default as WinnerSequence} from './winner-sequence/WinnerSequence'
 
 //------- Auth -------//
 export { default as LoginPage } from "./auth/Login";

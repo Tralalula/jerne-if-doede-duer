@@ -3,7 +3,9 @@ using DataAccess;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Service.Boards;
 using Service.Exceptions;
+using Service.Models;
 using Service.Models.Requests;
 using Service.Models.Responses;
 
@@ -16,6 +18,8 @@ public interface IBoardService
     public Task<BoardWinningSequenceConfirmedResponse> ConfirmWinningSequence(BoardWinningSequenceRequest request, Guid userId);
 
     public Task<BoardWinningSequenceResponse> PickWinningSequenceAsync(BoardWinningSequenceRequest request, Guid userId);
+    
+    public Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query);
 }
 
 public class BoardService(AppDbContext context, UserManager<User> userManager, TimeProvider timeProvider) : IBoardService
@@ -280,5 +284,52 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         };
 
         return response;
-    }    
+    }
+
+    public async Task<BoardPagedHistoryResponse> GetBoardHistory(Guid userId, BoardHistoryQuery query)
+    {
+        var user = await context.Users
+                       .Include(u => u.Boards)
+                       .ThenInclude(b => b.Game)
+                       .Include(u => u.Boards)
+                       .ThenInclude(b => b.Purchase)
+                       .FirstOrDefaultAsync(u => u.Id == userId)
+                   ?? throw new NotFoundException("Bruger ikke fundet");
+
+        var totalItems = user.Boards.Count;
+
+        var pagedBoards = user.Boards
+            .OrderByDescending(b => b.Timestamp)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
+        var boardResponses = pagedBoards
+            .Select(board => new BoardHistoryResponse
+            {
+                BoardId = board.Id,
+                Configuration = board.Configuration.OrderBy(n => n).ToList(),
+                PlacedOn = board.Timestamp,
+                Price = GetBoardPrice(board.Configuration.Count),
+                User = UserResponse.FromEntity(board.User),
+                GameId = board.Game?.Id ?? Guid.Empty,
+                GameWeek = board.Game?.FieldCount ?? 0,
+                WasWin = false
+            })
+            .ToList();
+
+        var pagingInfo = new PagingInfo
+        {
+            CurrentPage = query.Page,
+            ItemsPerPage = query.PageSize,
+            TotalItems = totalItems
+        };
+
+        return new BoardPagedHistoryResponse
+        {
+            Boards = boardResponses,
+            PagingInfo = pagingInfo
+        };
+    }
+
 }

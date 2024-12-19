@@ -34,7 +34,7 @@ public class DbSeeder(
         var game = await SeedGameAsync();
         var purchases = await SeedPurchasesAsync();
         
-        await SeedBoardsAsync(game, player, purchases);
+        await SeedBoardsAsync(game, admin, purchases);
     }
     
     private async Task CreateRoles(params string[] roles)

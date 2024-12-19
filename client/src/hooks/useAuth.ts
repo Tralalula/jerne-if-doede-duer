@@ -53,7 +53,7 @@ export const useAuth = (): AuthHook => {
             const token = response.data.accessToken;
             tokenStorage.setItem(TOKEN_KEY, token);
             setJwt(token);
-
+            
             const userResponse = await api.auth.userInfo({
                 headers: { Authorization: `Bearer ${token}` }
             });

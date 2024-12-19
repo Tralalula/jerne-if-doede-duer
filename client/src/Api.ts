@@ -190,6 +190,7 @@ export interface Game {
   startTime: string;
   /** @format date-time */
   endTime: string;
+  active: boolean;
   /** @format int32 */
   fieldCount: number;
   boards: Board[];
@@ -388,6 +389,48 @@ export interface GameStatusResponse {
   endTime: number | null;
   /** @format int32 */
   timeLeft: number;
+}
+
+export interface BoardWinningSequenceConfirmedResponse {
+  /** @format guid */
+  gameId: string;
+  /** @format int32 */
+  gameWeek: number;
+  /** @format int32 */
+  totalWinners: number;
+  boards: BoardResponse[];
+}
+
+export interface BoardResponse {
+  /** @format guid */
+  boardId: string;
+  configuration: number[];
+  /** @format int32 */
+  price: number;
+  /** @format date-time */
+  placedOn: string;
+  user: UserResponse;
+}
+
+export interface UserResponse {
+  /** @format guid */
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface BoardWinningSequenceRequest {
+  selectedNumbers: number[];
+}
+
+export interface BoardWinningSequenceResponse {
+  /** @format int32 */
+  winnerAmounts: number;
+  /** @format guid */
+  gameId: string;
+  /** @format int32 */
+  currentGameField: number;
+  selectedNumbers: number[];
 }
 
 export interface BalanceResponse {
@@ -1037,6 +1080,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<GameStatusResponse, any>({
         path: `/api/board/status`,
         method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name ConfirmWinningSequence
+     * @request POST:/api/board/winner-sequence/confirm
+     * @secure
+     */
+    confirmWinningSequence: (data: BoardWinningSequenceRequest, params: RequestParams = {}) =>
+      this.request<BoardWinningSequenceConfirmedResponse, any>({
+        path: `/api/board/winner-sequence/confirm`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Board
+     * @name PickWinningSequence
+     * @request GET:/api/board/winner-sequence
+     * @secure
+     */
+    pickWinningSequence: (
+      query?: {
+        numbers?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<BoardWinningSequenceResponse, any>({
+        path: `/api/board/winner-sequence`,
+        method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,

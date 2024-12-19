@@ -5,3 +5,4 @@ export { useFetchUsers } from "./useFetchUsers";
 export { useFetchBalanceHistory } from "./useFetchBalanceHistory";
 
 export { useBoard } from './useboard';
+export { usePrintPdf } from './usePrintPdf';

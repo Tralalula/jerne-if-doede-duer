@@ -1,5 +1,5 @@
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { AccessLevel } from '../import';
+import { AccessLevel } from "../import";
 
 export interface Tab {
     name: string;

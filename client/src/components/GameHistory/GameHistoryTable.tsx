@@ -12,10 +12,9 @@ import { faCheckCircle, faCross, faExclamation, faEye, faXmark, faXmarkCircle } 
 
 interface GameHistoryTableProps {
     entries: GameResponse[];
-    showUserEmail?: boolean;
 }
 
-export default function GameHistoryTable({ entries, showUserEmail = false }: GameHistoryTableProps) {
+export default function GameHistoryTable({ entries}: GameHistoryTableProps) {
     const navigate = useNavigate();
 
     return (
@@ -35,7 +34,11 @@ export default function GameHistoryTable({ entries, showUserEmail = false }: Gam
                 {entries.map((entry) => (
                     <Table.Row key={entry.id}>
                         <Table.Cell>
-                            {entry.week}
+                            <Badge color={`${entry.active ? 'green' : 'red'}`}>
+                                <Text>
+                                    {entry.week}
+                                </Text>
+                            </Badge>
                         </Table.Cell>
                         <Table.Cell>
                             {format(new Date(entry.startTime), 'd. MMMM yyyy HH:mm', { locale: da })}
@@ -51,7 +54,7 @@ export default function GameHistoryTable({ entries, showUserEmail = false }: Gam
                         </Table.Cell>
 
                         <Table.Cell>
-                            <Button size='1' className='cursor-pointer transition-colors duration-200'>
+                            <Button size='1' className='cursor-pointer transition-colors duration-200' onClick={() => navigate(AppRoutes.GameBoardHistory.replace(':gameId', entry.id))}>
                                 <FontAwesomeIcon icon={faEye}/>
                             </Button>
                         </Table.Cell>

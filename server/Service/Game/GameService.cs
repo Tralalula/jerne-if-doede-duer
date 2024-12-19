@@ -26,6 +26,18 @@ public class GameService(AppDbContext context, UserManager<User> userManager) : 
         return selectedNumbers.All(selectedNumber => boardNumbers.Contains(selectedNumber));
     }
     
+    public int GetBoardPrice(int length)
+    {
+        return length switch
+        {
+            5 => 20,
+            6 => 40,
+            7 => 80,
+            8 => 160,
+            _ => throw new ArgumentException("Invalid board pick.")
+        };
+    }
+    
     public async Task<GameHistoryPagedResponse> GetBoardsHistory(Guid userId, GameHistoryQuery query)
     {
         var user = await userManager.FindByIdAsync(userId.ToString()) 
@@ -61,7 +73,6 @@ public class GameService(AppDbContext context, UserManager<User> userManager) : 
             .Include(g => g.Boards)
                 .ThenInclude(b => b.Purchase)
             .ToListAsync();
-
 
         var gameResponses = paginatedGames.Select(GameResponse.FromEntity).ToList();
         
@@ -104,7 +115,8 @@ public class GameService(AppDbContext context, UserManager<User> userManager) : 
             .Select(board =>
             {
                 var wasWin = game.Active ? false : AreNumbersMatching(board.Configuration, winnerSequence);
-                return BoardGameHistoryResponse.ToResponse(board, wasWin);
+                
+                return BoardGameHistoryResponse.ToResponse(board, wasWin, GetBoardPrice(board.Configuration.Count));
             })
             .ToList();
 

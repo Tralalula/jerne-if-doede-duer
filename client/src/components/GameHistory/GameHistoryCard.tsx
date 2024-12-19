@@ -9,10 +9,11 @@ import { faCheckCircle, faXmarkCircle } from '@fortawesome/free-solid-svg-icons'
 
 interface GameHistoryCardProps {
     entry: GameResponse;
-    showUserEmail?: boolean;
 }
 
-export default function GameHistoryCard({ entry, showUserEmail }: GameHistoryCardProps) {
+export default function GameHistoryCard({ entry }: GameHistoryCardProps) {
+        const navigate = useNavigate();
+    
     return (
         <Card className="p-4">
             <Flex direction="column" gap="2">
@@ -29,7 +30,7 @@ export default function GameHistoryCard({ entry, showUserEmail }: GameHistoryCar
 
                 </Text>
             </Flex>
-            <Button className='mt-2 cursor-pointer transition-colors duration-200' variant='outline'>
+            <Button className='mt-2 cursor-pointer transition-colors duration-200' variant='outline'  onClick={() => navigate(AppRoutes.GameBoardHistory.replace(':gameId', entry.id))}>
                     Flere oplysninger
             </Button>
         </Card>

@@ -483,6 +483,22 @@ export interface GameResponse {
   totalPool: number;
 }
 
+export type GameHistoryResponse = GameResponse & {
+  /** @format int32 */
+  totalWinAmount?: number;
+  winningSequence?: number[];
+  boards?: BoardHistoryPagedResponse | null;
+};
+
+export interface BoardHistoryPagedResponse {
+  boards: BoardGameHistoryResponse[];
+  pagingInfo: PagingInfo;
+}
+
+export type BoardGameHistoryResponse = BoardResponse & {
+  wasWin?: boolean;
+};
+
 export interface BalanceResponse {
   /** @format int32 */
   currentBalance: number;
@@ -1229,6 +1245,38 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<GameHistoryPagedResponse, any>({
         path: `/api/game/history`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Game
+     * @name GetGameBoardHistory
+     * @request GET:/api/game/history/{gameId}
+     * @secure
+     */
+    getGameBoardHistory: (
+      gameId: string,
+      query?: {
+        /** @format int32 */
+        Page?: number;
+        /** @format int32 */
+        PageSize?: number;
+        /** @format date */
+        FromDate?: string | null;
+        /** @format date */
+        ToDate?: string | null;
+        Sort?: SortOrder;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GameHistoryResponse, any>({
+        path: `/api/game/history/${gameId}`,
         method: "GET",
         query: query,
         secure: true,

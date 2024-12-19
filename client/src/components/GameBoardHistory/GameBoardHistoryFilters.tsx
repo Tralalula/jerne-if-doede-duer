@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai';
 import { Card, Flex, Select, Button, Heading, Text, Checkbox } from '@radix-ui/themes';
 import {
-    GameHistoryFilterAtom,
+    gameBoardHistoryFilterAtom,
 } from '../import';
 
 const getDateString = (date: Date) => {
@@ -51,7 +51,7 @@ const dateRanges = [
 ];
 
 export default function GameBoardHistoryFilters() {
-    const [filter, setFilter] = useAtom(GameHistoryFilterAtom);
+    const [filter, setFilter] = useAtom(gameBoardHistoryFilterAtom);
 
     const handleDateRangeChange = (value: string) => {
         const range = dateRanges.find(r => r.label === value);

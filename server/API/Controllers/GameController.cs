@@ -22,7 +22,7 @@ public class GameController(IGameService service) : ControllerBase
     
     [Authorize(Roles = Role.Admin)]
     [HttpGet("history/{gameId:guid}")]
-    public async Task<ActionResult<GameHistoryResponse>> GetUserBalanceHistory(Guid gameId, [FromQuery] GameHistoryQuery query)
+    public async Task<ActionResult<GameHistoryResponse>> GetGameBoardHistory(Guid gameId, [FromQuery] GameHistoryQuery query)
     {
         var userId = User.GetUserId();
         return Ok(await service.GetGameBoardHistoryAsync(userId, gameId, query));

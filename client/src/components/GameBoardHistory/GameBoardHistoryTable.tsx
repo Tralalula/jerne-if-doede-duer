@@ -5,55 +5,49 @@ import { useNavigate } from 'react-router-dom';
 import { Table, Badge, Link, Flex, Text, Button, IconButton } from '@radix-ui/themes';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, GameResponse } from '../import';
+import { BalanceAction, BalanceHistoryEntryResponse, getUserDetailsAtom, UserDetailsResponse, AppRoutes, BoardGameHistoryResponse, useFetchGameBoardHistory } from '../import';
 import GameHistoryTableHeader from './GameBoardHistoryTableHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faCross, faExclamation, faEye, faXmark, faXmarkCircle } from '@fortawesome/free-solid-svg-icons';
 
 interface GameBoardHistoryTableProps {
-    entries: GameResponse[];
-    showUserEmail?: boolean;
+    entries: BoardGameHistoryResponse[];
+    activeGame?: boolean;
 }
 
-export default function GameBoardHistoryTable({ entries, showUserEmail = false }: GameBoardHistoryTableProps) {
+export default function GameBoardHistoryTable({ entries, activeGame = false }: GameBoardHistoryTableProps) {
     const navigate = useNavigate();
 
     return (
         <Table.Root variant="surface">
             <Table.Header>
                 <Table.Row>
-                    <GameHistoryTableHeader>Uge</GameHistoryTableHeader>
-                    <GameHistoryTableHeader>Start</GameHistoryTableHeader>
-                    <Table.ColumnHeaderCell>Slut</Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell>Deltagere</Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell>Pulje</Table.ColumnHeaderCell>
-                    <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+                    <GameHistoryTableHeader>Bruger</GameHistoryTableHeader>
+                    <GameHistoryTableHeader>Beløb</GameHistoryTableHeader>
+                    <Table.ColumnHeaderCell>Bræt</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Købsdato</Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
 
             <Table.Body>
-                {entries.map((entry) => (
-                    <Table.Row key={entry.id}>
+                {entries.map((e) => (
+                    <Table.Row key={e.boardId}>
                         <Table.Cell>
-                            {entry.week}
+                            {e.user?.firstName} {e.user?.lastName}
                         </Table.Cell>
                         <Table.Cell>
-                            {format(new Date(entry.startTime), 'd. MMMM yyyy HH:mm', { locale: da })}
+                            {e.price},-
                         </Table.Cell>
                         <Table.Cell>
-                            {format(new Date(entry.endTime), 'd. MMMM yyyy HH:mm', { locale: da })}
+                        {e.configuration?.map((num, i) => (
+                            <Fragment key={i}>
+                                <Badge color={`${activeGame ? 'gray' : e.wasWin ? 'green' : 'red'}`} size="1">{num}</Badge>
+                                {i < (e.configuration?.length || 0) - 1 && <Text>-</Text>}
+                            </Fragment>
+                        ))}
                         </Table.Cell>
                         <Table.Cell>
-                            {entry.entries}
-                        </Table.Cell>
-                        <Table.Cell>
-                            {entry.totalPool},-
-                        </Table.Cell>
-
-                        <Table.Cell>
-                            <Button size='1' className='cursor-pointer transition-colors duration-200'>
-                                <FontAwesomeIcon icon={faEye}/>
-                            </Button>
+                            {format(new Date(e.placedOn), 'd. MMMM yyyy HH:mm', { locale: da })}
                         </Table.Cell>
 
                     </Table.Row>

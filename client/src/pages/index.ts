@@ -7,6 +7,7 @@ export { default as WinnerSequence} from './winner-sequence/WinnerSequence'
 
 //------- Games -------//
 export { default as GameHistoryPage } from './gamehistory/GameHistoryPage'
+export { default as GameBoardHistoryPage } from './gamehistory/GameBoardHistoryPage'
 
 //------- Auth -------//
 export { default as LoginPage } from "./auth/Login";

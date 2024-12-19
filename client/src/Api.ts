@@ -340,9 +340,6 @@ export interface BalanceHistoryEntryResponse {
 export enum BalanceAction {
   UserBought = "UserBought",
   UserUsed = "UserUsed",
-  AdminAssigned = "AdminAssigned",
-  AdminRevoked = "AdminRevoked",
-  WonPrize = "WonPrize",
 }
 
 export interface PagingInfo {

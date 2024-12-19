@@ -2,6 +2,7 @@
 using DataAccess.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Service.BalanceHistory;
 using Service.Exceptions;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -111,7 +112,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             {
                 user.Credits -= totalPrice;
                 context.Users.Update(user);
-
+                
                 context.Purchases.Add(purchase);
                 await context.SaveChangesAsync();
                 
@@ -122,6 +123,16 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
                 }
                 
                 await context.Boards.AddRangeAsync(newBoards);
+                
+                await context.BalanceHistories.AddAsync(new DataAccess.Models.BalanceHistory
+                {
+                    UserId = user.Id,
+                    Amount = totalPrice,
+                    Action = BalanceAction.UserUsed.ToDbString(),
+                    Timestamp = timeProvider.GetUtcNow().UtcDateTime,
+                    AdditionalId = purchase.Id
+                });
+                
                 await context.SaveChangesAsync();
                 
                 await transaction.CommitAsync();

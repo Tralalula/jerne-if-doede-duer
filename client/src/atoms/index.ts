@@ -5,3 +5,4 @@ export * from "./userAtoms";
 export * from "./balanceHistoryAtoms";
 export * from './boardAtoms.ts';
 export * from './boardHistoryAtoms.ts';
+export * from './gameHistoryAtoms.ts';

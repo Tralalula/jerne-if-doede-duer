@@ -11,7 +11,7 @@ namespace API.Controllers;
 public class GameController(IGameService service) : ControllerBase
 {
     [HttpGet("history")]
-    public async Task<ActionResult<GameHistoryPagedResponse>> PickBoard([FromQuery] GameHistoryQuery query)
+    public async Task<ActionResult<GameHistoryPagedResponse>> GetHistory([FromQuery] GameHistoryQuery query)
     {
         var userId = User.GetUserId();
         return Ok(await service.GetBoardsHistory(userId, query));

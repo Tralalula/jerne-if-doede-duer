@@ -18,6 +18,7 @@ CREATE TABLE games (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NOT NULL,
+    active BOOLEAN NOT NULL,
     field_count INT NOT NULL DEFAULT 16
 );
 

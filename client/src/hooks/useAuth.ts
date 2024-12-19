@@ -58,7 +58,7 @@ export const useAuth = (): AuthHook => {
         });
         setUser(userResponse.data);
         
-        const redirectTo = localStorage.getItem(REDIRECT_PATH_KEY) || AppRoutes.Home;
+        const redirectTo = localStorage.getItem(REDIRECT_PATH_KEY) || AppRoutes.Game;
         localStorage.removeItem(REDIRECT_PATH_KEY);
         navigate(redirectTo);
     };

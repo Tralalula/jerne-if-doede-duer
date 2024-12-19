@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { Link } from "react-router-dom";
 
 interface ListItemProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   className?: string;
@@ -17,8 +18,8 @@ export const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
   ({ className, children, title, href, icon, onClick, ...props }, ref) => (
     <li>
       <NavigationMenu.Link asChild>
-        <a
-          href={href}
+        <Link
+          to={href}
           className={classNames("ListItemLink", className)}
           onClick={onClick}
           ref={ref}
@@ -36,7 +37,7 @@ export const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
               <p className="ListItemText">{children}</p>
             </div>
           </div>
-        </a>
+        </Link>
       </NavigationMenu.Link>
     </li>
   )

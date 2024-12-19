@@ -21,8 +21,8 @@ public class DbSeeder(
         await context.Database.EnsureCreatedAsync();
         
         await CreateRoles(Role.All);
-        await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin);
-        await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player);
+        await CreateUser(email: "admin@example.com", password: "Kakao1234!", role: Role.Admin, "Poul", "Henriksen");
+        await CreateUser(email: "player@example.com", password: "Pepsitwist69!", role: Role.Player, "Jørgen", "Jensen");
         
         var admin = await userManager.FindByEmailAsync("admin@example.com");
         var player = await userManager.FindByEmailAsync("player@example.com");
@@ -31,7 +31,10 @@ public class DbSeeder(
         Debug.Assert(admin != null, nameof(admin) + " != null");
         
         await SeedTransactionsAsync(player.Id, admin.Id);
-        await SeedGameAsync();
+        var game = await SeedGameAsync();
+        var purchases = await SeedPurchasesAsync();
+        
+        await SeedBoardsAsync(game, player, purchases);
     }
     
     private async Task CreateRoles(params string[] roles)
@@ -44,13 +47,15 @@ public class DbSeeder(
         }
     }
     
-    private async Task CreateUser(string email, string password, string role)
+    private async Task CreateUser(string email, string password, string role, String firstName, String lastName)
     {
         if (await userManager.FindByEmailAsync(email) != null) return;
         
         var user = new User
         {
             UserName = email,
+            FirstName = firstName,
+            LastName = lastName,
             Email = email,
             EmailConfirmed = true
         };
@@ -153,7 +158,7 @@ public class DbSeeder(
         await context.BalanceHistories.AddRangeAsync(balanceHistories);
     }
 
-    private async Task SeedGameAsync()
+    private async Task<Game> SeedGameAsync()
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
         
@@ -162,10 +167,72 @@ public class DbSeeder(
             StartTime = now - TimeSpan.FromDays(1),
             EndTime = now + TimeSpan.FromDays(1),
             Id = Guid.NewGuid(),
-            FieldCount = 47
+            FieldCount = 47,
+            Active = true
         };
         
         await context.Games.AddAsync(testGame);
+        await context.SaveChangesAsync();
+
+        return testGame;
+    }
+    
+    private async Task<Purchase> SeedPurchasesAsync()
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var purchase = new Purchase
+        {
+            Id = Guid.NewGuid(),
+            Timestamp = now,
+            Price = 30
+        };
+        
+        await context.Purchases.AddAsync(purchase);
+        await context.SaveChangesAsync();
+
+        return purchase;
+    }
+    
+    private async Task SeedBoardsAsync(Game game, User user, Purchase purchase)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        
+        var boards = new List<Board>
+        {
+            new Board
+            {
+                Id = Guid.NewGuid(),
+                Game = game,
+                GameId = game.Id,
+                UserId = user.Id,
+                Timestamp = now,
+                Configuration = new List<int> { 2, 9, 11, 13, 14, 15, 16 },
+                PurchaseId = purchase.Id
+            },
+            new Board
+            {
+                Id = Guid.NewGuid(),
+                Game = game,
+                GameId = game.Id,
+                UserId = user.Id,
+                Timestamp = DateTime.UtcNow,
+                Configuration = new List<int> { 4, 5, 6, 7, 9, 16 },
+                PurchaseId = purchase.Id
+            },
+            new Board
+            {
+                Id = Guid.NewGuid(),
+                Game = game,
+                GameId = game.Id,
+                UserId = user.Id,
+                Timestamp = now,
+                Configuration = new List<int> { 1, 4, 8, 10, 11 },
+                PurchaseId = purchase.Id
+            }
+        };
+
+        context.Boards.AddRange(boards);
         await context.SaveChangesAsync();
     }
 }

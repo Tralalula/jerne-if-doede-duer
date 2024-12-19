@@ -1,10 +1,10 @@
 :root {
-    --navbar-height: 64px;
+    --navbar-height: 50px;
   }
   
   @media (max-width: 768px) {
     :root {
-      --navbar-height: 20px;
+      --navbar-height: 30px;
     }
   }
   

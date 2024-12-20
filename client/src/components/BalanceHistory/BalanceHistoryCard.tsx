@@ -33,8 +33,8 @@ export default function BalanceHistoryCard({ entry, showUserEmail }: BalanceHist
     } as const;
 
     const actionText = {
-        [BalanceAction.UserBought]: 'Bruger købte',
-        [BalanceAction.UserUsed]: 'Bruger brugte',
+        [BalanceAction.UserBought]: 'Købt',
+        [BalanceAction.UserUsed]: 'Brugt',
     };
 
     return (
@@ -44,8 +44,8 @@ export default function BalanceHistoryCard({ entry, showUserEmail }: BalanceHist
                     <Badge color={actionColors[entry.action]} variant="soft">
                         {actionText[entry.action]}
                     </Badge>
-                    <Text size="5" weight="bold" className={entry.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {entry.amount > 0 ? '+' : ''}{entry.amount} kr
+                    <Text size="5" weight="bold" className={entry.action === BalanceAction.UserBought ? 'text-green-600' : 'text-red-600'}>
+                        {entry.action === BalanceAction.UserBought ? '+' : '-'}{Math.abs(entry.amount)} kr
                     </Text>
                 </Flex>
 

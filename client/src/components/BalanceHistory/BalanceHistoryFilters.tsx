@@ -81,8 +81,8 @@ export default function BalanceHistoryFilters() {
     };
 
     const actionText = {
-        [BalanceAction.UserBought]: 'Bruger købte',
-        [BalanceAction.UserUsed]: 'Bruger brugte',
+        [BalanceAction.UserBought]: 'Købte',
+        [BalanceAction.UserUsed]: 'Brugte',
     };
 
     return (

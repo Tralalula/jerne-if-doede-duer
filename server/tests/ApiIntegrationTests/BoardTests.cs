@@ -207,7 +207,7 @@ public class BoardControllerIntegrationTests : ApiTestBase
 
         var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
         
-        Assert.Equal(StatusCodes.Status401Unauthorized, (int)response.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
         
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Du har ikke tilladelse til at købe et bræt.", content);

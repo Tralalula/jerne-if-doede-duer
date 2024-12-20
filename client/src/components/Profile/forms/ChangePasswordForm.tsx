@@ -20,6 +20,10 @@ const schema = yup.object({
     newPassword: yup
         .string()
         .required("Ny adgangskode er påkrævet")
+        .min(6, "Adgangskoden skal være mindst 6 tegn lang")
+        .matches(/[A-Z]/, "Adgangskoden skal indeholde mindst ét stort bogstav")
+        .matches(/\d/, "Adgangskoden skal indeholde mindst ét tal")
+        .matches(/[^A-Za-z0-9]/, "Adgangskoden skal indeholde mindst ét specialtegn")
 }).required();
 
 interface ChangePasswordFormProps {

@@ -163,7 +163,7 @@ export default function TransactionFilters() {
                     </Select.Root>
                 </Flex>
 
-                <Button onClick={handleReset} variant="soft" color="gray">
+                <Button onClick={handleReset} variant="soft" color="gray" className="cursor-pointer">
                     Nulstil filtre
                 </Button>
             </Flex>

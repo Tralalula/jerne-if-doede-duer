@@ -109,12 +109,12 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     public async Task<BoardPickResponse> PlaceBoardBetAsync(BoardPickRequest board, Guid userId)
     {
         if (IsWithinRestrictedTime(timeProvider))
-            throw new UnauthorizedException("Du kan ikke købe et bræt på nuværende tidspunkt.");
+            throw new BadRequestException("Du kan ikke købe et bræt på nuværende tidspunkt.");
         
         var user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("Bruger ikke fundet");
         
         if (user.Status == UserStatus.Inactive)
-            throw new UnauthorizedException("Du har ikke tilladelse til at købe et bræt.");
+            throw new BadRequestException("Du har ikke tilladelse til at købe et bræt.");
         
         if (board.Amount <= 0)
             throw new BadRequestException("Du skal mindst købe 1 bræt.");

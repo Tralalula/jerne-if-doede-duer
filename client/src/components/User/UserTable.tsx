@@ -85,14 +85,12 @@ export default function UserTable({ users, onActivate, onDeactivate, onUserSelec
                         </Table.Cell>
                         <Table.Cell onClick={(e) => e.stopPropagation()}>
                             {user.status === UserStatus.Inactive ? (
-                                <Button onClick={() => onActivate?.(user.id)} color="green" variant="soft" size="1">
+                                <Button onClick={() => onActivate?.(user.id)} color="green" variant="soft" size="1" className="cursor-pointer">
                                     <PlayIcon />
-                                    Aktivér
                                 </Button>
                             ) : (
-                                <Button onClick={() => onDeactivate?.(user.id)} color="red" variant="soft" size="1">
+                                <Button onClick={() => onDeactivate?.(user.id)} color="red" variant="soft" size="1" className="cursor-pointer">
                                     <StopIcon />
-                                    Deaktivére
                                 </Button>
                             )}
                         </Table.Cell>

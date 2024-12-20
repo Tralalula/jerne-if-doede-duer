@@ -185,11 +185,11 @@ export default function UpdateUserForm({ user, onSuccess, onCancel, submitLabel 
 
                 <Flex gap="3" mt="4" justify="end">
                     {cancelButton || (
-                        <Button type="button" variant="soft" color="gray" onClick={onCancel}>
+                        <Button type="button" variant="soft" color="gray" onClick={onCancel} className="cursor-pointer">
                             Annuller
                         </Button>
                     )}
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                         {isSubmitting ? 'Gemmer...' : submitLabel}
                     </Button>
                 </Flex>

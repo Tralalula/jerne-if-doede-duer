@@ -82,11 +82,11 @@ const HamburgerNavigation = () => {
                 </div>
 
                 {isOpen && (
-                    <div className="absolute bottom-full left-0 w-full bg-white dark:bg-gray1 border-t dark:border-gray5 max-h-[80vh] overflow-y-auto shadow-lg">
+                    <div className="absolute bottom-full left-0 w-full overflow-x-hidden bg-white dark:bg-gray1 border-t dark:border-gray5 max-h-[80vh] overflow-y-auto shadow-lg">
                         <div className="p-4 space-y-4">
                             {/* Spil sektion */}
                             <div className="space-y-2">
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100">Spil</h3>
+                                <h3 className="font-medium text-red11">Spil</h3>
                                 <nav className="space-y-1">
                                     <Link
                                         to={AppRoutes.Game}
@@ -118,7 +118,7 @@ const HamburgerNavigation = () => {
                             {/* Admin sektion */}
                             {isAdmin && (
                                 <div className="space-y-2">
-                                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Panel</h3>
+                                    <h3 className="font-medium text-red11">Panel</h3>
                                     <nav className="space-y-1">
                                         <Link
                                             to={AppRoutes.AdminPickWinnerSequence}
@@ -166,7 +166,7 @@ const HamburgerNavigation = () => {
 
                             {/* Konto sektion */}
                             <div className="space-y-2">
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100">Konto</h3>
+                                <h3 className="font-medium text-red11">Konto</h3>
                                 <nav className="space-y-1">
                                     <Link
                                         to={AppRoutes.Profile}

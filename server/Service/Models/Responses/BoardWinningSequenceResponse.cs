@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DataAccess.Models;
 
 namespace Service.Models.Responses;
@@ -15,6 +16,7 @@ public class BoardWinningSequenceResponse
     public int CurrentGameField { get; set; }
     
     [Required]
+    [JsonPropertyName("selectedNumbers")]
     public List<int>? SelectedNumbers { get; set; }
 
     public static BoardWinningSequenceResponse FromEntity(int winnerAmounts, List<int> selectedNumbers, Game game)

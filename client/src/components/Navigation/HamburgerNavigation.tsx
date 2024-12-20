@@ -130,8 +130,8 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
-                                            <span>Brugere</span>
+                                            <FontAwesomeIcon icon={faGamepad} className="mr-3" />
+                                            <span>Spil</span>
                                         </Link>
                                         <Link
                                             to={AppRoutes.AdminUsers}

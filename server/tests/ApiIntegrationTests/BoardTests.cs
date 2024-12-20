@@ -96,9 +96,6 @@ public class BoardControllerIntegrationTests : ApiTestBase
         var userId = await Get_User_Id(AuthTestHelper.Users.Player.Email);
         await Add_User_Credits(userId, 200);
         
-        var user = await PgCtxSetup.DbContextInstance.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
-        
         await Create_Active_Game();
         
         var boardRequest = new BoardPickRequest
@@ -118,6 +115,47 @@ public class BoardControllerIntegrationTests : ApiTestBase
         Assert.True(responseContent.Total > 0, "Total price should be greater than zero.");
     }
 
+    [Fact]
+    public async Task PickBoard_NotEnoughCreditsValidBoard()
+    {
+        var client = await AuthenticateClientAsync(AuthTestHelper.Users.Player);
+        await Create_Active_Game();
+        
+        var boardRequest = new BoardPickRequest
+        {
+            Amount = 2,
+            SelectedNumbers = new List<int> { 3, 7, 9, 12, 14 }
+        };
+
+        var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
+        
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Du har ikke nok credits til at købe dette bræt.", content);
+    }
+    
+    [Fact]
+    public async Task PickBoard_NotValidBoard()
+    {
+        var client = await AuthenticateClientAsync(AuthTestHelper.Users.Player);
+        await Create_Active_Game();
+        
+        var boardRequest = new BoardPickRequest
+        {
+            Amount = 1,
+            SelectedNumbers = new List<int> { 3, 7, 9, 10 }
+        };
+
+        var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
+        
+        _testOutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Du skal vælge mellem 5 til 8 numre.", content);
+    }
+    
     [Fact]
     public async Task GetStatus_ReturnsGameStatus()
     {

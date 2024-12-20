@@ -1,4 +1,3 @@
-import { faGamepad, faCircleUser, faGear } from '@fortawesome/free-solid-svg-icons';
 import DesktopNavigation from "./DesktopNavigation";
 import HamburgerNavigation from "./HamburgerNavigation";
 

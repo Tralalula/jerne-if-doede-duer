@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Table, Button, Badge } from '@radix-ui/themes';
 import { format } from 'date-fns';
-import { PlayIcon, StopIcon } from '@radix-ui/react-icons';
+import { PlayIcon, StopIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { UserStatus, UserOrderBy, UserDetailsResponse } from '../import';
 import UserTableHeader from './UserTableHeader';
 import {da} from "date-fns/locale";
@@ -60,16 +60,13 @@ export default function UserTable({ users, onActivate, onDeactivate, onUserSelec
                         Oprettet
                     </UserTableHeader>
                     <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
 
             <Table.Body>
                 {users.map((user) => (
-                    <Table.Row
-                        key={user.id}
-                        className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedUserId === user.id ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
-                        onClick={() => onUserSelect?.(user)}
-                    >
+                    <Table.Row key={user.id}>
                         <Table.Cell>{user.email}</Table.Cell>
                         <Table.Cell>{formatFullName(user.firstName, user.lastName)}</Table.Cell>
                         <Table.Cell>{user.phoneNumber || '-'}</Table.Cell>
@@ -83,18 +80,27 @@ export default function UserTable({ users, onActivate, onDeactivate, onUserSelec
                         <Table.Cell>
                             {format(new Date(user.timestamp), 'd. MMMM yyyy HH:mm', { locale: da })}
                         </Table.Cell>
-                        <Table.Cell onClick={(e) => e.stopPropagation()}>
+                        <Table.Cell>
                             {user.status === UserStatus.Inactive ? (
-                                <Button onClick={() => onActivate?.(user.id)} color="green" variant="soft" size="1">
+                                <Button onClick={() => onActivate?.(user.id)} color="green" variant="soft" size="1" className="cursor-pointer">
                                     <PlayIcon />
-                                    Aktivér
                                 </Button>
                             ) : (
-                                <Button onClick={() => onDeactivate?.(user.id)} color="red" variant="soft" size="1">
+                                <Button onClick={() => onDeactivate?.(user.id)} color="red" variant="soft" size="1" className="cursor-pointer">
                                     <StopIcon />
-                                    Deaktivére
                                 </Button>
                             )}
+                        </Table.Cell>
+                        <Table.Cell>
+                            <Button
+                                onClick={() => onUserSelect?.(user)}
+                                color="blue"
+                                variant="soft"
+                                size="1"
+                                className="cursor-pointer"
+                            >
+                                <Pencil1Icon />
+                            </Button>
                         </Table.Cell>
                     </Table.Row>
                 ))}

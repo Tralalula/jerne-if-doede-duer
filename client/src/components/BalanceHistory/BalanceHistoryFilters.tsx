@@ -81,8 +81,8 @@ export default function BalanceHistoryFilters() {
     };
 
     const actionText = {
-        [BalanceAction.UserBought]: 'Bruger købte',
-        [BalanceAction.UserUsed]: 'Bruger brugte',
+        [BalanceAction.UserBought]: 'Købte',
+        [BalanceAction.UserUsed]: 'Brugte',
     };
 
     return (
@@ -125,7 +125,7 @@ export default function BalanceHistoryFilters() {
                     </Select.Root>
                 </Flex>
 
-                <Button onClick={handleReset} variant="soft" color="gray">
+                <Button onClick={handleReset} variant="soft" color="gray" className="cursor-pointer">
                     Nulstil filtre
                 </Button>
             </Flex>

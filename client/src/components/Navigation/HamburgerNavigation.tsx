@@ -7,28 +7,31 @@ import {
     faArrowRightFromBracket,
     faBank,
     faGamepad,
-    faGear,
+    faGear, 
     faMoneyBill,
     faUser,
+    faHistory,
+    faTrophy,
+    faBook,
     faBars,
     faX,
-    faHistory,
-    faHome,
-    faBook,
-    faDice,
-    faTrophy,
-    faUsers,
-    faWallet,
-    faClock
+    faMoon,
+    faSun
 } from "@fortawesome/free-solid-svg-icons";
-import { AppRoutes } from "../import";
+import { AppRoutes, themeAtom } from "../import";
+import {useAtom} from "jotai/index";
 
 const HamburgerNavigation = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { user, logout } = useAuthContext(); 
+    const { user, logout } = useAuthContext();
+    const [theme, setTheme] = useAtom(themeAtom);
     const toggleMenu = () => setIsOpen(!isOpen);
-
+    
     const isAdmin = user !== null && user.isAdmin;
+
+    const toggleTheme = () => {
+        setTheme(theme === "light" ? "dark" : "light");
+    };
 
     return (
         <>
@@ -39,7 +42,7 @@ const HamburgerNavigation = () => {
                 />
             )}
 
-            <NavigationMenu.Root className="md:hidden fixed bottom-0 w-full bg-whiteA5 dark:bg-gray1/90 z-50">
+            <NavigationMenu.Root className="md:hidden fixed bottom-0 w-full bg-white/90 dark:bg-gray1/90 z-50">
                 <div className="flex justify-between items-center px-4 py-2 border-t dark:border-t-gray5">
                     <button
                         onClick={toggleMenu}
@@ -79,11 +82,11 @@ const HamburgerNavigation = () => {
                 </div>
 
                 {isOpen && (
-                    <div className="absolute bottom-full left-0 w-full bg-white dark:bg-gray1 border-t dark:border-gray5 max-h-[80vh] overflow-y-auto shadow-lg">
+                    <div className="absolute bottom-full left-0 w-full overflow-x-hidden bg-white dark:bg-gray1 border-t dark:border-gray5 max-h-[80vh] overflow-y-auto shadow-lg">
                         <div className="p-4 space-y-4">
                             {/* Spil sektion */}
                             <div className="space-y-2">
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100">Spil</h3>
+                                <h3 className="font-medium text-red11">Spil</h3>
                                 <nav className="space-y-1">
                                     <Link
                                         to={AppRoutes.Game}
@@ -115,7 +118,7 @@ const HamburgerNavigation = () => {
                             {/* Admin sektion */}
                             {isAdmin && (
                                 <div className="space-y-2">
-                                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Panel</h3>
+                                    <h3 className="font-medium text-red11">Panel</h3>
                                     <nav className="space-y-1">
                                         <Link
                                             to={AppRoutes.AdminPickWinnerSequence}
@@ -126,20 +129,20 @@ const HamburgerNavigation = () => {
                                             <span>Vindersekvens</span>
                                         </Link>
                                         <Link
+                                            to={AppRoutes.AdminUsers}
+                                            className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                            onClick={toggleMenu}
+                                        >
+                                            <FontAwesomeIcon icon={faUser} className="mr-3" />
+                                            <span>Brugere</span>
+                                        </Link>
+                                        <Link
                                             to={AppRoutes.AdminGameHistory}
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
                                             <FontAwesomeIcon icon={faGamepad} className="mr-3" />
                                             <span>Spil</span>
-                                        </Link>
-                                        <Link
-                                            to={AppRoutes.AdminUsers}
-                                            className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
-                                            onClick={toggleMenu}
-                                        >
-                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
-                                            <span>Brugere</span>
                                         </Link>
                                         <Link
                                             to={AppRoutes.AdminTransactions}
@@ -154,7 +157,7 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faWallet} className="mr-3" />
+                                            <FontAwesomeIcon icon={faMoneyBill} className="mr-3" />
                                             <span>Balance historik</span>
                                         </Link>
                                     </nav>
@@ -163,15 +166,15 @@ const HamburgerNavigation = () => {
 
                             {/* Konto sektion */}
                             <div className="space-y-2">
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100">Konto</h3>
+                                <h3 className="font-medium text-red11">Konto</h3>
                                 <nav className="space-y-1">
                                     <Link
                                         to={AppRoutes.Profile}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faUser} className="mr-3" />
-                                        <span>Profil</span>
+                                        <FontAwesomeIcon icon={faGear} className="mr-3" />
+                                        <span>Indstillinger</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyTransactions}
@@ -179,16 +182,26 @@ const HamburgerNavigation = () => {
                                         onClick={toggleMenu}
                                     >
                                         <FontAwesomeIcon icon={faBank} className="mr-3" />
-                                        <span>Betalinger</span>
+                                        <span>Transaktion</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyBalanceHistory}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faClock} className="mr-3" />
+                                        <FontAwesomeIcon icon={faMoneyBill} className="mr-3" />
                                         <span>Balance historik</span>
                                     </Link>
+                                    <button
+                                        onClick={() => {
+                                            toggleTheme();
+                                            toggleMenu();
+                                        }}
+                                        className="flex w-full items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                    >
+                                        <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} className="mr-3" />
+                                        <span>{theme === "light" ? "Mørk tema" : "Lys tema"}</span>
+                                    </button>
                                     <button
                                         onClick={() => {
                                             logout();

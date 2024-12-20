@@ -185,7 +185,7 @@ export default function RegisterUserForm({ onSuccess, submitLabel = 'Opret', can
 
                 <Flex gap="3" mt="4" justify="end">
                     {cancelButton}
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                         {isSubmitting ? 'Opretter...' : submitLabel}
                     </Button>
                 </Flex>

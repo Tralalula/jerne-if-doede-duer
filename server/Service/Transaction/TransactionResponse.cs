@@ -2,7 +2,7 @@
 
 namespace Service.Transaction;
 
-public record TransactionResponse(Guid Id, DateTime Timestamp, int Credits, string MobilePayTransactionNumber, TransactionStatus Status);
+public record TransactionResponse(Guid Id, DateTime Timestamp, Guid UserId, int Credits, string MobilePayTransactionNumber, TransactionStatus Status);
 
 public record BalanceResponse(int CurrentBalance, int PendingCredits);
 

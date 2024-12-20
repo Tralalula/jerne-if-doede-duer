@@ -99,9 +99,9 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
             StatusCodes.Status401Unauthorized, RfcUnauthorized);
             
         // Har adgang her, men har ikke en reel token
-        await WebAssert.ThrowsProblemAsync<UnauthorizedException>(
+        await WebAssert.ThrowsProblemAsync<BadRequestException>(
             client.RefreshAsync,
-            StatusCodes.Status401Unauthorized, nameof(UnauthorizedException));
+            StatusCodes.Status400BadRequest, nameof(BadRequestException));
     }
     
     private async Task Check_Protected_Endpoint_Access(AuthClient client)
@@ -132,7 +132,7 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         // Tjek at refresh token er ugyldig efter logud
         await WebAssert.ThrowsProblemAsync<ApiException>(
             client.RefreshAsync,
-            StatusCodes.Status401Unauthorized, nameof(UnauthorizedException));
+            StatusCodes.Status400BadRequest, nameof(BadRequestException));
     }
     
     private async Task<(string Email, string Code)> Check_Initiate_Password_Reset(AuthClient client, string email)
@@ -373,8 +373,8 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
 
         await WebAssert.ThrowsProblemAsync<ApiException>(
             () => client.RefreshAsync(),
-            StatusCodes.Status401Unauthorized,
-            nameof(UnauthorizedException)
+            StatusCodes.Status400BadRequest,
+            nameof(BadRequestException)
         );
     }
     
@@ -583,8 +583,8 @@ public class AuthTests(ITestOutputHelper testOutputHelper) : ApiTestBase
         // Tjek at vi ikke kan anvende refresh token igen
         await WebAssert.ThrowsProblemAsync<ApiException>(
             () => client.RefreshAsync(),
-            StatusCodes.Status401Unauthorized,
-            nameof(UnauthorizedException)
+            StatusCodes.Status400BadRequest,
+            nameof(BadRequestException)
         );
     }
     

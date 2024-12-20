@@ -24,10 +24,11 @@ export default function FormContainer({ children, onReset, isSubmitting, submitL
                     color="gray"
                     onClick={handleReset}
                     disabled={isSubmitting}
+                    className="cursor-pointer"
                 >
                     Annuller
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                     {isSubmitting ? 'Gemmer...' : submitLabel}
                 </Button>
             </Flex>

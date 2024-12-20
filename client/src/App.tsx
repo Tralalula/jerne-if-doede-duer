@@ -2,7 +2,7 @@ import {useEffect} from "react";
 import {useAtom} from "jotai";
 import { Routes, Route } from "react-router-dom";
 import { ForgotPassword, GamePage, WinnerSequence, LoginPage, ForbiddenPage, MyBoardHistory, NotFoundPage, MyTransactionsPage, AdminTransactionsPage, AdminUsersPage, AdminBalanceHistoryPage, ProfilePage, AdminUserBalanceHistoryPage, MyBalanceHistoryPage, RulesPage, GameHistoryPage, GameBoardHistoryPage } from "./pages/index";
-import { Navigation, DaisyToaster, RequireAuth } from "./components/index";
+import { Navigation, RequireAuth } from "./components/index";
 import { themeAtom } from "./atoms/index";
 import { AppRoutes, AccessLevel } from "./helpers";
 import { Theme } from '@radix-ui/themes';
@@ -23,7 +23,6 @@ const App = () => {
     <Theme appearance={theme} accentColor="red" panelBackground="translucent">
       <ToastProvider>
       {auth.user && (<Navigation /> )}
-        <DaisyToaster />
           <Routes>
               <Route path={AppRoutes.NotFound} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<NotFoundPage />} />} />
               <Route path={AppRoutes.Forbidden} element={<RequireAuth accessLevel={AccessLevel.Anonymous} element={<ForbiddenPage />} />} />

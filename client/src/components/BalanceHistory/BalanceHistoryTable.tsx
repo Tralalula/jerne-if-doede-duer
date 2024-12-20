@@ -39,8 +39,8 @@ export default function BalanceHistoryTable({ entries, showUserEmail = false }: 
     } as const;
 
     const actionText = {
-        [BalanceAction.UserBought]: 'Bruger købte',
-        [BalanceAction.UserUsed]: 'Bruger brugte',
+        [BalanceAction.UserBought]: 'Købt',
+        [BalanceAction.UserUsed]: 'Brugt',
     };
 
     return (
@@ -76,8 +76,8 @@ export default function BalanceHistoryTable({ entries, showUserEmail = false }: 
                             </Badge>
                         </Table.Cell>
                         <Table.Cell>
-                            <span className={entry.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                {entry.amount > 0 ? '+' : ''}{entry.amount} kr
+                            <span className={entry.action === BalanceAction.UserBought ? 'text-green-600' : 'text-red-600'}>
+                                {entry.action === BalanceAction.UserBought ? '+' : '-'}{Math.abs(entry.amount)} kr
                             </span>
                         </Table.Cell>
                     </Table.Row>

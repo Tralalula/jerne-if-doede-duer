@@ -19,16 +19,22 @@ import {
     faTrophy,
     faUsers,
     faWallet,
-    faClock
+    faClock, faMoon, faSun
 } from "@fortawesome/free-solid-svg-icons";
-import { AppRoutes } from "../import";
+import { AppRoutes, themeAtom } from "../import";
+import {useAtom} from "jotai/index";
 
 const HamburgerNavigation = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { user, logout } = useAuthContext(); 
+    const { user, logout } = useAuthContext();
+    const [theme, setTheme] = useAtom(themeAtom);
     const toggleMenu = () => setIsOpen(!isOpen);
-
+    
     const isAdmin = user !== null && user.isAdmin;
+
+    const toggleTheme = () => {
+        setTheme(theme === "light" ? "dark" : "light");
+    };
 
     return (
         <>
@@ -189,6 +195,16 @@ const HamburgerNavigation = () => {
                                         <FontAwesomeIcon icon={faClock} className="mr-3" />
                                         <span>Balance historik</span>
                                     </Link>
+                                    <button
+                                        onClick={() => {
+                                            toggleTheme();
+                                            toggleMenu();
+                                        }}
+                                        className="flex w-full items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                    >
+                                        <FontAwesomeIcon icon={theme === "light" ? faMoon : faSun} className="mr-3" />
+                                        <span>{theme === "light" ? "Mørk tema" : "Lys tema"}</span>
+                                    </button>
                                     <button
                                         onClick={() => {
                                             logout();

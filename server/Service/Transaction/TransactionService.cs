@@ -53,6 +53,7 @@ public class TransactionService(AppDbContext dbContext, ILogger<TransactionServi
         return new TransactionResponse(
             Id: transaction.Id,
             Timestamp: transaction.Timestamp,
+            UserId: userId,
             Credits: transaction.Credits,
             MobilePayTransactionNumber: transaction.MobilepayTransactionNumber,
             Status: transaction.Status.ToTransactionStatus()

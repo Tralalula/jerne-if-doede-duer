@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tab } from "./types";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowRightFromBracket,
     faBank,
@@ -15,24 +13,28 @@ import {
     faTrophy,
     faUsers,
     faWallet,
-    faClock
+    faClock, faMoon, faSun
 } from "@fortawesome/free-solid-svg-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ListItem } from "./ListItem";
+import { ActionItem } from "./ActionItem";
 import { CaretDownIcon } from "@radix-ui/react-icons";
-
 import './DesktopNavigation.css'
-import { Flex, Text } from "@radix-ui/themes";
-import ThemeSwitcher from "./ThemeSwitcher";
-import AnimatedIconButton from "../Button/AnimatedIconButton";
+import { Text } from "@radix-ui/themes";
 import { Link } from "react-router-dom";
-import { AccessLevel, AppRoutes } from "../import";
+import { AppRoutes, themeAtom } from "../import";
 import { useAuthContext } from "../../AuthContext";
+import { useAtom } from "jotai/index";
 
 const DesktopNavigation = () => {
+  const [theme, setTheme] = useAtom(themeAtom);
   const navigate = useNavigate();
   const { user, logout } = useAuthContext();
   const isAdmin = user !== null && user.isAdmin;
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   return (
     <NavigationMenu.Root className="NavigationMenuRoot justify-between bg-whiteA5 dark:bg-gray1/90 py-2 border-b dark:border-b-gray5 fixed hidden md:block">
@@ -68,7 +70,7 @@ const DesktopNavigation = () => {
                 </NavigationMenu.Content>
             </NavigationMenu.Item>
 
-				<NavigationMenu.Item>
+          {isAdmin && (<NavigationMenu.Item>
 					<NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
 						Panel <CaretDownIcon className="CaretDown" aria-hidden />
 					</NavigationMenu.Trigger>
@@ -106,13 +108,14 @@ const DesktopNavigation = () => {
 						</ul>
 					</NavigationMenu.Content>
 				</NavigationMenu.Item>
+              )}
 
                 <NavigationMenu.Item>
                 <NavigationMenu.Trigger className="NavigationMenuTrigger hover:bg-red-500/30 transition-colors duration-200">
                     Konto <CaretDownIcon className="CaretDown" aria-hidden />
                 </NavigationMenu.Trigger>
                 <NavigationMenu.Content className="NavigationMenuContent">
-                    <ul className="List three">
+                    <ul className="List two">
                         <ListItem href={AppRoutes.Profile} title="Indstillinger" icon={faGear}>
                             Mail, kode mm.
                         </ListItem>
@@ -121,10 +124,13 @@ const DesktopNavigation = () => {
                         </ListItem>
                         <ListItem href={AppRoutes.MyBalanceHistory} title="Balance historik" icon={faBank}>
                             Se din balance historik.
-                        </ListItem>                            
-                        <ListItem href={AppRoutes.AdminTransactions} title="Log ud" icon={faArrowRightFromBracket} onClick={() => logout()}>
-                            Logger ud af din konto.
                         </ListItem>
+                        <ActionItem title="Tema" icon={theme === "light" ? faMoon : faSun} onClick={toggleTheme}>
+                            {theme === "light" ? "Mørk tema" : "Lys tema"}
+                        </ActionItem>
+                        <ActionItem title="Log ud" icon={faArrowRightFromBracket} onClick={logout}>
+                            Logger ud af din konto.
+                        </ActionItem>
                     </ul>
                 </NavigationMenu.Content>
             </NavigationMenu.Item>

@@ -42,7 +42,7 @@ const HamburgerNavigation = () => {
                 />
             )}
 
-            <NavigationMenu.Root className="md:hidden fixed bottom-0 w-full bg-whiteA5 dark:bg-gray1/90 z-50">
+            <NavigationMenu.Root className="md:hidden fixed bottom-0 w-full bg-white/90 dark:bg-gray1/90 z-50">
                 <div className="flex justify-between items-center px-4 py-2 border-t dark:border-t-gray5">
                     <button
                         onClick={toggleMenu}

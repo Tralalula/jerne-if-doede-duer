@@ -65,7 +65,7 @@ export default function TransactionTable({ isAdmin = false, showUserEmail = fals
     }, [transactions, getUserDetails, showUserEmail]);
 
     return (
-        <Table.Root variant="ghost">
+        <Table.Root variant="surface">
             <Table.Header>
                 <Table.Row>
                     <TransactionTableHeader orderBy={TransactionOrderBy.Timestamp}>

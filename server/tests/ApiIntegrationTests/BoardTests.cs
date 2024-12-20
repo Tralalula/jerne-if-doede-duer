@@ -6,6 +6,7 @@ using Generated;
 using GameModel = DataAccess.Models.Game;
 
 using Microsoft.EntityFrameworkCore;
+using Service.Models.Responses;
 using Xunit.Abstractions;
 using BoardPickRequest = Service.Models.Requests.BoardPickRequest;
 using BoardPickResponse = Service.Models.Responses.BoardPickResponse;
@@ -185,7 +186,6 @@ public class BoardControllerIntegrationTests : ApiTestBase
 
         var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
         
-        _testOutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
         Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         
         var content = await response.Content.ReadAsStringAsync();
@@ -211,6 +211,30 @@ public class BoardControllerIntegrationTests : ApiTestBase
         
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Du har ikke tilladelse til at købe et bræt.", content);
+    }
+    
+    [Fact]
+    public async Task PickWinner_SequenceValid()
+    {
+        var client = await AuthenticateClientAsync(AuthTestHelper.Users.Admin);
+
+        await Create_Active_Game();
+        
+        var selectedNumbers = new List<int> { 3, 7, 9 };
+        var numbersQuery = string.Join(",", selectedNumbers);
+
+        var response = await client.GetAsync($"/api/board/winner-sequence?numbers={numbersQuery}");
+
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var responseObject = System.Text.Json.JsonSerializer.Deserialize<BoardWinningSequenceResponse>(content);
+        Assert.NotNull(responseObject);
+        
+        Assert.NotNull(responseObject.SelectedNumbers);
+        Assert.Equal(0, responseObject.WinnerAmounts);
+        Assert.Equal(selectedNumbers, responseObject.SelectedNumbers);
     }
     
     [Fact]

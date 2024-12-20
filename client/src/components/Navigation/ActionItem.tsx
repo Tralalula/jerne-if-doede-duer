@@ -18,7 +18,7 @@ export const ActionItem = forwardRef<HTMLButtonElement, ActionItemProps>(
             <NavigationMenu.Link asChild>
                 <button
                     className={classNames(
-                        "w-full block select-none rounded-md no-underline outline-none transition-colors",
+                        "w-full",
                         className
                     )}
                     onClick={onClick}
@@ -26,7 +26,7 @@ export const ActionItem = forwardRef<HTMLButtonElement, ActionItemProps>(
                     type="button"
                     {...props}
                 >
-                    <div className="w-full p-3 hover:bg-mauve3 rounded-md">
+                    <div className="w-full ListItemLink">
                         <div className="flex items-start">
                             {icon && (
                                 <FontAwesomeIcon

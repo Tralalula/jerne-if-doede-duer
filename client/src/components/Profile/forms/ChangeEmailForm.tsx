@@ -1,11 +1,11 @@
-﻿import React from 'react';
-import { Flex, Text, TextField } from '@radix-ui/themes';
+﻿import React, { useState } from 'react';
+import { Flex, Text, TextField, Tooltip, IconButton } from '@radix-ui/themes';
 import { useToast, api } from '../../import';
 import * as yup from "yup";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { faWarning, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import FormContainer from './FormContainer';
 
 const emailPattern = /^[a-zA-ZæøåÆØÅ0-9._%+-]+@[a-zA-ZæøåÆØÅ0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -31,6 +31,7 @@ interface ChangeEmailFormProps {
 
 export default function ChangeEmailForm({ onSuccess }: ChangeEmailFormProps) {
     const { showToast } = useToast();
+    const [showPassword, setShowPassword] = useState(false);
 
     const {
         register,
@@ -86,14 +87,30 @@ export default function ChangeEmailForm({ onSuccess }: ChangeEmailFormProps) {
                         Adgangskode
                     </Text>
                     <TextField.Root
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         variant="soft"
                         color="gray"
                         placeholder="Indtast adgangskode"
                         className={`border dark:border-gray5 ${errors.password ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
                         {...register("password")}
                         disabled={isSubmitting}
-                    />
+                    >
+                        <Tooltip content={showPassword ? "Skjul adgangskode" : "Vis adgangskode"}>
+                            <TextField.Slot side='right'>
+                                <IconButton
+                                    type="button"
+                                    size="1"
+                                    variant="ghost"
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        setShowPassword((prev) => !prev);
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                                </IconButton>
+                            </TextField.Slot>
+                        </Tooltip>
+                    </TextField.Root>
                     {errors.password && (
                         <Flex mt="1" align="center" className="error-wrapper error-visible">
                             <Text color="red" size="1" className="flex gap-1 items-center">

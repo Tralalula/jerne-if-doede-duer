@@ -1,11 +1,11 @@
-﻿import React from 'react';
-import { Flex, Text, TextField } from '@radix-ui/themes';
+﻿import React, { useState } from 'react';
+import { Flex, Text, TextField, Tooltip, IconButton } from '@radix-ui/themes';
 import { useToast, api } from '../../import';
 import * as yup from "yup";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { faWarning, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import FormContainer from './FormContainer';
 
 interface ChangePasswordFormData {
@@ -32,6 +32,9 @@ interface ChangePasswordFormProps {
 
 export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
     const { showToast } = useToast();
+
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     const {
         register,
@@ -65,14 +68,30 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
                         Nuværende Adgangskode
                     </Text>
                     <TextField.Root
-                        type="password"
+                        type={showCurrentPassword ? "text" : "password"}
                         variant="soft"
                         color="gray"
                         placeholder="Indtast nuværende adgangskode"
                         className={`border dark:border-gray5 ${errors.currentPassword ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
                         {...register("currentPassword")}
                         disabled={isSubmitting}
-                    />
+                    >
+                        <Tooltip content={showCurrentPassword ? "Skjul adgangskode" : "Vis adgangskode"}>
+                            <TextField.Slot side="right">
+                                <IconButton
+                                    type="button"
+                                    size="1"
+                                    variant="ghost"
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        setShowCurrentPassword((prev) => !prev);
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={showCurrentPassword ? faEyeSlash : faEye} />
+                                </IconButton>
+                            </TextField.Slot>
+                        </Tooltip>
+                    </TextField.Root>
                     {errors.currentPassword && (
                         <Flex mt="1" align="center" className="error-wrapper error-visible">
                             <Text color="red" size="1" className="flex gap-1 items-center">
@@ -88,14 +107,30 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
                         Ny Adgangskode
                     </Text>
                     <TextField.Root
-                        type="password"
+                        type={showNewPassword ? "text" : "password"}
                         variant="soft"
                         color="gray"
                         placeholder="Indtast ny adgangskode"
                         className={`border dark:border-gray5 ${errors.newPassword ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : ""}`}
                         {...register("newPassword")}
                         disabled={isSubmitting}
-                    />
+                    >
+                        <Tooltip content={showNewPassword ? "Skjul adgangskode" : "Vis adgangskode"}>
+                            <TextField.Slot side="right">
+                                <IconButton
+                                    type="button"
+                                    size="1"
+                                    variant="ghost"
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        setShowNewPassword((prev) => !prev);
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} />
+                                </IconButton>
+                            </TextField.Slot>
+                        </Tooltip>
+                    </TextField.Root>
                     {errors.newPassword && (
                         <Flex mt="1" align="center" className="error-wrapper error-visible">
                             <Text color="red" size="1" className="flex gap-1 items-center">
@@ -109,4 +144,3 @@ export default function ChangePasswordForm({ onSuccess }: ChangePasswordFormProp
         </form>
     );
 }
-

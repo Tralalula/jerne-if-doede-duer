@@ -15,11 +15,21 @@ const schema = yup.object({
         .test(
             "is-valid-array",
             "Vinder sekvens skal være en gyldig liste af tal",
-            (value) => value 
+            (value) => value
                 ? value
-                      .replace(/-$/, "")
-                      .split('-')
-                      .every(num => !isNaN(Number(num))) 
+                    .replace(/-$/, "")
+                    .split('-')
+                    .every(num => !isNaN(Number(num)))
+                : false
+        )
+        .test(
+            "has-three-numbers",
+            "Vinder sekvens skal indeholde præcis 3 tal",
+            (value) => value
+                ? value
+                .replace(/-$/, "")
+                .split('-')
+                .length === 3
                 : false
         ),
 }).required();
@@ -67,7 +77,7 @@ export default function GetWinningSeq({ setState }: GetWinningSeqProps) {
             <TextField.Root
                 variant="soft"
                 color="gray"
-                placeholder="1-5-8-12-15"
+                placeholder="1-5-8"
                 className={`border dark:border-gray5 ${errors.winningNumbers ? "border-red9 outline-red9 dark:border-red9 dark:outline-red9" : "mb-2"}`}
                 {...register("winningNumbers")}/>
             <Flex mt="1" align="center" className={`error-wrapper ${errors.winningNumbers ? 'error-visible' : ''}`}>

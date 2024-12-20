@@ -1,4 +1,4 @@
-import { Flex, Heading } from "@radix-ui/themes";
+import { Flex, Heading, Text } from "@radix-ui/themes";
 import { Page } from "../import";
 import GameBoardHistoryListView from "../../components/GameBoardHistory/GameBoardHistoryListView";
 import { useParams } from "react-router-dom";
@@ -33,6 +33,8 @@ export default function GameBoardHistoryPage() {
         loadUserDetails();
     }, [userId, getUserDetails]);*/
 
+    const formattedSequence = entry?.winningSequence?.join('-');
+
     return (
         <Page>
 
@@ -43,13 +45,25 @@ export default function GameBoardHistoryPage() {
                 </div>
 
                 {/* Mobil/tablet */}
-                <Flex justify="center" className="lg:hidden w-full pt-6 lg:pt-0">
-                    <Heading size="6">Spil historik - uge: {entry?.week}</Heading>
-                </Flex>
+                <div className="lg:hidden w-full pt-6 lg:pt-0 text-center">
+                    <Heading size="6" mb="2">
+                        Spil historik - uge: {entry?.week}
+                    </Heading>
+                    {formattedSequence && (
+                        <Text size="2" color="gray" weight="medium">
+                            Vinder sekvens: {formattedSequence}
+                        </Text>
+                    )}
+                </div>
 
                 {/* Desktop */}
                 <Flex justify="start" className="w-full hidden lg:block">
                     <Heading size="6">Spil historik - uge: {entry?.week}</Heading>
+                    {formattedSequence && (
+                        <Text size="3" color="gray" weight="medium">
+                            Vinder sekvens: {formattedSequence}
+                        </Text>
+                    )}
                 </Flex>
 
                 <GameBoardHistoryListView />

@@ -1,19 +1,15 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
     faArrowRightFromBracket,
     faBank,
     faGamepad,
     faGear,
     faMoneyBill,
+    faTrophy,
     faUser,
     faHistory,
     faBook,
-    faDice,
-    faTrophy,
-    faUsers,
-    faWallet,
-    faClock, faMoon, faSun
+    faMoon, 
+    faSun
 } from "@fortawesome/free-solid-svg-icons";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ListItem } from "./ListItem";
@@ -28,7 +24,6 @@ import { useAtom } from "jotai/index";
 
 const DesktopNavigation = () => {
   const [theme, setTheme] = useAtom(themeAtom);
-  const navigate = useNavigate();
   const { user, logout } = useAuthContext();
   const isAdmin = user !== null && user.isAdmin;
 
@@ -79,7 +74,7 @@ const DesktopNavigation = () => {
 							<ListItem
 								title="Vindersekvens"
 								href={AppRoutes.AdminPickWinnerSequence}
-                                icon={faGamepad}>
+                                icon={faTrophy}>
 								Find vindere for nuværende uge.
 							</ListItem>
 							<ListItem
@@ -91,7 +86,7 @@ const DesktopNavigation = () => {
 							<ListItem
 								title="Spil"
 								href={AppRoutes.AdminGameHistory}
-                                icon={faBank}>
+                                icon={faGamepad}>
 								Få en visning af tidligere spil.
 							</ListItem>
 							<ListItem title="Transaktioner" 
@@ -122,7 +117,7 @@ const DesktopNavigation = () => {
                         <ListItem href={AppRoutes.MyTransactions} title="Transaktion" icon={faBank}>
                             Opret en ny betaling.
                         </ListItem>
-                        <ListItem href={AppRoutes.MyBalanceHistory} title="Balance historik" icon={faBank}>
+                        <ListItem href={AppRoutes.MyBalanceHistory} title="Balance historik" icon={faMoneyBill}>
                             Se din balance historik.
                         </ListItem>
                         <ActionItem title="Tema" icon={theme === "light" ? faMoon : faSun} onClick={toggleTheme}>

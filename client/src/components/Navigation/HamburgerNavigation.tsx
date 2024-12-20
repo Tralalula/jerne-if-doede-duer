@@ -7,19 +7,16 @@ import {
     faArrowRightFromBracket,
     faBank,
     faGamepad,
-    faGear,
+    faGear, 
     faMoneyBill,
     faUser,
+    faHistory,
+    faTrophy,
+    faBook,
     faBars,
     faX,
-    faHistory,
-    faHome,
-    faBook,
-    faDice,
-    faTrophy,
-    faUsers,
-    faWallet,
-    faClock, faMoon, faSun
+    faMoon,
+    faSun
 } from "@fortawesome/free-solid-svg-icons";
 import { AppRoutes, themeAtom } from "../import";
 import {useAtom} from "jotai/index";
@@ -132,20 +129,20 @@ const HamburgerNavigation = () => {
                                             <span>Vindersekvens</span>
                                         </Link>
                                         <Link
-                                            to={AppRoutes.AdminGameHistory}
-                                            className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
-                                            onClick={toggleMenu}
-                                        >
-                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
-                                            <span>Brugere</span>
-                                        </Link>
-                                        <Link
                                             to={AppRoutes.AdminUsers}
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faUsers} className="mr-3" />
+                                            <FontAwesomeIcon icon={faUser} className="mr-3" />
                                             <span>Brugere</span>
+                                        </Link>
+                                        <Link
+                                            to={AppRoutes.AdminGameHistory}
+                                            className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
+                                            onClick={toggleMenu}
+                                        >
+                                            <FontAwesomeIcon icon={faGamepad} className="mr-3" />
+                                            <span>Spil</span>
                                         </Link>
                                         <Link
                                             to={AppRoutes.AdminTransactions}
@@ -160,7 +157,7 @@ const HamburgerNavigation = () => {
                                             className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                             onClick={toggleMenu}
                                         >
-                                            <FontAwesomeIcon icon={faWallet} className="mr-3" />
+                                            <FontAwesomeIcon icon={faMoneyBill} className="mr-3" />
                                             <span>Balance historik</span>
                                         </Link>
                                     </nav>
@@ -176,8 +173,8 @@ const HamburgerNavigation = () => {
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faUser} className="mr-3" />
-                                        <span>Profil</span>
+                                        <FontAwesomeIcon icon={faGear} className="mr-3" />
+                                        <span>Indstillinger</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyTransactions}
@@ -185,14 +182,14 @@ const HamburgerNavigation = () => {
                                         onClick={toggleMenu}
                                     >
                                         <FontAwesomeIcon icon={faBank} className="mr-3" />
-                                        <span>Betalinger</span>
+                                        <span>Transaktion</span>
                                     </Link>
                                     <Link
                                         to={AppRoutes.MyBalanceHistory}
                                         className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-500/30 rounded-md"
                                         onClick={toggleMenu}
                                     >
-                                        <FontAwesomeIcon icon={faClock} className="mr-3" />
+                                        <FontAwesomeIcon icon={faMoneyBill} className="mr-3" />
                                         <span>Balance historik</span>
                                     </Link>
                                     <button

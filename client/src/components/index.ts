@@ -1,5 +1,4 @@
 // Feedback
-export { default as DaisyToaster } from "./Feedback/DaisyToaster";
 export { default as Countdown } from './Feedback/Countdown'
 
 // Navigation

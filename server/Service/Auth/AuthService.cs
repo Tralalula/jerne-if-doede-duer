@@ -324,7 +324,7 @@ public class AuthService(IOptions<AppOptions> options,
         var existingUser = await userManager.FindByEmailAsync(request.NewEmail);
         if (existingUser != null && existingUser.Id != userId)
         {
-            logger.LogWarning("Email change conflict. UserId: {UserId}, NewEmail: {NewEmail}", userId, request.NewEmail);
+            logger.LogWarning("Email change conflict. UserId: {UserId}, NewEmail: {NewEmail}", userId, request.NewEmail.GetUserTraceId());
             throw new ConflictException("This email is already in use.");
         }
         
@@ -334,7 +334,7 @@ public class AuthService(IOptions<AppOptions> options,
         var verificationLink = $"{options.Value.Urls.Address}/api/auth/verify-email-change?token={encodedToken}&oldEmail={Uri.EscapeDataString(user.Email!)}&newEmail={Uri.EscapeDataString(request.NewEmail)}";
         await emailService.SendEmailChangeVerificationAsync(user.Email!, request.NewEmail, verificationLink);
 
-        logger.LogInformation("Email change initiated. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", userId, user.Email, request.NewEmail);
+        logger.LogInformation("Email change initiated. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", userId, user.Email!.GetUserTraceId(), request.NewEmail.GetUserTraceId());
     }
 
     public async Task<bool> ConfirmEmailChangeAsync(string oldEmail, string newEmail, string token)
@@ -342,7 +342,7 @@ public class AuthService(IOptions<AppOptions> options,
         var user = await userManager.FindByEmailAsync(oldEmail);
         if (user == null)
         {
-            logger.LogWarning("Email change verification attempted for non-existent user. OldEmail: {OldEmail}, NewEmail: {NewEmail}", oldEmail, newEmail);
+            logger.LogWarning("Email change verification attempted for non-existent user. OldEmail: {OldEmail}, NewEmail: {NewEmail}", oldEmail.GetUserTraceId(), newEmail.GetUserTraceId());
             return false;
         }
         
@@ -350,7 +350,7 @@ public class AuthService(IOptions<AppOptions> options,
         if (!emailChangeResult.Succeeded)
         {
             logger.LogWarning("Email change verification failed. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}, Errors: {Errors}",
-                user.Id, oldEmail, newEmail, string.Join(", ", emailChangeResult.Errors.Select(e => e.Description)));
+                user.Id, oldEmail.GetUserTraceId(), newEmail.GetUserTraceId(), string.Join(", ", emailChangeResult.Errors.Select(e => e.Description)));
             return false;
         }
         
@@ -358,7 +358,7 @@ public class AuthService(IOptions<AppOptions> options,
         if (!usernameChangeResult.Succeeded)
         {
             logger.LogWarning("Username update failed after email change. UserId: {UserId}, NewEmail: {NewEmail}, Errors: {Errors}",
-                user.Id, newEmail, string.Join(", ", usernameChangeResult.Errors.Select(e => e.Description)));
+                user.Id, newEmail.GetUserTraceId(), string.Join(", ", usernameChangeResult.Errors.Select(e => e.Description)));
             
             var revertToken = await userManager.GenerateChangeEmailTokenAsync(user, oldEmail);
             var revertResult = await userManager.ChangeEmailAsync(user, oldEmail, revertToken);
@@ -367,13 +367,13 @@ public class AuthService(IOptions<AppOptions> options,
             {
                 // Revert fejlede = gg 
                 logger.LogError("Failed to revert email after username update failed. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}, Errors: {Errors}",
-                    user.Id, oldEmail, newEmail, string.Join(", ", revertResult.Errors.Select(e => e.Description)));
+                    user.Id, oldEmail.GetUserTraceId(), newEmail.GetUserTraceId(), string.Join(", ", revertResult.Errors.Select(e => e.Description)));
             }
             
             return false;
         }
         
-        logger.LogInformation("Email changed successfully. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail, newEmail);
+        logger.LogInformation("Email changed successfully. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail.GetUserTraceId(), newEmail.GetUserTraceId());
 
         try
         {
@@ -382,7 +382,7 @@ public class AuthService(IOptions<AppOptions> options,
         catch (Exception ex)
         {
             // Gammel email blev ikke notificeret, men email er stadig ændret - skal vi revert?
-            logger.LogError(ex, "Failed to send email change notification. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail, newEmail);
+            logger.LogError(ex, "Failed to send email change notification. UserId: {UserId}, OldEmail: {OldEmail}, NewEmail: {NewEmail}", user.Id, oldEmail.GetUserTraceId(), newEmail.GetUserTraceId());
         }
         
         return true;

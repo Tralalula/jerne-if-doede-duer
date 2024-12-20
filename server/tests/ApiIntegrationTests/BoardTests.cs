@@ -10,6 +10,7 @@ using Xunit.Abstractions;
 using BoardPickRequest = Service.Models.Requests.BoardPickRequest;
 using BoardPickResponse = Service.Models.Responses.BoardPickResponse;
 using GameStatusResponse = Service.Models.Responses.GameStatusResponse;
+using UserStatus = DataAccess.Models.UserStatus;
 
 namespace ApiIntegrationTests;
 
@@ -51,6 +52,20 @@ public class BoardControllerIntegrationTests : ApiTestBase
             throw new InvalidOperationException("User not found.");
 
         user.Credits += amount;
+        
+        PgCtxSetup.DbContextInstance.Update(user);
+        await PgCtxSetup.DbContextInstance.SaveChangesAsync();
+    }
+    
+    private async Task Set_User_Inactive(Guid userId)
+    {
+        var user = await PgCtxSetup.DbContextInstance.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            throw new InvalidOperationException("User not found.");
+
+        user.Status = UserStatus.Inactive;
         
         PgCtxSetup.DbContextInstance.Update(user);
         await PgCtxSetup.DbContextInstance.SaveChangesAsync();
@@ -149,11 +164,53 @@ public class BoardControllerIntegrationTests : ApiTestBase
 
         var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
         
-        _testOutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
         
         var content = await response.Content.ReadAsStringAsync();
         Assert.Contains("Du skal vælge mellem 5 til 8 numre.", content);
+    }
+    
+    [Fact]
+    public async Task PickBoard_NoActiveGame()
+    {
+        var client = await AuthenticateClientAsync(AuthTestHelper.Users.Player);
+        var userId = await Get_User_Id(AuthTestHelper.Users.Player.Email);
+        await Add_User_Credits(userId, 200);
+
+        var boardRequest = new BoardPickRequest
+        {
+            Amount = 1,
+            SelectedNumbers = new List<int> { 3, 7, 9, 10, 11 }
+        };
+
+        var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
+        
+        _testOutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
+        Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Ingen aktiv spil fundet.", content);
+    }
+
+    [Fact]
+    public async Task PickBoard_User_Is_Inactive()
+    {
+        var client = await AuthenticateClientAsync(AuthTestHelper.Users.Player);
+        var userId = await Get_User_Id(AuthTestHelper.Users.Player.Email);
+        await Set_User_Inactive(userId);
+
+        var boardRequest = new BoardPickRequest
+        {
+            Amount = 1,
+            SelectedNumbers = new List<int> { 3, 7, 9, 10, 11 }
+        };
+
+        var response = await client.PostAsJsonAsync("/api/board/pick", boardRequest);
+        
+        Assert.Equal(StatusCodes.Status401Unauthorized, (int)response.StatusCode);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Du har ikke tilladelse til at købe et bræt.", content);
     }
     
     [Fact]

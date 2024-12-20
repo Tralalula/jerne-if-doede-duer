@@ -28,13 +28,13 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
     {
         int count = numbers.Count;
         if (count < 5 || count > 8)
-            throw new BadRequestException("You must pick between 5 and 8 numbers.");
+            throw new BadRequestException("Du skal vælge mellem 5 til 8 numre.");
 
         if (numbers.Any(n => n < 1 || n > 16))
-            throw new BadRequestException("Selected numbers must be within the range 1-16.");
+            throw new BadRequestException("Valgte numre skal være imellem 1-16.");
 
         if (numbers.Distinct().Count() != count)
-            throw new BadRequestException("Selected numbers must be unique.");
+            throw new BadRequestException("Valgte numre skal være unikke.");
     }
 
     public async Task<Game?> GetActiveGameAsync()
@@ -56,7 +56,7 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
             6 => 40,
             7 => 80,
             8 => 160,
-            _ => throw new ArgumentException("Invalid board pick.")
+            _ => throw new ArgumentException("Kunne ikke få pris på bræt.")
         };
     }
     
@@ -119,14 +119,14 @@ public class BoardService(AppDbContext context, UserManager<User> userManager, T
         if (board.Amount <= 0)
             throw new BadRequestException("Du skal mindst købe 1 bræt.");
 
+        board.SelectedNumbers = board.SelectedNumbers.OrderBy(n => n).ToList();
+        ValidateBoard(board.SelectedNumbers);
+        
         var totalPrice = GetBoardPrice(board.SelectedNumbers.Count) * board.Amount;
         
         if (user.Credits < totalPrice)
             throw new BadRequestException("Du har ikke nok credits til at købe dette bræt.");
-
-        board.SelectedNumbers = board.SelectedNumbers.OrderBy(n => n).ToList();
-        ValidateBoard(board.SelectedNumbers);
-
+        
         var game = await GetActiveGameAsync();
         
         if (game == null)
